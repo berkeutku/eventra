@@ -2,20 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import RideList from "@/components/RideList";
-import { categoryMeta, events } from "@/data/events";
+import { categoryMeta } from "@/data/events";
 import { formatEventDate, formatEventTime } from "@/lib/format";
+import { getEventById } from "@/lib/events";
+
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ id: string }>;
 };
 
-export function generateStaticParams() {
-  return events.map((event) => ({ id: event.id }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const event = events.find((item) => item.id === id);
+  const event = await getEventById(id);
 
   if (!event) {
     return { title: "Etkinlik bulunamadı | Eventra" };
@@ -29,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function EventDetailPage({ params }: Props) {
   const { id } = await params;
-  const event = events.find((item) => item.id === id);
+  const event = await getEventById(id);
 
   if (!event) {
     notFound();
@@ -54,18 +53,18 @@ export default async function EventDetailPage({ params }: Props) {
           >
             &larr; Tüm etkinlikler
           </Link>
-          <span className="mt-10 inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur">
+          <span className="mt-10 inline-block rounded-full bg-white/25 px-3.5 py-1 text-xs font-semibold backdrop-blur">
             {meta.label}
           </span>
-          <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">
+          <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
             {event.title}
           </h1>
         </div>
       </section>
 
-      <section className="bg-surface px-6 py-12 sm:py-16">
+      <section className="px-6 py-12 sm:py-16">
         <div className="mx-auto max-w-4xl space-y-6">
-          <div className="rounded-3xl bg-white p-8 shadow-sm">
+          <div className="rounded-3xl bg-white p-8 shadow-md shadow-violet/5 ring-1 ring-line">
             <dl className="grid gap-6 sm:grid-cols-4">
               {details.map((item) => (
                 <div key={item.label}>
@@ -83,14 +82,14 @@ export default async function EventDetailPage({ params }: Props) {
             </p>
           </div>
 
-          <div className="rounded-3xl bg-white p-8 shadow-sm">
+          <div className="rounded-3xl bg-white p-8 shadow-md shadow-violet/5 ring-1 ring-line">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <h2 className="text-2xl font-semibold tracking-tight">
+              <h2 className="text-2xl font-bold tracking-tight">
                 Ortak yolculuklar
               </h2>
               <Link
                 href={`/events/${event.id}/yolculuk-olustur`}
-                className="rounded-full bg-ink px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-black"
+                className="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet"
               >
                 Yolculuk Oluştur
               </Link>
