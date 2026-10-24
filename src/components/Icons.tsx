@@ -42,6 +42,47 @@ const paths = {
       <path d="M4 20a8 8 0 0 1 16 0" />
     </>
   ),
+  users: (
+    <>
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
+      <circle cx="17" cy="9" r="2.5" />
+      <path d="M17 14.5a5.5 5.5 0 0 1 4.5 5.5" />
+    </>
+  ),
+  wallet: (
+    <>
+      <path d="M4 7a2 2 0 0 1 2-2h12v3" />
+      <rect x="3" y="7" width="18" height="13" rx="3" />
+      <path d="M16 13.5h2.5" />
+    </>
+  ),
+  shield: (
+    <>
+      <path d="M12 3 5 6v5.5c0 4.4 3 7.9 7 9.5 4-1.6 7-5.1 7-9.5V6z" />
+      <path d="m9 12 2.2 2.2L15.5 10" />
+    </>
+  ),
+  bus: (
+    <>
+      <rect x="4" y="4" width="16" height="13" rx="3" />
+      <path d="M4 11h16M8 17v3M16 17v3" />
+      <circle cx="8" cy="14" r=".7" fill="currentColor" />
+      <circle cx="16" cy="14" r=".7" fill="currentColor" />
+    </>
+  ),
+  parking: (
+    <>
+      <rect x="4" y="4" width="16" height="16" rx="4" />
+      <path d="M10 16V8h3a2.5 2.5 0 0 1 0 5h-3" />
+    </>
+  ),
+  map: (
+    <>
+      <path d="m9 4-6 2v14l6-2 6 2 6-2V4l-6 2z" />
+      <path d="M9 4v14M15 6v14" />
+    </>
+  ),
   music: (
     <>
       <path d="M9 18V6l10-2v12" />

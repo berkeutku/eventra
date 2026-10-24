@@ -35,11 +35,42 @@ body {
   font-family: var(--font-sans);
 }
 
+[id] {
+  scroll-margin-top: 6rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 .text-gradient {
   background: linear-gradient(90deg, #b9a9ff 0%, #ff9d9d 55%, #6df2cf 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
 }
 
 :focus-visible {
