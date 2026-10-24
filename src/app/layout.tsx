@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Inter } from "next/font/google";
-import Header from "@/components/Header";
+import { Caveat, Plus_Jakarta_Sans } from "next/font/google";
+import BottomNav from "@/components/BottomNav";
 import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 import "./globals.css";
 
-const inter = Inter({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-inter",
+  variable: "--font-jakarta",
 });
 
-const bricolage = Bricolage_Grotesque({
+const caveat = Caveat({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-bricolage",
+  variable: "--font-caveat",
 });
 
 export const metadata: Metadata = {
@@ -26,11 +27,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr" className={`${inter.variable} ${bricolage.variable}`}>
+    <html lang="tr" className={`${jakarta.variable} ${caveat.variable}`}>
       <body className="flex min-h-screen flex-col antialiased">
         <Header />
-        <div className="flex-1">{children}</div>
+        <div className="flex-1 pb-24 sm:pb-0">{children}</div>
         <Footer />
+        <BottomNav />
       </body>
     </html>
   );

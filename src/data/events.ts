@@ -12,22 +12,25 @@ export type EventItem = {
 
 export const categoryMeta: Record<
   EventCategory,
-  { label: string; gradient: string; soft: string }
+  { label: string; gradient: string; soft: string; accent: string }
 > = {
   concert: {
     label: "Konser",
-    gradient: "bg-linear-to-br from-violet to-pink",
+    gradient: "bg-linear-to-br from-[#1a0b4d] via-violet to-coral",
     soft: "bg-lilac",
+    accent: "text-violet",
   },
   match: {
     label: "Maç",
-    gradient: "bg-linear-to-br from-mint to-sky",
+    gradient: "bg-linear-to-br from-[#004d3b] via-[#00997a] to-mint",
     soft: "bg-sea",
+    accent: "text-mint-ink",
   },
   theatre: {
     label: "Tiyatro",
-    gradient: "bg-linear-to-br from-coral to-sun",
+    gradient: "bg-linear-to-br from-[#5b1a3a] via-coral to-sun",
     soft: "bg-peach",
+    accent: "text-coral-ink",
   },
 };
 

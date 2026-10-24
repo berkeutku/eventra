@@ -122,7 +122,7 @@ export default function Dashboard() {
         </p>
         <Link
           href="/giris"
-          className="mt-6 inline-block rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white hover:bg-violet"
+          className="mt-6 inline-block rounded-full bg-violet px-6 py-3 text-sm font-semibold text-white hover:bg-sky"
         >
           Giriş yap
         </Link>

@@ -8,6 +8,7 @@ import {
   calcSharePerPerson,
   type Ride,
 } from "@/lib/rides";
+import Icon from "@/components/Icons";
 import { roleLabels, useDemoUser } from "@/lib/session";
 
 type Props = {
@@ -212,7 +213,7 @@ export default function RideForm({ eventId, eventTitle }: Props) {
         </p>
         <Link
           href="/giris"
-          className="mt-6 inline-block rounded-full bg-ink px-6 py-3 text-sm font-medium text-white hover:bg-black"
+          className="mt-6 inline-block rounded-full bg-violet px-6 py-3 text-sm font-medium text-white hover:bg-sky"
         >
           Giriş yap
         </Link>
@@ -246,7 +247,12 @@ export default function RideForm({ eventId, eventTitle }: Props) {
 
     return (
       <div className="rounded-3xl bg-white p-8 shadow-sm">
-        <p className="text-sm font-medium text-sky">Yolculuk kaydedildi</p>
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-mint text-night">
+            <Icon name="check" className="h-5 w-5" />
+          </span>
+          <p className="text-sm font-bold text-mint-ink">Yolculuk kaydedildi</p>
+        </div>
         <h2 className="mt-1 text-2xl font-semibold tracking-tight">
           {created.origin} → {created.destination}
         </h2>
@@ -290,7 +296,7 @@ export default function RideForm({ eventId, eventTitle }: Props) {
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
             href={`/events/${eventId}`}
-            className="rounded-full bg-ink px-6 py-3 text-sm font-medium text-white hover:bg-black"
+            className="rounded-full bg-violet px-6 py-3 text-sm font-medium text-white hover:bg-sky"
           >
             Etkinliğe dön
           </Link>
@@ -420,7 +426,7 @@ export default function RideForm({ eventId, eventTitle }: Props) {
 
       <button
         type="submit"
-        className="w-full rounded-full bg-ink px-6 py-3 text-base font-medium text-white transition-colors hover:bg-black"
+        className="w-full rounded-full bg-violet px-6 py-3 text-base font-medium text-white transition-colors hover:bg-sky"
       >
         Yolculuğu oluştur
       </button>

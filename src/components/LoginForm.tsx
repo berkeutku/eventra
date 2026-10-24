@@ -74,7 +74,7 @@ export default function LoginForm() {
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
             href="/events"
-            className="rounded-full bg-ink px-6 py-3 text-sm font-medium text-white hover:bg-black"
+            className="rounded-full bg-violet px-6 py-3 text-sm font-medium text-white hover:bg-sky"
           >
             Etkinliklere git
           </Link>
@@ -152,7 +152,7 @@ export default function LoginForm() {
 
       <button
         type="submit"
-        className="w-full rounded-full bg-ink px-6 py-3 text-base font-medium text-white transition-colors hover:bg-black"
+        className="w-full rounded-full bg-violet px-6 py-3 text-base font-medium text-white transition-colors hover:bg-sky"
       >
         Demo olarak devam et
       </button>

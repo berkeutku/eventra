@@ -1,0 +1,111 @@
+import type { ReactNode } from "react";
+import type { EventCategory } from "@/data/events";
+
+const paths = {
+  home: (
+    <>
+      <path d="M3 11.5 12 4l9 7.5" />
+      <path d="M5 10v10h14V10" />
+      <path d="M10 20v-5h4v5" />
+    </>
+  ),
+  ticket: (
+    <>
+      <path d="M3 9V7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2a3 3 0 0 0 0 6v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-2a3 3 0 0 0 0-6z" />
+      <path d="M14 6v12" strokeDasharray="2 3" />
+    </>
+  ),
+  pin: (
+    <>
+      <path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" />
+      <circle cx="12" cy="9.5" r="2.5" />
+    </>
+  ),
+  route: (
+    <>
+      <circle cx="6" cy="19" r="2" />
+      <circle cx="18" cy="5" r="2" />
+      <path d="M8 19h5.5a3.5 3.5 0 0 0 0-7h-3a3.5 3.5 0 0 1 0-7H16" />
+    </>
+  ),
+  car: (
+    <>
+      <path d="M4 15v-2.5l1.7-4.3A2 2 0 0 1 7.6 7h8.8a2 2 0 0 1 1.9 1.2L20 12.5V15" />
+      <rect x="3" y="15" width="18" height="4" rx="1.5" />
+      <circle cx="7.5" cy="17" r=".7" fill="currentColor" />
+      <circle cx="16.5" cy="17" r=".7" fill="currentColor" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20a8 8 0 0 1 16 0" />
+    </>
+  ),
+  music: (
+    <>
+      <path d="M9 18V6l10-2v12" />
+      <circle cx="6.5" cy="18" r="2.5" />
+      <circle cx="16.5" cy="16" r="2.5" />
+    </>
+  ),
+  ball: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m12 8.3 3.3 2.4-1.3 3.9h-4l-1.3-3.9z" />
+      <path d="M12 3v5.3M20.4 9.2l-5.1 1.5M17.3 19.2 14 14.6M6.7 19.2 10 14.6M3.6 9.2l5.1 1.5" />
+    </>
+  ),
+  mask: (
+    <>
+      <path d="M4 5c3 1.5 13 1.5 16 0v7a8 8 0 0 1-16 0z" />
+      <path d="M8.5 10h.01M15.5 10h.01" />
+      <path d="M9 15c1.5 1.5 4.5 1.5 6 0" />
+    </>
+  ),
+  calendar: (
+    <>
+      <rect x="4" y="5" width="16" height="15" rx="3" />
+      <path d="M4 10h16M9 3v4M15 3v4" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </>
+  ),
+  arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
+  check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
+} satisfies Record<string, ReactNode>;
+
+export type IconName = keyof typeof paths;
+
+export const categoryIcon: Record<EventCategory, IconName> = {
+  concert: "music",
+  match: "ball",
+  theatre: "mask",
+};
+
+export default function Icon({
+  name,
+  className = "h-5 w-5",
+}: {
+  name: IconName;
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      {paths[name]}
+    </svg>
+  );
+}

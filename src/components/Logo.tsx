@@ -1,8 +1,14 @@
 import Image from "next/image";
 
-export default function Logo({ size = "md" }: { size?: "md" | "lg" }) {
+type Props = {
+  size?: "md" | "lg";
+  tone?: "dark" | "light";
+};
+
+export default function Logo({ size = "md", tone = "dark" }: Props) {
   const iconHeight = size === "lg" ? "h-10" : "h-7";
   const textSize = size === "lg" ? "text-3xl" : "text-2xl";
+  const textColor = tone === "light" ? "text-white" : "text-ink";
 
   return (
     <span className="inline-flex items-center gap-2.5">
@@ -15,8 +21,7 @@ export default function Logo({ size = "md" }: { size?: "md" | "lg" }) {
         priority
       />
       <span
-        className={`text-gradient font-display ${textSize} font-bold lowercase tracking-tight`}
-        style={{ fontFamily: "var(--font-display)" }}
+        className={`${textSize} ${textColor} font-extrabold lowercase tracking-tight`}
       >
         eventra
       </span>

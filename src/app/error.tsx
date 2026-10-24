@@ -14,7 +14,7 @@ export default function ErrorPage() {
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="mt-6 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet"
+          className="mt-6 rounded-full bg-violet px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-sky"
         >
           Tekrar dene
         </button>
