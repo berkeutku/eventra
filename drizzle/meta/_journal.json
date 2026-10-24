@@ -8,6 +8,13 @@
       "when": 1792860247001,
       "tag": "0000_deep_millenium_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792878078078,
+      "tag": "0001_cool_deathstrike",
+      "breakpoints": true
     }
   ]
 }
