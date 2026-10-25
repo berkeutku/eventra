@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { logoutAction } from "@/app/hesap/actions";
+import { useAuthUser } from "@/components/AuthProvider";
 import Logo from "@/components/Logo";
-import { logoutDemoUser, roleLabels, useDemoUser } from "@/lib/session";
+import { roleLabels } from "@/lib/roles";
 
 const links = [
   { label: "Etkinlikler", href: "/events" },
@@ -11,14 +13,8 @@ const links = [
 ];
 
 export default function Header() {
-  const router = useRouter();
   const pathname = usePathname();
-  const user = useDemoUser();
-
-  function handleLogout() {
-    logoutDemoUser();
-    router.push("/");
-  }
+  const user = useAuthUser();
 
   const initial = user
     ? user.name.trim().charAt(0).toLocaleUpperCase("tr-TR")
@@ -56,14 +52,7 @@ export default function Header() {
               );
             })}
 
-            {user === undefined ? null : user === null ? (
-              <Link
-                href="/giris"
-                className="ml-1 rounded-full bg-violet px-5 py-2.5 text-white transition-colors hover:bg-sky"
-              >
-                Giriş Yap
-              </Link>
-            ) : (
+            {user ? (
               <>
                 <Link
                   href="/panel"
@@ -74,26 +63,44 @@ export default function Header() {
                   </span>
                   {user.name} · {roleLabels[user.role]}
                 </Link>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="rounded-full px-4 py-2 text-ink transition-colors hover:bg-lilac"
-                >
-                  Çıkış
-                </button>
+                <form action={logoutAction} className="contents">
+                  <button
+                    type="submit"
+                    className="rounded-full px-4 py-2 text-ink transition-colors hover:bg-lilac"
+                  >
+                    Çıkış
+                  </button>
+                </form>
               </>
+            ) : (
+              <Link
+                href="/giris"
+                className="ml-1 rounded-full bg-violet px-5 py-2.5 text-white transition-colors hover:bg-sky"
+              >
+                Giriş Yap
+              </Link>
             )}
           </nav>
 
-          {user && (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="rounded-full bg-lilac px-4 py-2 text-sm font-bold text-violet sm:hidden"
-            >
-              Çıkış
-            </button>
-          )}
+          <div className="sm:hidden">
+            {user ? (
+              <form action={logoutAction}>
+                <button
+                  type="submit"
+                  className="rounded-full bg-lilac px-4 py-2 text-sm font-bold text-violet"
+                >
+                  Çıkış
+                </button>
+              </form>
+            ) : (
+              <Link
+                href="/giris"
+                className="rounded-full bg-violet px-4 py-2 text-sm font-bold text-white"
+              >
+                Giriş Yap
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </header>

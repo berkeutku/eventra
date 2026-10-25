@@ -82,5 +82,5 @@ export async function registerAction(
   }
 
   await createSession(userId);
-  redirect("/hesap");
+  redirect("/panel");
 }

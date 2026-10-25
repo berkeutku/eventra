@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
+import { useAuthUser } from "@/components/AuthProvider";
 import {
   calcArrival,
   calcSharePerPerson,
   departureSortKey,
-  useRides,
-  type Ride,
-} from "@/lib/rides";
+  type RideItem,
+} from "@/lib/ride-utils";
 
 type SortKey = "time" | "cost";
 
@@ -19,7 +19,7 @@ function normalize(text: string): string {
   return text.toLocaleLowerCase("tr-TR");
 }
 
-function matchesQuery(ride: Ride, query: string): boolean {
+function matchesQuery(ride: RideItem, query: string): boolean {
   if (query === "") {
     return true;
   }
@@ -29,78 +29,76 @@ function matchesQuery(ride: Ride, query: string): boolean {
   return haystack.includes(query);
 }
 
-function RideCard({ ride }: { ride: Ride }) {
+function RideCard({ ride }: { ride: RideItem }) {
   const share = calcSharePerPerson(ride.totalCost, ride.seats);
 
   return (
     <li className="rounded-2xl border border-line p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold tracking-tight">
+          <h3 className="text-lg font-extrabold tracking-tight">
             {ride.origin} → {ride.destination}
           </h3>
           <p className="mt-1 text-sm text-muted">Sürücü: {ride.driverName}</p>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-semibold tracking-tight">{share} TL</p>
+          <p className="text-2xl font-extrabold tracking-tight text-violet">
+            {share} TL
+          </p>
           <p className="text-xs text-muted">tahmini kişi başı</p>
         </div>
       </div>
 
       <dl className="mt-5 grid gap-4 sm:grid-cols-3">
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wider text-muted">
+          <dt className="text-xs font-bold uppercase tracking-wider text-muted">
             Buluşma noktası
           </dt>
-          <dd className="mt-1 text-sm font-semibold">{ride.meetingPoint}</dd>
+          <dd className="mt-1 text-sm font-bold">{ride.meetingPoint}</dd>
         </div>
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wider text-muted">
+          <dt className="text-xs font-bold uppercase tracking-wider text-muted">
             Kalkış → tahmini varış
           </dt>
-          <dd className="mt-1 text-sm font-semibold">
+          <dd className="mt-1 text-sm font-bold">
             {ride.departureTime} →{" "}
             {calcArrival(ride.departureTime, ride.durationMinutes)}
           </dd>
         </div>
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wider text-muted">
+          <dt className="text-xs font-bold uppercase tracking-wider text-muted">
             Boş koltuk
           </dt>
-          <dd className="mt-1 text-sm font-semibold">{ride.seats}</dd>
+          <dd className="mt-1 text-sm font-bold">{ride.seats}</dd>
         </div>
       </dl>
     </li>
   );
 }
 
-export default function RideList({ eventId }: { eventId: string }) {
-  const allRides = useRides();
+export default function RideList({ rides }: { rides: RideItem[] }) {
+  const user = useAuthUser();
   const [query, setQuery] = useState("");
   const [minSeats, setMinSeats] = useState("1");
   const [sort, setSort] = useState<SortKey>("time");
 
-  if (allRides === undefined) {
-    return <div className="mt-8 h-32" aria-busy="true" />;
-  }
-
-  const eventRides = allRides.filter((ride) => ride.eventId === eventId);
-
-  if (eventRides.length === 0) {
+  if (rides.length === 0) {
     return (
       <div className="mt-8 rounded-2xl bg-surface p-6 text-center">
-        <p className="font-semibold text-ink">
+        <p className="font-bold text-ink">
           Bu etkinlik için henüz yolculuk yok
         </p>
         <p className="mt-1 text-sm text-muted">
           Sürücü olarak giriş yapıp ilk yolculuğu sen oluşturabilirsin.
         </p>
-        <Link
-          href="/giris"
-          className="mt-4 inline-block text-sm font-medium text-sky hover:text-violet"
-        >
-          Giriş sayfasına git &rarr;
-        </Link>
+        {!user && (
+          <Link
+            href="/giris"
+            className="mt-4 inline-block text-sm font-bold text-violet hover:underline"
+          >
+            Giriş sayfasına git &rarr;
+          </Link>
+        )}
       </div>
     );
   }
@@ -108,7 +106,7 @@ export default function RideList({ eventId }: { eventId: string }) {
   const normalizedQuery = normalize(query.trim());
   const minSeatCount = Number(minSeats);
 
-  const visibleRides = eventRides
+  const visibleRides = rides
     .filter((ride) => matchesQuery(ride, normalizedQuery))
     .filter((ride) => ride.seats >= minSeatCount)
     .sort((a, b) => {
@@ -127,7 +125,7 @@ export default function RideList({ eventId }: { eventId: string }) {
     <div className="mt-8">
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
-          <label htmlFor="ride-query" className="text-sm font-medium text-ink">
+          <label htmlFor="ride-query" className="text-sm font-bold text-ink">
             Ara
           </label>
           <input
@@ -141,7 +139,7 @@ export default function RideList({ eventId }: { eventId: string }) {
           />
         </div>
         <div>
-          <label htmlFor="ride-seats" className="text-sm font-medium text-ink">
+          <label htmlFor="ride-seats" className="text-sm font-bold text-ink">
             En az boş koltuk
           </label>
           <select
@@ -158,7 +156,7 @@ export default function RideList({ eventId }: { eventId: string }) {
           </select>
         </div>
         <div>
-          <label htmlFor="ride-sort" className="text-sm font-medium text-ink">
+          <label htmlFor="ride-sort" className="text-sm font-bold text-ink">
             Sırala
           </label>
           <select
@@ -175,14 +173,14 @@ export default function RideList({ eventId }: { eventId: string }) {
 
       <p aria-live="polite" className="mt-6 text-sm text-muted">
         {visibleRides.length} yolculuk gösteriliyor
-        {visibleRides.length !== eventRides.length
-          ? ` (toplam ${eventRides.length})`
+        {visibleRides.length !== rides.length
+          ? ` (toplam ${rides.length})`
           : ""}
       </p>
 
       {visibleRides.length === 0 ? (
         <div className="mt-4 rounded-2xl bg-surface p-6 text-center">
-          <p className="font-semibold text-ink">Sonuç bulunamadı</p>
+          <p className="font-bold text-ink">Sonuç bulunamadı</p>
           <p className="mt-1 text-sm text-muted">
             Aramayı veya koltuk filtresini değiştirmeyi dene.
           </p>
@@ -192,7 +190,7 @@ export default function RideList({ eventId }: { eventId: string }) {
               setQuery("");
               setMinSeats("1");
             }}
-            className="mt-4 text-sm font-medium text-sky hover:text-violet"
+            className="mt-4 text-sm font-bold text-violet hover:underline"
           >
             Filtreleri temizle
           </button>
@@ -205,10 +203,9 @@ export default function RideList({ eventId }: { eventId: string }) {
         </ul>
       )}
 
-      <p className="mt-6 rounded-2xl bg-surface p-4 text-sm text-muted">
-        Demo bilgisi: Bu liste yalnızca bu tarayıcıda oluşturulan yolculukları
-        gösterir. Yolculuğa katılma ve koltuk rezervasyonu gerçek veritabanı
-        eklendiğinde çalışacak.
+      <p className="mt-6 rounded-2xl bg-lilac p-4 text-sm text-muted">
+        Yolculuğa katılma ve koltuk rezervasyonu bir sonraki adımda eklenecek.
+        Şimdilik yolculukları inceleyebilir ve filtreleyebilirsin.
       </p>
     </div>
   );

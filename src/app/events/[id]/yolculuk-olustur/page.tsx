@@ -46,7 +46,7 @@ export default async function CreateRidePage({ params }: Props) {
         </p>
 
         <div className="mt-8">
-          <RideForm eventId={event.id} eventTitle={event.title} />
+          <RideForm eventId={event.id} />
         </div>
       </div>
     </main>

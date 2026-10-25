@@ -7,11 +7,13 @@ import RideList from "@/components/RideList";
 import { categoryMeta } from "@/data/events";
 import { getEventById } from "@/lib/events";
 import { formatEventDate, formatEventTime } from "@/lib/format";
+import { getRidesForEvent } from "@/lib/ride-queries";
 
 export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ yolculuk?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -28,14 +30,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function EventDetailPage({ params }: Props) {
+export default async function EventDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const query = await searchParams;
   const event = await getEventById(id);
 
   if (!event) {
     notFound();
   }
 
+  const rides = await getRidesForEvent(event.id);
   const meta = categoryMeta[event.category];
 
   const details: { label: string; value: string; icon: IconName }[] = [
@@ -81,6 +85,18 @@ export default async function EventDetailPage({ params }: Props) {
 
       <section className="px-6 py-10 sm:py-14">
         <div className="mx-auto max-w-4xl space-y-6">
+          {query.yolculuk === "olusturuldu" && (
+            <div
+              role="status"
+              className="flex items-center gap-3 rounded-2xl bg-sea p-4 font-bold text-mint-ink"
+            >
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-mint text-night">
+                <Icon name="check" className="h-4 w-4" />
+              </span>
+              Yolculuğun oluşturuldu ve aşağıdaki listede görünüyor.
+            </div>
+          )}
+
           <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
             <dl className="grid gap-6 sm:grid-cols-3">
               {details.map((item) => (
@@ -121,7 +137,7 @@ export default async function EventDetailPage({ params }: Props) {
               Bu etkinliğe giden sürücülerin paylaştığı yolculuklar.
             </p>
 
-            <RideList eventId={event.id} />
+            <RideList rides={rides} />
           </div>
         </div>
       </section>

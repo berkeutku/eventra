@@ -1,30 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { startTransition, useActionState, useState } from "react";
+import { useAuthUser } from "@/components/AuthProvider";
 import {
-  addRide,
-  calcArrival,
-  calcSharePerPerson,
-  type Ride,
-} from "@/lib/rides";
-import Icon from "@/components/Icons";
-import { roleLabels, useDemoUser } from "@/lib/session";
+  createRideAction,
+  type CreateRideField,
+  type CreateRideState,
+} from "@/lib/ride-actions";
+import { calcSharePerPerson } from "@/lib/ride-utils";
+import { roleLabels } from "@/lib/roles";
 
 type Props = {
   eventId: string;
-  eventTitle: string;
 };
-
-type FieldName =
-  | "origin"
-  | "destination"
-  | "meetingPoint"
-  | "departureTime"
-  | "duration"
-  | "cost";
-
-type FormErrors = Partial<Record<FieldName, string>>;
 
 type FormValues = {
   origin: string;
@@ -35,6 +24,8 @@ type FormValues = {
   seats: string;
   cost: string;
 };
+
+const initialState: CreateRideState = {};
 
 const emptyForm: FormValues = {
   origin: "",
@@ -51,51 +42,11 @@ function parseWholeNumber(value: string): number | null {
   return /^\d+$/.test(trimmed) ? Number(trimmed) : null;
 }
 
-function validateText(value: string, label: string): string | undefined {
-  const length = value.trim().length;
-  if (length < 2) {
-    return `${label} en az 2 karakter olmalı.`;
-  }
-  if (length > 80) {
-    return `${label} en fazla 80 karakter olabilir.`;
-  }
-  return undefined;
-}
-
-function validate(values: FormValues): FormErrors {
-  const errors: FormErrors = {};
-
-  const origin = validateText(values.origin, "Başlangıç noktası");
-  if (origin) errors.origin = origin;
-
-  const destination = validateText(values.destination, "Varış noktası");
-  if (destination) errors.destination = destination;
-
-  const meetingPoint = validateText(values.meetingPoint, "Buluşma noktası");
-  if (meetingPoint) errors.meetingPoint = meetingPoint;
-
-  if (!values.departureTime) {
-    errors.departureTime = "Lütfen kalkış saatini seç.";
-  }
-
-  const duration = parseWholeNumber(values.duration);
-  if (duration === null || duration < 5 || duration > 600) {
-    errors.duration = "Süre 5 ile 600 dakika arasında bir sayı olmalı.";
-  }
-
-  const cost = parseWholeNumber(values.cost);
-  if (cost === null || cost > 5000) {
-    errors.cost = "Masraf 0 ile 5000 TL arasında bir tam sayı olmalı.";
-  }
-
-  return errors;
-}
-
 const baseInput =
   "mt-2 w-full rounded-xl border bg-white px-4 py-3 text-base text-ink placeholder:text-muted/60";
 
 type TextInputProps = {
-  id: FieldName;
+  id: CreateRideField;
   label: string;
   value: string;
   onChange: (value: string) => void;
@@ -119,11 +70,12 @@ function TextInput({
 }: TextInputProps) {
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-ink">
+      <label htmlFor={id} className="block text-sm font-bold text-ink">
         {label}
       </label>
       <input
         id={id}
+        name={id}
         type={type}
         value={value}
         inputMode={inputMode}
@@ -131,11 +83,17 @@ function TextInput({
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
         aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
-        className={`${baseInput} ${error ? "border-red-500" : "border-line"}`}
+        aria-describedby={
+          error ? `${id}-error` : hint ? `${id}-hint` : undefined
+        }
+        className={`${baseInput} ${error ? "border-coral" : "border-line"}`}
       />
       {error ? (
-        <p id={`${id}-error`} role="alert" className="mt-2 text-sm text-red-600">
+        <p
+          id={`${id}-error`}
+          role="alert"
+          className="mt-2 text-sm font-medium text-coral-ink"
+        >
           {error}
         </p>
       ) : hint ? (
@@ -147,167 +105,67 @@ function TextInput({
   );
 }
 
-export default function RideForm({ eventId, eventTitle }: Props) {
-  const user = useDemoUser();
+export default function RideForm({ eventId }: Props) {
+  const user = useAuthUser();
+  const [state, formAction, pending] = useActionState(
+    createRideAction,
+    initialState,
+  );
   const [values, setValues] = useState<FormValues>(emptyForm);
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [created, setCreated] = useState<Ride | null>(null);
+
+  const errors = state.errors ?? {};
 
   function update(field: keyof FormValues, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
   }
 
+  // Formu kendimiz gönderiyoruz: böylece hata olsa bile yazdıkların kutularda kalır.
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSaveError(null);
-
-    const nextErrors = validate(values);
-    setErrors(nextErrors);
-
-    if (Object.keys(nextErrors).length > 0 || !user) {
-      return;
-    }
-
-    const ride = addRide({
-      eventId,
-      driverName: user.name,
-      origin: values.origin.trim(),
-      destination: values.destination.trim(),
-      meetingPoint: values.meetingPoint.trim(),
-      departureTime: values.departureTime,
-      durationMinutes: Number(values.duration),
-      seats: Number(values.seats),
-      totalCost: Number(values.cost),
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => {
+      formAction(formData);
     });
-
-    if (!ride) {
-      setSaveError(
-        "Yolculuk kaydedilemedi. Tarayıcın depolamaya izin vermiyor olabilir.",
-      );
-      return;
-    }
-
-    setCreated(ride);
-  }
-
-  function handleReset() {
-    setValues(emptyForm);
-    setErrors({});
-    setSaveError(null);
-    setCreated(null);
-  }
-
-  if (user === undefined) {
-    return <div className="h-72" aria-busy="true" />;
   }
 
   if (user === null) {
     return (
-      <div className="rounded-3xl bg-white p-8 shadow-sm">
-        <h2 className="text-2xl font-semibold tracking-tight">
+      <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+        <h2 className="text-2xl font-extrabold tracking-tight">
           Önce giriş yapmalısın
         </h2>
         <p className="mt-2 text-muted">
-          Yolculuk oluşturmak için demo girişi yapıp Sürücü rolünü seç.
+          Yolculuk oluşturmak için giriş yapmalı ve hesabının rolü Sürücü
+          olmalı.
         </p>
-        <Link
-          href="/giris"
-          className="mt-6 inline-block rounded-full bg-violet px-6 py-3 text-sm font-medium text-white hover:bg-sky"
-        >
-          Giriş yap
-        </Link>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href="/giris"
+            className="rounded-full bg-violet px-6 py-3 text-sm font-bold text-white hover:bg-sky"
+          >
+            Giriş yap
+          </Link>
+          <Link
+            href="/kayit"
+            className="rounded-full border border-line px-6 py-3 text-sm font-bold text-ink hover:bg-lilac"
+          >
+            Hesap oluştur
+          </Link>
+        </div>
       </div>
     );
   }
 
   if (user.role !== "driver") {
     return (
-      <div className="rounded-3xl bg-white p-8 shadow-sm">
-        <h2 className="text-2xl font-semibold tracking-tight">
+      <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+        <h2 className="text-2xl font-extrabold tracking-tight">
           Bu sayfa sürücüler içindir
         </h2>
         <p className="mt-2 text-muted">
           {user.name} olarak {roleLabels[user.role]} rolüyle giriş yaptın.
-          Yolculuk oluşturmak için çıkış yapıp Sürücü rolüyle tekrar giriş
-          yapabilirsin.
+          Yolculuk oluşturmak için Sürücü rolüyle kayıtlı bir hesap gerekir.
         </p>
-        <Link
-          href="/giris"
-          className="mt-6 inline-block rounded-full border border-line px-6 py-3 text-sm font-medium text-ink hover:bg-surface"
-        >
-          Giriş sayfasına git
-        </Link>
-      </div>
-    );
-  }
-
-  if (created) {
-    const share = calcSharePerPerson(created.totalCost, created.seats);
-
-    return (
-      <div className="rounded-3xl bg-white p-8 shadow-sm">
-        <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-mint text-night">
-            <Icon name="check" className="h-5 w-5" />
-          </span>
-          <p className="text-sm font-bold text-mint-ink">Yolculuk kaydedildi</p>
-        </div>
-        <h2 className="mt-1 text-2xl font-semibold tracking-tight">
-          {created.origin} → {created.destination}
-        </h2>
-        <p className="mt-1 text-muted">{eventTitle} etkinliği için</p>
-
-        <dl className="mt-6 grid gap-6 sm:grid-cols-2">
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wider text-muted">
-              Buluşma noktası
-            </dt>
-            <dd className="mt-1 font-semibold">{created.meetingPoint}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wider text-muted">
-              Kalkış → tahmini varış
-            </dt>
-            <dd className="mt-1 font-semibold">
-              {created.departureTime} →{" "}
-              {calcArrival(created.departureTime, created.durationMinutes)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wider text-muted">
-              Boş koltuk
-            </dt>
-            <dd className="mt-1 font-semibold">{created.seats}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wider text-muted">
-              Tahmini kişi başı masraf
-            </dt>
-            <dd className="mt-1 font-semibold">{share} TL</dd>
-          </div>
-        </dl>
-
-        <p className="mt-6 rounded-2xl bg-surface p-4 text-sm text-muted">
-          Demo bilgisi: Bu yolculuk yalnızca bu tarayıcıda saklanır. Masraf
-          tutarı tahminidir, ödeme alınmaz.
-        </p>
-
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href={`/events/${eventId}`}
-            className="rounded-full bg-violet px-6 py-3 text-sm font-medium text-white hover:bg-sky"
-          >
-            Etkinliğe dön
-          </Link>
-          <button
-            type="button"
-            onClick={handleReset}
-            className="rounded-full border border-line px-6 py-3 text-sm font-medium text-ink hover:bg-surface"
-          >
-            Yeni yolculuk oluştur
-          </button>
-        </div>
       </div>
     );
   }
@@ -322,11 +180,22 @@ export default function RideForm({ eventId, eventTitle }: Props) {
     <form
       onSubmit={handleSubmit}
       noValidate
-      className="space-y-6 rounded-3xl bg-white p-8 shadow-sm"
+      className="space-y-6 rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5"
     >
+      <input type="hidden" name="eventId" value={eventId} />
+
       <p className="text-sm text-muted">
         Sürücü olarak giriş yaptın: <strong>{user.name}</strong>
       </p>
+
+      {state.message && (
+        <p
+          role="alert"
+          className="rounded-2xl bg-peach p-4 text-sm font-medium text-coral-ink"
+        >
+          {state.message}
+        </p>
+      )}
 
       <div className="grid gap-6 sm:grid-cols-2">
         <TextInput
@@ -379,14 +248,15 @@ export default function RideForm({ eventId, eventTitle }: Props) {
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="seats" className="block text-sm font-medium text-ink">
+          <label htmlFor="seats" className="block text-sm font-bold text-ink">
             Boş koltuk sayısı
           </label>
           <select
             id="seats"
+            name="seats"
             value={values.seats}
             onChange={(event) => update("seats", event.target.value)}
-            className={`${baseInput} border-line`}
+            className={`${baseInput} ${errors.seats ? "border-coral" : "border-line"}`}
           >
             {[1, 2, 3, 4, 5, 6].map((count) => (
               <option key={count} value={count}>
@@ -394,6 +264,11 @@ export default function RideForm({ eventId, eventTitle }: Props) {
               </option>
             ))}
           </select>
+          {errors.seats && (
+            <p role="alert" className="mt-2 text-sm font-medium text-coral-ink">
+              {errors.seats}
+            </p>
+          )}
         </div>
         <TextInput
           id="cost"
@@ -407,9 +282,9 @@ export default function RideForm({ eventId, eventTitle }: Props) {
         />
       </div>
 
-      <div className="rounded-2xl bg-surface p-4 text-sm">
-        <p className="font-medium text-ink">Tahmini kişi başı masraf</p>
-        <p className="mt-1 text-2xl font-semibold tracking-tight">
+      <div className="rounded-2xl bg-lilac p-4 text-sm">
+        <p className="font-bold text-ink">Tahmini kişi başı masraf</p>
+        <p className="mt-1 text-2xl font-extrabold tracking-tight text-violet">
           {previewShare === null ? "—" : `${previewShare} TL`}
         </p>
         <p className="mt-1 text-muted">
@@ -418,17 +293,12 @@ export default function RideForm({ eventId, eventTitle }: Props) {
         </p>
       </div>
 
-      {saveError && (
-        <p role="alert" className="text-sm text-red-600">
-          {saveError}
-        </p>
-      )}
-
       <button
         type="submit"
-        className="w-full rounded-full bg-violet px-6 py-3 text-base font-medium text-white transition-colors hover:bg-sky"
+        disabled={pending}
+        className="w-full rounded-full bg-violet px-6 py-3.5 text-base font-bold text-white transition-colors hover:bg-sky disabled:cursor-not-allowed disabled:opacity-60"
       >
-        Yolculuğu oluştur
+        {pending ? "Kaydediliyor…" : "Yolculuğu oluştur"}
       </button>
     </form>
   );

@@ -14,7 +14,7 @@ export default async function RegisterPage() {
   const user = await getCurrentUser();
 
   if (user) {
-    redirect("/hesap");
+    redirect("/panel");
   }
 
   return (

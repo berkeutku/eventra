@@ -148,7 +148,7 @@ const faqs = [
   },
   {
     q: "Giriş bilgilerim nerede saklanıyor?",
-    a: "Şu an demo girişi kullanılıyor: yalnızca bir ad ve rol seçiyorsun, bunlar sadece senin tarayıcında kalıyor. Parolalı gerçek hesaplar geliştirme aşamasında. Gerçek kişisel bilgilerini girme.",
+    a: "E-posta ve parolayla hesap oluşturabilirsin. Parolan şifrelenerek saklanır ve oturumun sunucuda tutulur. Yine de bu bir demo: gerçek e-posta adresi ve gerçek parola kullanma. E-posta doğrulama ve parola sıfırlama henüz yok.",
   },
   {
     q: "Hangi etkinlikler listeleniyor?",

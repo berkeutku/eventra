@@ -1,28 +1,37 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import LoginForm from "@/components/LoginForm";
+import { getCurrentUser } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Giriş Yap | Eventra",
-  description: "Eventra demo girişi: rolünü seç ve etkinlikleri keşfet.",
+  description: "Eventra hesabınla giriş yap.",
 };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const user = await getCurrentUser();
+
+  if (user) {
+    redirect("/panel");
+  }
+
   return (
-    <main className="bg-surface px-6 py-16 sm:py-24">
+    <main className="px-6 py-14 sm:py-20">
       <div className="mx-auto max-w-xl">
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
           Giriş yap
         </h1>
         <p className="mt-4 text-lg text-muted">
-          Adını gir ve bu etkinlikte sürücü mü yolcu mu olduğunu seç.
+          Hesabınla giriş yap ve yolculuklarını yönet.
         </p>
 
-        <div className="mt-6 rounded-2xl bg-white p-4 text-sm text-muted ring-1 ring-line">
-          <p className="font-medium text-ink">Bu bir demo girişidir.</p>
+        <div className="mt-6 rounded-2xl bg-lilac p-4 text-sm text-muted">
+          <p className="font-bold text-ink">Bu bir demo projedir.</p>
           <p className="mt-1">
-            Parola ve e-posta istenmez, gerçek bilgi girme. Girdiğin ad ve rol
-            yalnızca bu tarayıcıda saklanır. Gerçek hesap ve güvenli giriş
-            sistemi backend aşamasında eklenecek.
+            Gerçek e-posta adresi ve gerçek parola kullanma. Parola sıfırlama
+            ve e-posta doğrulama henüz yok.
           </p>
         </div>
 

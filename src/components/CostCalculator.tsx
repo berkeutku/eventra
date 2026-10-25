@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { calcSharePerPerson } from "@/lib/rides";
+import { calcSharePerPerson } from "@/lib/ride-utils";
 
 function money(value: number): string {
   return value.toLocaleString("tr-TR");
