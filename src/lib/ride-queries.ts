@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { events, ridePassengers, rides, users } from "@/db/schema";
 import type { RideItem, RideWithEvent } from "@/lib/ride-utils";
@@ -132,4 +132,50 @@ export async function getRidesForPassenger(
     eventTitle: row.eventTitle,
     eventStartsAt: row.eventStartsAt.toISOString(),
   }));
+}
+
+export type RideDetail = RideItem & {
+  // Yolcu adları yalnızca sürücüye ve katılan yolculara gösterilir.
+  passengerNames: string[] | null;
+};
+
+export async function getRideDetail(
+  rideId: string,
+  userId?: string,
+): Promise<RideDetail | null> {
+  const [row] = await db
+    .select({
+      ride: rides,
+      driverName: users.name,
+      passengerCount: passengerCountSql(),
+    })
+    .from(rides)
+    .innerJoin(users, eq(rides.driverId, users.id))
+    .where(eq(rides.id, rideId))
+    .limit(1);
+
+  if (!row) {
+    return null;
+  }
+
+  const passengerRows = await db
+    .select({ userId: ridePassengers.userId, name: users.name })
+    .from(ridePassengers)
+    .innerJoin(users, eq(ridePassengers.userId, users.id))
+    .where(eq(ridePassengers.rideId, rideId))
+    .orderBy(asc(ridePassengers.joinedAt));
+
+  const isOwn = userId !== undefined && row.ride.driverId === userId;
+  const joined =
+    userId !== undefined &&
+    passengerRows.some((passenger) => passenger.userId === userId);
+
+  return {
+    ...toRideItem(row.ride, row.driverName, row.passengerCount, {
+      joined,
+      isOwn,
+    }),
+    passengerNames:
+      isOwn || joined ? passengerRows.map((passenger) => passenger.name) : null,
+  };
 }

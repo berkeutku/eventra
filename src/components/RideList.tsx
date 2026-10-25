@@ -144,8 +144,14 @@ function RideCard({ ride }: { ride: RideItem }) {
         </div>
       </dl>
 
-      <div className="mt-5 border-t border-line pt-5">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5">
         <RideAction ride={ride} />
+        <Link
+          href={`/events/${ride.eventId}/yolculuk/${ride.id}`}
+          className="text-sm font-bold text-violet hover:underline"
+        >
+          Detayları gör &rarr;
+        </Link>
       </div>
     </li>
   );

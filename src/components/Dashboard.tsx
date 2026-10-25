@@ -36,7 +36,12 @@ function RideRow({ ride, mode, confirming, onAsk, onCancel }: RideRowProps) {
             {ride.eventTitle} · {formatEventDate(ride.eventStartsAt)}
           </Link>
           <h3 className="mt-1 text-lg font-extrabold tracking-tight">
-            {ride.origin} → {ride.destination}
+            <Link
+              href={`/events/${ride.eventId}/yolculuk/${ride.id}`}
+              className="hover:text-violet hover:underline"
+            >
+              {ride.origin} → {ride.destination}
+            </Link>
           </h3>
           <p className="mt-1 text-sm text-muted">
             Buluşma: {ride.meetingPoint}
