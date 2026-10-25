@@ -4,9 +4,10 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { rides } from "@/db/schema";
+import { ridePassengers, rides } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { getEventById } from "@/lib/events";
+import { joinRide, type JoinOutcome } from "@/lib/ride-join";
 
 export type CreateRideField =
   | "origin"
@@ -151,5 +152,85 @@ export async function deleteRideAction(formData: FormData): Promise<void> {
     .delete(rides)
     .where(and(eq(rides.id, rideId), eq(rides.driverId, user.id)));
 
+  revalidatePath("/panel");
+}
+
+export type JoinRideState = {
+  message?: string;
+};
+
+export async function joinRideAction(
+  _previous: JoinRideState,
+  formData: FormData,
+): Promise<JoinRideState> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/giris");
+  }
+
+  if (user.role !== "passenger") {
+    return {
+      message: "Yolculuğa yalnızca Yolcu rolündeki hesaplar katılabilir.",
+    };
+  }
+
+  const rideId = readText(formData, "rideId");
+
+  if (!UUID_PATTERN.test(rideId)) {
+    return { message: "Yolculuk bulunamadı." };
+  }
+
+  let outcome: JoinOutcome;
+
+  try {
+    outcome = await joinRide(user.id, rideId);
+  } catch (error) {
+    console.error("Katılma hatası:", error);
+    return {
+      message: "Katılma işlemi tamamlanamadı. Lütfen biraz sonra tekrar dene.",
+    };
+  }
+
+  switch (outcome.status) {
+    case "joined":
+      revalidatePath("/events/[id]", "page");
+      revalidatePath("/panel");
+      return {};
+    case "full":
+      return { message: "Bu yolculuk az önce doldu." };
+    case "already_joined":
+      return { message: "Bu yolculuğa zaten katıldın." };
+    case "other_ride":
+      return {
+        message:
+          "Bu etkinlik için başka bir yolculuğa zaten katıldın. Önce panelinden ondan ayrılmalısın.",
+      };
+    case "not_found":
+      return { message: "Bu yolculuk artık mevcut değil." };
+  }
+}
+
+export async function leaveRideAction(formData: FormData): Promise<void> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/giris");
+  }
+
+  const rideId = readText(formData, "rideId");
+
+  if (!UUID_PATTERN.test(rideId)) {
+    return;
+  }
+
+  // Yalnızca kendi katılımını silebilirsin.
+  await db
+    .delete(ridePassengers)
+    .where(
+      and(eq(ridePassengers.rideId, rideId), eq(ridePassengers.userId, user.id)),
+    );
+
+  revalidatePath("/events/[id]", "page");
   revalidatePath("/panel");
 }

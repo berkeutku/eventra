@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Dashboard from "@/components/Dashboard";
 import { getCurrentUser } from "@/lib/auth";
-import { getRidesForDriver } from "@/lib/ride-queries";
+import { getRidesForDriver, getRidesForPassenger } from "@/lib/ride-queries";
+import type { RideWithEvent } from "@/lib/ride-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,14 @@ export const metadata: Metadata = {
 
 export default async function PanelPage() {
   const user = await getCurrentUser();
-  const rides = user?.role === "driver" ? await getRidesForDriver(user.id) : [];
+
+  let rides: RideWithEvent[] = [];
+
+  if (user?.role === "driver") {
+    rides = await getRidesForDriver(user.id);
+  } else if (user?.role === "passenger") {
+    rides = await getRidesForPassenger(user.id);
+  }
 
   return (
     <main className="px-6 py-14 sm:py-20">

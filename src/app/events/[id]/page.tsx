@@ -7,6 +7,7 @@ import RideList from "@/components/RideList";
 import { categoryMeta } from "@/data/events";
 import { getEventById } from "@/lib/events";
 import { formatEventDate, formatEventTime } from "@/lib/format";
+import { getCurrentUser } from "@/lib/auth";
 import { getRidesForEvent } from "@/lib/ride-queries";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +40,8 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  const rides = await getRidesForEvent(event.id);
+  const user = await getCurrentUser();
+  const rides = await getRidesForEvent(event.id, user?.id);
   const meta = categoryMeta[event.category];
 
   const details: { label: string; value: string; icon: IconName }[] = [

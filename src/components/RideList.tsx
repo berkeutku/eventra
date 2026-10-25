@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useAuthUser } from "@/components/AuthProvider";
+import JoinRideButton from "@/components/JoinRideButton";
+import { leaveRideAction } from "@/lib/ride-actions";
 import {
   calcArrival,
   calcSharePerPerson,
   departureSortKey,
+  remainingSeats,
   type RideItem,
 } from "@/lib/ride-utils";
 
@@ -29,8 +32,74 @@ function matchesQuery(ride: RideItem, query: string): boolean {
   return haystack.includes(query);
 }
 
+function RideAction({ ride }: { ride: RideItem }) {
+  const user = useAuthUser();
+  const left = remainingSeats(ride);
+
+  if (!user) {
+    return (
+      <Link
+        href="/giris"
+        className="text-sm font-bold text-violet hover:underline"
+      >
+        Katılmak için giriş yap &rarr;
+      </Link>
+    );
+  }
+
+  if (ride.isOwn) {
+    return (
+      <span className="rounded-full bg-lilac px-4 py-2 text-sm font-bold text-violet">
+        Bu senin yolculuğun
+      </span>
+    );
+  }
+
+  if (ride.joined) {
+    return (
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="inline-flex items-center gap-2 rounded-full bg-sea px-4 py-2 text-sm font-bold text-mint-ink">
+          <span
+            aria-hidden="true"
+            className="h-1.5 w-1.5 rounded-full bg-mint"
+          />
+          Bu yolculuğa katıldın
+        </span>
+        <form action={leaveRideAction}>
+          <input type="hidden" name="rideId" value={ride.id} />
+          <button
+            type="submit"
+            className="rounded-full border border-line px-4 py-2 text-sm font-bold text-ink hover:bg-lilac"
+          >
+            Ayrıl
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  if (user.role !== "passenger") {
+    return (
+      <p className="text-sm text-muted">
+        Yolculuğa katılmak için Yolcu rolünde bir hesap gerekir.
+      </p>
+    );
+  }
+
+  if (left === 0) {
+    return (
+      <span className="rounded-full bg-peach px-4 py-2 text-sm font-bold text-coral-ink">
+        Yolculuk dolu
+      </span>
+    );
+  }
+
+  return <JoinRideButton rideId={ride.id} />;
+}
+
 function RideCard({ ride }: { ride: RideItem }) {
   const share = calcSharePerPerson(ride.totalCost, ride.seats);
+  const left = remainingSeats(ride);
 
   return (
     <li className="rounded-2xl border border-line p-6">
@@ -69,9 +138,15 @@ function RideCard({ ride }: { ride: RideItem }) {
           <dt className="text-xs font-bold uppercase tracking-wider text-muted">
             Boş koltuk
           </dt>
-          <dd className="mt-1 text-sm font-bold">{ride.seats}</dd>
+          <dd className="mt-1 text-sm font-bold">
+            {left} / {ride.seats}
+          </dd>
         </div>
       </dl>
+
+      <div className="mt-5 border-t border-line pt-5">
+        <RideAction ride={ride} />
+      </div>
     </li>
   );
 }
@@ -79,7 +154,7 @@ function RideCard({ ride }: { ride: RideItem }) {
 export default function RideList({ rides }: { rides: RideItem[] }) {
   const user = useAuthUser();
   const [query, setQuery] = useState("");
-  const [minSeats, setMinSeats] = useState("1");
+  const [minSeats, setMinSeats] = useState("0");
   const [sort, setSort] = useState<SortKey>("time");
 
   if (rides.length === 0) {
@@ -108,7 +183,7 @@ export default function RideList({ rides }: { rides: RideItem[] }) {
 
   const visibleRides = rides
     .filter((ride) => matchesQuery(ride, normalizedQuery))
-    .filter((ride) => ride.seats >= minSeatCount)
+    .filter((ride) => remainingSeats(ride) >= minSeatCount)
     .sort((a, b) => {
       if (sort === "cost") {
         return (
@@ -148,7 +223,8 @@ export default function RideList({ rides }: { rides: RideItem[] }) {
             onChange={(event) => setMinSeats(event.target.value)}
             className={inputClass}
           >
-            {[1, 2, 3, 4].map((count) => (
+            <option value="0">Tümü (dolu olanlar dahil)</option>
+            {[1, 2, 3].map((count) => (
               <option key={count} value={count}>
                 {count} veya daha fazla
               </option>
@@ -188,7 +264,7 @@ export default function RideList({ rides }: { rides: RideItem[] }) {
             type="button"
             onClick={() => {
               setQuery("");
-              setMinSeats("1");
+              setMinSeats("0");
             }}
             className="mt-4 text-sm font-bold text-violet hover:underline"
           >
@@ -204,8 +280,8 @@ export default function RideList({ rides }: { rides: RideItem[] }) {
       )}
 
       <p className="mt-6 rounded-2xl bg-lilac p-4 text-sm text-muted">
-        Yolculuğa katılma ve koltuk rezervasyonu bir sonraki adımda eklenecek.
-        Şimdilik yolculukları inceleyebilir ve filtreleyebilirsin.
+        Katılmak ücretsizdir ve ödeme gerektirmez. Eventra ödeme almaz, masraf
+        paylaşımı tahminidir ve sürücüyle yüz yüze ayarlanır.
       </p>
     </div>
   );

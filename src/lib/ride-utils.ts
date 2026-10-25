@@ -7,15 +7,24 @@ export type RideItem = {
   meetingPoint: string;
   departureTime: string; // "HH:MM" formatında, örn. "23:30"
   durationMinutes: number;
-  seats: number;
+  seats: number; // sürücünün sunduğu toplam koltuk
   totalCost: number; // TL, tahmini toplam yol masrafı
   createdAt: string;
+  passengerCount: number; // şu ana kadar katılan yolcu sayısı
+  joined: boolean; // giriş yapan kullanıcı bu yolculuğa katılmış mı
+  isOwn: boolean; // giriş yapan kullanıcı bu yolculuğun sürücüsü mü
 };
 
-export type DriverRideItem = RideItem & {
+export type RideWithEvent = RideItem & {
   eventTitle: string;
   eventStartsAt: string;
 };
+
+export function remainingSeats(
+  ride: Pick<RideItem, "seats" | "passengerCount">,
+): number {
+  return Math.max(ride.seats - ride.passengerCount, 0);
+}
 
 // Masraf, sürücü dahil herkese eşit bölünür ve tam liraya yuvarlanır.
 export function calcSharePerPerson(totalCost: number, seats: number): number {

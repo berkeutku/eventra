@@ -103,9 +103,9 @@ const features: {
   },
   {
     title: "Yolculuğa katılma",
-    text: "Koltuk kapasitesi kontrolüyle yolculuğa katılma, gerçek veritabanıyla geliştiriliyor.",
+    text: "Yolcular boş koltuklu yolculuklara katılır. Koltuk kapasitesi sunucuda kontrol edilir, yolculuk dolunca katılım durur.",
     icon: "users",
-    status: "soon",
+    status: "live",
   },
   {
     title: "Katılımcı doğrulama",
