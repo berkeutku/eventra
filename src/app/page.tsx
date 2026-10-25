@@ -2,8 +2,8 @@ import Link from "next/link";
 import CategoryChips from "@/components/CategoryChips";
 import CostCalculator from "@/components/CostCalculator";
 import EventCard from "@/components/EventCard";
+import HeroScroller from "@/components/HeroScroller";
 import Icon, { type IconName } from "@/components/Icons";
-import PhoneMockup from "@/components/PhoneMockup";
 import type { EventItem } from "@/data/events";
 import { getEvents } from "@/lib/events";
 
@@ -199,75 +199,7 @@ export default async function HomePage() {
 
   return (
     <main>
-      <section
-        className="relative overflow-hidden rounded-b-[2.5rem] bg-night text-white sm:rounded-b-[4rem]"
-        style={{
-          backgroundImage:
-            "radial-gradient(60% 55% at 12% 0%, rgba(108,77,255,0.7), transparent 70%), radial-gradient(45% 45% at 95% 25%, rgba(255,107,107,0.45), transparent 70%), radial-gradient(60% 40% at 50% 115%, rgba(0,213,160,0.28), transparent 70%)",
-        }}
-      >
-        <Sparkle className="absolute left-[6%] top-16 h-8 w-8 text-coral" />
-        <Sparkle className="absolute right-[8%] top-24 h-6 w-6 text-mint" />
-        <Sparkle className="absolute bottom-32 left-[46%] h-10 w-10 text-[#8e77ff]" />
-
-        <svg
-          viewBox="0 0 1200 120"
-          preserveAspectRatio="none"
-          fill="none"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 w-full opacity-80"
-          aria-hidden="true"
-        >
-          <path
-            d="M-20 100 C 220 20, 380 120, 620 60 S 1000 10, 1220 80"
-            stroke="#8e77ff"
-            strokeWidth="3"
-            strokeDasharray="2 12"
-            strokeLinecap="round"
-            vectorEffect="non-scaling-stroke"
-          />
-        </svg>
-
-        <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 pb-36 pt-14 sm:pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:pb-44">
-          <div className="text-center lg:text-left">
-            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-white/80 ring-1 ring-white/15">
-              <span
-                aria-hidden="true"
-                className="h-1.5 w-1.5 rounded-full bg-mint"
-              />
-              Etkinlik sonrası ortak yolculuk
-            </p>
-            <h1 className="mt-8 text-5xl font-extrabold leading-[1.04] tracking-tight sm:text-7xl">
-              Etkinlik bitti,{" "}
-              <span className="text-gradient">yolculuk başlasın!</span>
-            </h1>
-            <p className="mt-6 inline-block -rotate-2 font-hand text-4xl text-coral sm:text-5xl">
-              Aynı etkinlikteyiz, aynı yoldayız.
-            </p>
-            <p className="mx-auto mt-6 max-w-xl text-lg text-white/70 lg:mx-0">
-              Konser çıkışı taksi kuyruğu, derbi sonrası otopark trafiği, gece
-              yarısı dolu duraklar. Eventra, aynı etkinlikten aynı yöne
-              dönenleri buluşturur.
-            </p>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-4 lg:justify-start">
-              <Link
-                href="/events"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-base font-bold text-night shadow-lg shadow-black/20 transition-transform hover:-translate-y-0.5"
-              >
-                Etkinlikleri Keşfet
-                <Icon name="arrow" className="h-4 w-4" />
-              </Link>
-              <a
-                href="#nasil-calisir"
-                className="rounded-full px-8 py-4 text-base font-bold text-white ring-1 ring-white/30 transition-colors hover:bg-white/10"
-              >
-                Nasıl çalışır?
-              </a>
-            </div>
-          </div>
-
-          <PhoneMockup />
-        </div>
-      </section>
+      <HeroScroller />
 
       <section className="relative z-10 -mt-14 px-6">
         <div className="mx-auto grid max-w-5xl gap-2 rounded-3xl bg-white p-3 shadow-xl shadow-violet/10 ring-1 ring-black/5 sm:grid-cols-3">
@@ -319,7 +251,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="nasil-calisir" className="mt-24 bg-soft px-6 py-20 sm:mt-32 sm:py-28">
+      <section
+        id="nasil-calisir"
+        className="mt-24 bg-soft px-6 py-20 sm:mt-32 sm:py-28"
+      >
         <div className="reveal mx-auto max-w-6xl">
           <p className="text-center font-hand text-3xl text-violet">
             çözüm çok basit
@@ -428,7 +363,7 @@ export default async function HomePage() {
                 ))}
               </ul>
               <Link
-                href="/giris"
+                href="/kayit"
                 className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-violet transition-transform hover:-translate-y-0.5"
               >
                 Sürücü olarak başla
@@ -452,7 +387,7 @@ export default async function HomePage() {
                 ))}
               </ul>
               <Link
-                href="/giris"
+                href="/kayit"
                 className="mt-8 inline-flex items-center gap-2 rounded-full bg-night px-6 py-3 text-sm font-bold text-white transition-transform hover:-translate-y-0.5"
               >
                 Yolcu olarak başla
