@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import EventArt from "@/components/EventArt";
 import Icon, { categoryIcon, type IconName } from "@/components/Icons";
 import RideList from "@/components/RideList";
+import TicketVerificationCard from "@/components/TicketVerificationCard";
+import { isTicketVerified } from "@/lib/ticket-queries";
 import { categoryMeta } from "@/data/events";
 import { getEventById } from "@/lib/events";
 import { formatEventDate, formatEventTime } from "@/lib/format";
@@ -42,6 +44,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
 
   const user = await getCurrentUser();
   const rides = await getRidesForEvent(event.id, user?.id);
+  const verified = user ? await isTicketVerified(user.id, event.id) : false;
   const meta = categoryMeta[event.category];
 
   const details: { label: string; value: string; icon: IconName }[] = [
@@ -139,6 +142,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
               Bu etkinliğe giden sürücülerin paylaştığı yolculuklar.
             </p>
 
+            <TicketVerificationCard eventId={event.id} verified={verified} />
             <RideList rides={rides} />
           </div>
         </div>

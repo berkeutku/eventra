@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useAuthUser } from "@/components/AuthProvider";
 import JoinRideButton from "@/components/JoinRideButton";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { leaveRideAction } from "@/lib/ride-actions";
 import {
   calcArrival,
@@ -108,7 +109,10 @@ function RideCard({ ride }: { ride: RideItem }) {
           <h3 className="text-lg font-extrabold tracking-tight">
             {ride.origin} → {ride.destination}
           </h3>
-          <p className="mt-1 text-sm text-muted">Sürücü: {ride.driverName}</p>
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
+            Sürücü: {ride.driverName}
+            {ride.driverVerified && <VerifiedBadge />}
+          </p>
         </div>
         <div className="text-right">
           <p className="text-2xl font-extrabold tracking-tight text-violet">

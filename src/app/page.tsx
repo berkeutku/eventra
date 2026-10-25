@@ -108,10 +108,10 @@ const features: {
     status: "live",
   },
   {
-    title: "Katılımcı doğrulama",
-    text: "Bilet doğrulama akışı demo olarak simüle edilecek. Gerçek bilet entegrasyonu yok.",
+    title: "Bilet doğrulama (demo)",
+    text: "Etkinlik bilet kodu simüle edilmiş bir sağlayıcıya karşı doğrulanır. Gerçek bilet veya e-Devlet entegrasyonu yok, bu bir demodur.",
     icon: "shield",
-    status: "soon",
+    status: "live",
   },
   {
     title: "Rota ve harita",
@@ -144,7 +144,7 @@ const faqs = [
   },
   {
     q: "Bilet ve kimlik doğrulaması var mı?",
-    a: "Henüz yok. Gerçek bir e-Devlet ya da bilet sağlayıcı entegrasyonu bulunmuyor. Doğrulama akışı ileride demo olarak simüle edilecek ve bunun demo olduğu açıkça belirtilecek.",
+    a: "Gerçek bir doğrulama yok. Etkinlik sayfasındaki bilet doğrulaması simüle edilmiş bir demo: kod yalnızca biçim ve sağlama karakteri açısından kontrol edilir. Gerçek bir e-Devlet ya da bilet sağlayıcı entegrasyonu bulunmuyor.",
   },
   {
     q: "Giriş bilgilerim nerede saklanıyor?",

@@ -15,6 +15,13 @@
       "when": 1792878078078,
       "tag": "0001_cool_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792957355209,
+      "tag": "0002_lazy_tomorrow_man",
+      "breakpoints": true
     }
   ]
 }

@@ -13,6 +13,7 @@ export type RideItem = {
   passengerCount: number; // şu ana kadar katılan yolcu sayısı
   joined: boolean; // giriş yapan kullanıcı bu yolculuğa katılmış mı
   isOwn: boolean; // giriş yapan kullanıcı bu yolculuğun sürücüsü mü
+  driverVerified: boolean; // sürücü bu etkinlik için (demo) bilet doğrulamış mı
 };
 
 export type RideWithEvent = RideItem & {

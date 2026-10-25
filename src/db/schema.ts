@@ -9,6 +9,7 @@ import {
   text,
   time,
   timestamp,
+  unique,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -103,4 +104,30 @@ export const sessions = pgTable(
       .defaultNow(),
   },
   (table) => [index("sessions_user_id_idx").on(table.userId)],
+);
+
+// DEMO: Gerçek bir bilet sağlayıcısı yoktur. Yalnızca simüle edilen
+// doğrulamanın sonucunu ve kodun özetini (hash) saklarız, kodun kendisini değil.
+export const ticketVerifications = pgTable(
+  "ticket_verifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    eventId: text("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    codeHash: text("code_hash").notNull().unique(),
+    verifiedAt: timestamp("verified_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique("ticket_verifications_user_event_unique").on(
+      table.userId,
+      table.eventId,
+    ),
+    index("ticket_verifications_event_id_idx").on(table.eventId),
+  ],
 );

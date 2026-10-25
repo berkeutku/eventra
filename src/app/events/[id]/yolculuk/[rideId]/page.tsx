@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import EventArt from "@/components/EventArt";
 import Icon, { categoryIcon } from "@/components/Icons";
 import JoinRideButton from "@/components/JoinRideButton";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { categoryMeta } from "@/data/events";
 import { getCurrentUser, type AuthUser } from "@/lib/auth";
 import { getEventById } from "@/lib/events";
@@ -181,7 +182,10 @@ export default async function RideDetailPage({ params }: Props) {
             <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl">
               {ride.origin} → {ride.destination}
             </h1>
-            <p className="mt-2 text-white/85">Sürücü: {ride.driverName}</p>
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-white/85">
+              Sürücü: {ride.driverName}
+              {ride.driverVerified && <VerifiedBadge />}
+            </p>
           </div>
         </div>
       </section>
@@ -293,26 +297,32 @@ export default async function RideDetailPage({ params }: Props) {
             </div>
 
             <div className="mt-6">
-              {ride.passengerNames === null ? (
+              {ride.passengers === null ? (
                 <p className="rounded-2xl bg-surface p-4 text-sm text-muted">
                   {ride.passengerCount} yolcu katıldı. Yolcu adları gizlilik
                   için yalnızca sürücüye ve yolculuğa katılanlara gösterilir.
                 </p>
-              ) : ride.passengerNames.length === 0 ? (
+              ) : ride.passengers.length === 0 ? (
                 <p className="rounded-2xl bg-surface p-4 text-sm text-muted">
                   Henüz katılan yolcu yok.
                 </p>
               ) : (
                 <ul className="space-y-3">
-                  {ride.passengerNames.map((name, index) => (
+                  {ride.passengers.map((passenger, index) => (
                     <li
-                      key={`${name}-${index}`}
+                      key={`${passenger.name}-${index}`}
                       className="flex items-center gap-3"
                     >
                       <span className="grid h-10 w-10 place-items-center rounded-full bg-lilac font-bold text-violet">
-                        {name.trim().charAt(0).toLocaleUpperCase("tr-TR")}
+                        {passenger.name
+                          .trim()
+                          .charAt(0)
+                          .toLocaleUpperCase("tr-TR")}
                       </span>
-                      <span className="font-bold">{name}</span>
+                      <span className="flex flex-wrap items-center gap-2 font-bold">
+                        {passenger.name}
+                        {passenger.verified && <VerifiedBadge />}
+                      </span>
                     </li>
                   ))}
                 </ul>

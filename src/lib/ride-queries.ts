@@ -1,6 +1,12 @@
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { events, ridePassengers, rides, users } from "@/db/schema";
+import {
+  events,
+  ridePassengers,
+  rides,
+  ticketVerifications,
+  users,
+} from "@/db/schema";
 import type { RideItem, RideWithEvent } from "@/lib/ride-utils";
 
 type RideRow = typeof rides.$inferSelect;
@@ -10,10 +16,16 @@ function passengerCountSql() {
   return sql<number>`(select count(*)::int from ${ridePassengers} where ${ridePassengers.rideId} = ${rides.id})`;
 }
 
+// Sürücü bu etkinlik için (demo) bilet doğrulaması yapmış mı?
+function driverVerifiedSql() {
+  return sql<boolean>`exists (select 1 from ${ticketVerifications} where ${ticketVerifications.userId} = ${rides.driverId} and ${ticketVerifications.eventId} = ${rides.eventId})`;
+}
+
 function toRideItem(
   ride: RideRow,
   driverName: string,
   passengerCount: number,
+  driverVerified: boolean,
   flags: { joined: boolean; isOwn: boolean },
 ): RideItem {
   return {
@@ -32,6 +44,7 @@ function toRideItem(
     passengerCount,
     joined: flags.joined,
     isOwn: flags.isOwn,
+    driverVerified,
   };
 }
 
@@ -44,6 +57,7 @@ export async function getRidesForEvent(
       ride: rides,
       driverName: users.name,
       passengerCount: passengerCountSql(),
+      driverVerified: driverVerifiedSql(),
     })
     .from(rides)
     .innerJoin(users, eq(rides.driverId, users.id))
@@ -72,10 +86,16 @@ export async function getRidesForEvent(
   }
 
   return rows.map((row) =>
-    toRideItem(row.ride, row.driverName, row.passengerCount, {
-      joined: joinedIds.has(row.ride.id),
-      isOwn: userId !== undefined && row.ride.driverId === userId,
-    }),
+    toRideItem(
+      row.ride,
+      row.driverName,
+      row.passengerCount,
+      row.driverVerified,
+      {
+        joined: joinedIds.has(row.ride.id),
+        isOwn: userId !== undefined && row.ride.driverId === userId,
+      },
+    ),
   );
 }
 
@@ -89,6 +109,7 @@ export async function getRidesForDriver(
       eventTitle: events.title,
       eventStartsAt: events.startsAt,
       passengerCount: passengerCountSql(),
+      driverVerified: driverVerifiedSql(),
     })
     .from(rides)
     .innerJoin(users, eq(rides.driverId, users.id))
@@ -97,10 +118,13 @@ export async function getRidesForDriver(
     .orderBy(desc(rides.createdAt));
 
   return rows.map((row) => ({
-    ...toRideItem(row.ride, row.driverName, row.passengerCount, {
-      joined: false,
-      isOwn: true,
-    }),
+    ...toRideItem(
+      row.ride,
+      row.driverName,
+      row.passengerCount,
+      row.driverVerified,
+      { joined: false, isOwn: true },
+    ),
     eventTitle: row.eventTitle,
     eventStartsAt: row.eventStartsAt.toISOString(),
   }));
@@ -116,6 +140,7 @@ export async function getRidesForPassenger(
       eventTitle: events.title,
       eventStartsAt: events.startsAt,
       passengerCount: passengerCountSql(),
+      driverVerified: driverVerifiedSql(),
     })
     .from(ridePassengers)
     .innerJoin(rides, eq(ridePassengers.rideId, rides.id))
@@ -125,10 +150,13 @@ export async function getRidesForPassenger(
     .orderBy(desc(ridePassengers.joinedAt));
 
   return rows.map((row) => ({
-    ...toRideItem(row.ride, row.driverName, row.passengerCount, {
-      joined: true,
-      isOwn: false,
-    }),
+    ...toRideItem(
+      row.ride,
+      row.driverName,
+      row.passengerCount,
+      row.driverVerified,
+      { joined: true, isOwn: false },
+    ),
     eventTitle: row.eventTitle,
     eventStartsAt: row.eventStartsAt.toISOString(),
   }));
@@ -136,7 +164,7 @@ export async function getRidesForPassenger(
 
 export type RideDetail = RideItem & {
   // Yolcu adları yalnızca sürücüye ve katılan yolculara gösterilir.
-  passengerNames: string[] | null;
+  passengers: { name: string; verified: boolean }[] | null;
 };
 
 export async function getRideDetail(
@@ -148,6 +176,7 @@ export async function getRideDetail(
       ride: rides,
       driverName: users.name,
       passengerCount: passengerCountSql(),
+      driverVerified: driverVerifiedSql(),
     })
     .from(rides)
     .innerJoin(users, eq(rides.driverId, users.id))
@@ -159,7 +188,11 @@ export async function getRideDetail(
   }
 
   const passengerRows = await db
-    .select({ userId: ridePassengers.userId, name: users.name })
+    .select({
+      userId: ridePassengers.userId,
+      name: users.name,
+      verified: sql<boolean>`exists (select 1 from ${ticketVerifications} where ${ticketVerifications.userId} = ${ridePassengers.userId} and ${ticketVerifications.eventId} = ${row.ride.eventId})`,
+    })
     .from(ridePassengers)
     .innerJoin(users, eq(ridePassengers.userId, users.id))
     .where(eq(ridePassengers.rideId, rideId))
@@ -171,11 +204,19 @@ export async function getRideDetail(
     passengerRows.some((passenger) => passenger.userId === userId);
 
   return {
-    ...toRideItem(row.ride, row.driverName, row.passengerCount, {
-      joined,
-      isOwn,
-    }),
-    passengerNames:
-      isOwn || joined ? passengerRows.map((passenger) => passenger.name) : null,
+    ...toRideItem(
+      row.ride,
+      row.driverName,
+      row.passengerCount,
+      row.driverVerified,
+      { joined, isOwn },
+    ),
+    passengers:
+      isOwn || joined
+        ? passengerRows.map((passenger) => ({
+            name: passenger.name,
+            verified: passenger.verified,
+          }))
+        : null,
   };
 }
