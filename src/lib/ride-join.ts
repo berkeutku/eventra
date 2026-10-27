@@ -7,7 +7,8 @@ export type JoinOutcome =
   | { status: "not_found" }
   | { status: "full" }
   | { status: "already_joined" }
-  | { status: "other_ride" };
+  | { status: "other_ride" }
+  | { status: "own_ride" };
 
 // Bu dosya hem uygulamadan hem test betiğinden çağrıldığı için göreli
 // (../db) import yollarını kullanıyor.
@@ -26,13 +27,23 @@ export async function joinRide(
     // Yolculuk satırını kilitler: aynı yolculuğa katılmak isteyen diğer
     // işlemler, bu işlem bitene kadar burada bekler.
     const [ride] = await tx
-      .select({ id: rides.id, eventId: rides.eventId, seats: rides.seats })
+      .select({
+        id: rides.id,
+        eventId: rides.eventId,
+        seats: rides.seats,
+        driverId: rides.driverId,
+      })
       .from(rides)
       .where(eq(rides.id, rideId))
       .for("update");
 
     if (!ride) {
       return { status: "not_found" };
+    }
+
+    // Sürücü kendi oluşturduğu yolculuğa yolcu olarak katılamaz.
+    if (ride.driverId === userId) {
+      return { status: "own_ride" };
     }
 
     // Kullanıcı bu etkinliğe ait hangi yolculuklara katılmış?

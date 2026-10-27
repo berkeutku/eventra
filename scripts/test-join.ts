@@ -130,9 +130,24 @@ async function main() {
 
     const okC = resultC.status === "other_ride" && savedC === 0;
 
-    if (okA && okB && okC) {
+    // Senaryo 4: sürücü kendi oluşturduğu yolculuğa katılmaya çalışıyor.
+    const [rideD] = await db
+      .insert(rides)
+      .values({ ...baseRide, seats: 3 })
+      .returning({ id: rides.id });
+
+    const resultD = await joinRide(driver.id, rideD.id);
+    const savedD = await countPassengers(rideD.id);
+
+    console.log(
+      `Senaryo 4 (sürücü kendi yolculuğuna katılıyor): cevap=${resultD.status}, veritabanındaki kayıt=${savedD}`,
+    );
+
+    const okD = resultD.status === "own_ride" && savedD === 0;
+
+    if (okA && okB && okC && okD) {
       console.log(
-        "BAŞARILI: Koltuk kapasitesi, tekrar katılma ve tek-yolculuk kuralları eşzamanlı isteklerde de korunuyor.",
+        "BAŞARILI: Koltuk kapasitesi, tekrar katılma, tek-yolculuk ve kendi-yolculuğuna-katılamama kuralları korunuyor.",
       );
     } else {
       console.error("BAŞARISIZ: Beklenen sonuçlar elde edilemedi.");

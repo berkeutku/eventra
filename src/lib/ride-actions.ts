@@ -58,7 +58,8 @@ export async function createRideAction(
 
   if (user.role !== "driver") {
     return {
-      message: "Yolculuk oluşturmak için hesabının rolü Sürücü olmalı.",
+      message:
+        "Yolculuk oluşturmak için panelinden Sürücü rolüne geçmelisin.",
     };
   }
 
@@ -171,7 +172,8 @@ export async function joinRideAction(
 
   if (user.role !== "passenger") {
     return {
-      message: "Yolculuğa yalnızca Yolcu rolündeki hesaplar katılabilir.",
+      message:
+        "Yolculuğa katılmak için panelinden Yolcu rolüne geçmelisin.",
     };
   }
 
@@ -205,6 +207,10 @@ export async function joinRideAction(
       return {
         message:
           "Bu etkinlik için başka bir yolculuğa zaten katıldın. Önce panelinden ondan ayrılmalısın.",
+      };
+    case "own_ride":
+      return {
+        message: "Kendi oluşturduğun yolculuğa yolcu olarak katılamazsın.",
       };
     case "not_found":
       return { message: "Bu yolculuk artık mevcut değil." };
