@@ -7,9 +7,9 @@ import { createSession } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
 
 export type RegisterState = {
-  errors?: Partial<Record<"name" | "email" | "password" | "role", string>>;
+  errors?: Partial<Record<"name" | "email" | "password", string>>;
   message?: string;
-  values?: { name: string; email: string; role: string };
+  values?: { name: string; email: string };
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -27,8 +27,7 @@ export async function registerAction(
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
-  const role = String(formData.get("role") ?? "");
-  const values = { name, email, role };
+  const values = { name, email };
 
   const errors: NonNullable<RegisterState["errors"]> = {};
 
@@ -46,14 +45,7 @@ export async function registerAction(
     errors.password = "Parola en fazla 128 karakter olabilir.";
   }
 
-  const parsedRole =
-    role === "driver" || role === "passenger" ? role : null;
-
-  if (!parsedRole) {
-    errors.role = "Lütfen bir rol seç.";
-  }
-
-  if (Object.keys(errors).length > 0 || !parsedRole) {
+  if (Object.keys(errors).length > 0) {
     return { errors, values };
   }
 
@@ -61,9 +53,10 @@ export async function registerAction(
 
   try {
     const passwordHash = await hashPassword(password);
+    // Rol verilmez: veritabanı varsayılanı "passenger" uygulanır.
     const [created] = await db
       .insert(users)
-      .values({ name, email, passwordHash, role: parsedRole })
+      .values({ name, email, passwordHash })
       .returning({ id: users.id });
     userId = created.id;
   } catch (error) {

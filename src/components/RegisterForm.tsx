@@ -6,19 +6,6 @@ import { registerAction, type RegisterState } from "@/app/kayit/actions";
 
 const initialState: RegisterState = {};
 
-const roleOptions = [
-  {
-    value: "driver",
-    title: "Sürücü",
-    text: "Aracınla etkinliğe gidiyorsun ve boş koltukları paylaşmak istiyorsun.",
-  },
-  {
-    value: "passenger",
-    title: "Yolcu",
-    text: "Etkinliğe gidiyorsun ve ortak bir yolculuğa katılmak istiyorsun.",
-  },
-] as const;
-
 const inputClass =
   "mt-2 w-full rounded-xl border bg-white px-4 py-3 text-base text-ink placeholder:text-muted/60";
 
@@ -119,31 +106,6 @@ export default function RegisterForm() {
           </p>
         )}
       </div>
-
-      <fieldset>
-        <legend className="text-sm font-bold">Rolün</legend>
-        <div className="mt-2 grid gap-3 sm:grid-cols-2">
-          {roleOptions.map((option) => (
-            <label
-              key={option.value}
-              className="cursor-pointer rounded-2xl border border-line p-4 has-[:checked]:border-violet has-[:checked]:bg-lilac has-[:checked]:ring-2 has-[:checked]:ring-violet has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-violet"
-            >
-              <input
-                type="radio"
-                name="role"
-                value={option.value}
-                defaultChecked={state.values?.role === option.value}
-                className="sr-only"
-              />
-              <span className="block font-extrabold">{option.title}</span>
-              <span className="mt-1 block text-sm text-muted">
-                {option.text}
-              </span>
-            </label>
-          ))}
-        </div>
-        <FieldError id="role-error" message={errors.role} />
-      </fieldset>
 
       <button
         type="submit"

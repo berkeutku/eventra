@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Kayıt Ol | Eventra",
-  description: "Eventra'ya hesap oluştur: sürücü ya da yolcu olarak katıl.",
+  description:
+    "Eventra'ya hesap oluştur ve etkinlik sonrası ortak yolculuklara katıl.",
 };
 
 export default async function RegisterPage() {
@@ -24,7 +25,7 @@ export default async function RegisterPage() {
           Hesap oluştur
         </h1>
         <p className="mt-4 text-lg text-muted">
-          Sürücü ya da yolcu olarak Eventra'ya katıl.
+          Etkinlik sonrası ortak yolculukta buluşmak için Eventra&apos;ya katıl.
         </p>
 
         <div className="mt-6 rounded-2xl bg-lilac p-4 text-sm text-muted">
