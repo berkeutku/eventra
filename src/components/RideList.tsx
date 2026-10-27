@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuthUser } from "@/components/AuthProvider";
 import JoinRideButton from "@/components/JoinRideButton";
 import VerifiedBadge from "@/components/VerifiedBadge";
+import { scoreRides, type ScoredRide } from "@/lib/matching";
 import { leaveRideAction } from "@/lib/ride-actions";
 import {
   calcArrival,
@@ -14,7 +15,7 @@ import {
   type RideItem,
 } from "@/lib/ride-utils";
 
-type SortKey = "time" | "cost";
+type SortKey = "match" | "time" | "cost";
 
 const inputClass =
   "mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-base text-ink placeholder:text-muted/60";
@@ -31,6 +32,16 @@ function matchesQuery(ride: RideItem, query: string): boolean {
     `${ride.origin} ${ride.destination} ${ride.meetingPoint}`,
   );
   return haystack.includes(query);
+}
+
+function scoreTone(score: number): string {
+  if (score >= 75) {
+    return "bg-sea text-mint-ink";
+  }
+  if (score >= 45) {
+    return "bg-lilac text-violet";
+  }
+  return "bg-surface text-muted";
 }
 
 function RideAction({ ride }: { ride: RideItem }) {
@@ -98,12 +109,43 @@ function RideAction({ ride }: { ride: RideItem }) {
   return <JoinRideButton rideId={ride.id} />;
 }
 
-function RideCard({ ride }: { ride: RideItem }) {
+function RideCard({
+  item,
+  showScore,
+  best,
+}: {
+  item: ScoredRide;
+  showScore: boolean;
+  best: boolean;
+}) {
+  const ride = item.ride;
   const share = calcSharePerPerson(ride.totalCost, ride.seats);
   const left = remainingSeats(ride);
+  const showBadge = showScore && !item.full;
 
   return (
-    <li className="rounded-2xl border border-line p-6">
+    <li
+      className={`rounded-2xl border p-6 ${
+        best ? "border-violet ring-2 ring-violet/20" : "border-line"
+      }`}
+    >
+      {(best || showBadge) && (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {best && (
+            <span className="rounded-full bg-violet px-3 py-1 text-xs font-bold text-white">
+              En uygun
+            </span>
+          )}
+          {showBadge && (
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-bold ${scoreTone(item.score)}`}
+            >
+              %{item.score} uyum
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h3 className="text-lg font-extrabold tracking-tight">
@@ -148,6 +190,35 @@ function RideCard({ ride }: { ride: RideItem }) {
         </div>
       </dl>
 
+      {showScore && (
+        <details className="mt-5 rounded-xl bg-surface p-3 text-sm">
+          <summary className="cursor-pointer font-bold text-ink">
+            Neden bu puan?
+          </summary>
+          <ul className="mt-3 space-y-2">
+            {item.reasons.map((reason) => (
+              <li
+                key={reason.key}
+                className="flex items-start justify-between gap-3"
+              >
+                <span>
+                  <span className="block font-bold text-ink">
+                    {reason.label}
+                  </span>
+                  <span className="block text-muted">{reason.detail}</span>
+                </span>
+                <span className="shrink-0 font-bold text-violet">
+                  {reason.points} / {reason.max}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-muted">
+            Puan, bu kurallara göre hesaplanır. Yapay zekâ kullanılmaz.
+          </p>
+        </details>
+      )}
+
       <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5">
         <RideAction ride={ride} />
         <Link
@@ -165,7 +236,14 @@ export default function RideList({ rides }: { rides: RideItem[] }) {
   const user = useAuthUser();
   const [query, setQuery] = useState("");
   const [minSeats, setMinSeats] = useState("0");
-  const [sort, setSort] = useState<SortKey>("time");
+  const [sort, setSort] = useState<SortKey | null>(null);
+  const [destination, setDestination] = useState("");
+  const [preferredTime, setPreferredTime] = useState("");
+
+  const scored = useMemo(
+    () => scoreRides(rides, { destination, preferredTime }),
+    [rides, destination, preferredTime],
+  );
 
   if (rides.length === 0) {
     return (
@@ -188,37 +266,101 @@ export default function RideList({ rides }: { rides: RideItem[] }) {
     );
   }
 
+  const hasPreference = destination.trim() !== "" || preferredTime !== "";
+  const activeSort: SortKey = sort ?? (hasPreference ? "match" : "time");
+  const showScore = activeSort === "match";
   const normalizedQuery = normalize(query.trim());
   const minSeatCount = Number(minSeats);
 
-  const visibleRides = rides
-    .filter((ride) => matchesQuery(ride, normalizedQuery))
-    .filter((ride) => remainingSeats(ride) >= minSeatCount)
+  const visibleRides = scored
+    .filter((item) => matchesQuery(item.ride, normalizedQuery))
+    .filter((item) => remainingSeats(item.ride) >= minSeatCount)
     .sort((a, b) => {
-      if (sort === "cost") {
+      if (activeSort === "match") {
+        if (a.full !== b.full) {
+          return a.full ? 1 : -1;
+        }
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
         return (
-          calcSharePerPerson(a.totalCost, a.seats) -
-          calcSharePerPerson(b.totalCost, b.seats)
+          departureSortKey(a.ride.departureTime) -
+          departureSortKey(b.ride.departureTime)
         );
       }
+
+      if (activeSort === "cost") {
+        return (
+          calcSharePerPerson(a.ride.totalCost, a.ride.seats) -
+          calcSharePerPerson(b.ride.totalCost, b.ride.seats)
+        );
+      }
+
       return (
-        departureSortKey(a.departureTime) - departureSortKey(b.departureTime)
+        departureSortKey(a.ride.departureTime) -
+        departureSortKey(b.ride.departureTime)
       );
     });
 
+  const bestId =
+    showScore && hasPreference
+      ? visibleRides.find((item) => !item.full && item.score > 0)?.ride.id
+      : undefined;
+
   return (
     <div className="mt-8">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="rounded-2xl bg-lilac/60 p-4 sm:p-5">
+        <p className="text-sm font-extrabold">Sana uygun yolculuğu bul</p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label
+              htmlFor="ride-destination"
+              className="text-sm font-bold text-ink"
+            >
+              Nereye gidiyorsun?
+            </label>
+            <input
+              id="ride-destination"
+              type="text"
+              value={destination}
+              onChange={(event) => setDestination(event.target.value)}
+              placeholder="Örn. Kadıköy"
+              autoComplete="off"
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label htmlFor="ride-time" className="text-sm font-bold text-ink">
+              Hangi saatte çıkmak istiyorsun?{" "}
+              <span className="font-normal text-muted">(isteğe bağlı)</span>
+            </label>
+            <input
+              id="ride-time"
+              type="time"
+              value={preferredTime}
+              onChange={(event) => setPreferredTime(event.target.value)}
+              className={inputClass}
+            />
+          </div>
+        </div>
+        <p className="mt-3 text-xs text-muted">
+          Puan: varış yeri en fazla 50, kalkış saati 20, kişi başı masraf 20,
+          boş koltuk 10. Girmediğin tercihler puana katılmaz. Her kartta
+          nedenini görebilirsin, yapay zekâ kullanılmaz.
+        </p>
+      </div>
+
+      <div className="mt-5 grid gap-4 sm:grid-cols-3">
         <div>
           <label htmlFor="ride-query" className="text-sm font-bold text-ink">
-            Ara
+            Ara (filtre)
           </label>
           <input
             id="ride-query"
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Varış, başlangıç veya buluşma noktası"
+            placeholder="Başlangıç, varış veya buluşma noktası"
             autoComplete="off"
             className={inputClass}
           />
@@ -247,10 +389,11 @@ export default function RideList({ rides }: { rides: RideItem[] }) {
           </label>
           <select
             id="ride-sort"
-            value={sort}
+            value={activeSort}
             onChange={(event) => setSort(event.target.value as SortKey)}
             className={inputClass}
           >
+            <option value="match">Uyum puanı (önerilen)</option>
             <option value="time">Kalkış saati (erken önce)</option>
             <option value="cost">Kişi başı masraf (düşük önce)</option>
           </select>
@@ -283,8 +426,13 @@ export default function RideList({ rides }: { rides: RideItem[] }) {
         </div>
       ) : (
         <ul className="mt-4 space-y-4">
-          {visibleRides.map((ride) => (
-            <RideCard key={ride.id} ride={ride} />
+          {visibleRides.map((item) => (
+            <RideCard
+              key={item.ride.id}
+              item={item}
+              showScore={showScore}
+              best={item.ride.id === bestId}
+            />
           ))}
         </ul>
       )}
