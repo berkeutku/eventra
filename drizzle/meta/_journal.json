@@ -22,6 +22,13 @@
       "when": 1792957355209,
       "tag": "0002_lazy_tomorrow_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793141658725,
+      "tag": "0003_tough_norrin_radd",
+      "breakpoints": true
     }
   ]
 }
