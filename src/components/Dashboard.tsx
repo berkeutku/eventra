@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import RoleSwitcher from "@/components/RoleSwitcher";
 import type { AuthUser } from "@/lib/auth";
 import { formatEventDate } from "@/lib/format";
 import { deleteRideAction, leaveRideAction } from "@/lib/ride-actions";
@@ -115,15 +116,17 @@ function RideRow({ ride, mode, confirming, onAsk, onCancel }: RideRowProps) {
 
 export default function Dashboard({
   user,
-  rides,
+  driverRides,
+  passengerRides,
 }: {
   user: AuthUser;
-  rides: RideWithEvent[];
+  driverRides: RideWithEvent[];
+  passengerRides: RideWithEvent[];
 }) {
-  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [confirmKey, setConfirmKey] = useState<string | null>(null);
   const isDriver = user.role === "driver";
-  const totalSeats = rides.reduce((sum, ride) => sum + ride.seats, 0);
-  const totalPassengers = rides.reduce(
+  const totalSeats = driverRides.reduce((sum, ride) => sum + ride.seats, 0);
+  const totalPassengers = driverRides.reduce(
     (sum, ride) => sum + ride.passengerCount,
     0,
   );
@@ -140,49 +143,84 @@ export default function Dashboard({
           {roleLabels[user.role]}
         </span>
 
-        <dl className="mt-8 grid gap-4 sm:grid-cols-2">
-          {isDriver ? (
-            <>
-              <div className="rounded-2xl bg-lilac p-5">
-                <dt className="text-xs font-bold uppercase tracking-wider text-muted">
-                  Oluşturduğun yolculuk
-                </dt>
-                <dd className="mt-1 text-3xl font-extrabold">{rides.length}</dd>
-              </div>
-              <div className="rounded-2xl bg-sea p-5">
-                <dt className="text-xs font-bold uppercase tracking-wider text-muted">
-                  Katılan yolcu / toplam koltuk
-                </dt>
-                <dd className="mt-1 text-3xl font-extrabold">
-                  {totalPassengers} / {totalSeats}
-                </dd>
-              </div>
-            </>
-          ) : (
-            <div className="rounded-2xl bg-sea p-5">
-              <dt className="text-xs font-bold uppercase tracking-wider text-muted">
-                Katıldığın yolculuk
-              </dt>
-              <dd className="mt-1 text-3xl font-extrabold">{rides.length}</dd>
-            </div>
-          )}
+        <RoleSwitcher currentRole={user.role} />
+
+        <dl className="mt-8 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl bg-lilac p-5">
+            <dt className="text-xs font-bold uppercase tracking-wider text-muted">
+              Oluşturduğun yolculuk
+            </dt>
+            <dd className="mt-1 text-3xl font-extrabold">
+              {driverRides.length}
+            </dd>
+          </div>
+          <div className="rounded-2xl bg-lilac p-5">
+            <dt className="text-xs font-bold uppercase tracking-wider text-muted">
+              Katılan yolcu / toplam koltuk
+            </dt>
+            <dd className="mt-1 text-3xl font-extrabold">
+              {totalPassengers} / {totalSeats}
+            </dd>
+          </div>
+          <div className="rounded-2xl bg-sea p-5">
+            <dt className="text-xs font-bold uppercase tracking-wider text-muted">
+              Katıldığın yolculuk
+            </dt>
+            <dd className="mt-1 text-3xl font-extrabold">
+              {passengerRides.length}
+            </dd>
+          </div>
         </dl>
       </div>
 
       <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
-        <h2 className="text-2xl font-extrabold tracking-tight">Yolculuklarım</h2>
+        <h2 className="text-2xl font-extrabold tracking-tight">
+          Sürücü olarak oluşturduklarım
+        </h2>
 
-        {rides.length === 0 ? (
+        {driverRides.length === 0 ? (
           <div className="mt-6 rounded-2xl bg-surface p-6 text-center">
-            <p className="font-bold text-ink">
-              {isDriver
-                ? "Henüz yolculuk oluşturmadın"
-                : "Katıldığın bir yolculuk yok"}
-            </p>
+            <p className="font-bold text-ink">Henüz yolculuk oluşturmadın</p>
             <p className="mt-1 text-sm text-muted">
               {isDriver
                 ? "Bir etkinlik seç ve boş koltuklarını paylaş."
-                : "Bir etkinlik seç ve sana uygun bir yolculuğa katıl."}
+                : "Yolculuk oluşturmak için yukarıdan Sürücü rolüne geç."}
+            </p>
+            {isDriver && (
+              <Link
+                href="/events"
+                className="mt-4 inline-block text-sm font-bold text-violet hover:underline"
+              >
+                Etkinliklere git &rarr;
+              </Link>
+            )}
+          </div>
+        ) : (
+          <ul className="mt-6 space-y-4">
+            {driverRides.map((ride) => (
+              <RideRow
+                key={ride.id}
+                ride={ride}
+                mode="driver"
+                confirming={confirmKey === `driver:${ride.id}`}
+                onAsk={() => setConfirmKey(`driver:${ride.id}`)}
+                onCancel={() => setConfirmKey(null)}
+              />
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+        <h2 className="text-2xl font-extrabold tracking-tight">
+          Yolcu olarak katıldıklarım
+        </h2>
+
+        {passengerRides.length === 0 ? (
+          <div className="mt-6 rounded-2xl bg-surface p-6 text-center">
+            <p className="font-bold text-ink">Katıldığın bir yolculuk yok</p>
+            <p className="mt-1 text-sm text-muted">
+              Bir etkinlik seç ve sana uygun bir yolculuğa katıl.
             </p>
             <Link
               href="/events"
@@ -193,14 +231,14 @@ export default function Dashboard({
           </div>
         ) : (
           <ul className="mt-6 space-y-4">
-            {rides.map((ride) => (
+            {passengerRides.map((ride) => (
               <RideRow
                 key={ride.id}
                 ride={ride}
-                mode={isDriver ? "driver" : "passenger"}
-                confirming={confirmId === ride.id}
-                onAsk={() => setConfirmId(ride.id)}
-                onCancel={() => setConfirmId(null)}
+                mode="passenger"
+                confirming={confirmKey === `passenger:${ride.id}`}
+                onAsk={() => setConfirmKey(`passenger:${ride.id}`)}
+                onCancel={() => setConfirmKey(null)}
               />
             ))}
           </ul>
