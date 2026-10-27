@@ -9,6 +9,7 @@ import {
   type CreateRideState,
 } from "@/lib/ride-actions";
 import { calcSharePerPerson } from "@/lib/ride-utils";
+import MeetingPointSuggestions from "@/components/MeetingPointSuggestions";
 import { roleLabels } from "@/lib/roles";
 
 type Props = {
@@ -224,6 +225,11 @@ export default function RideForm({ eventId }: Props) {
         error={errors.meetingPoint}
         placeholder="Örn. Ana kapı çıkışı, mavi tabela önü"
         hint="Kalabalıkta kolay bulunacak, herkese açık bir nokta seç."
+      />
+
+      <MeetingPointSuggestions
+        value={values.meetingPoint}
+        onSelect={(name) => update("meetingPoint", name)}
       />
 
       <div className="grid gap-6 sm:grid-cols-2">

@@ -114,10 +114,10 @@ const features: {
     status: "live",
   },
   {
-    title: "Rota ve harita",
-    text: "Ücretsiz harita altyapısıyla açıklanabilir bir rota önerisi planlanıyor.",
+    title: "Rota özeti ve buluşma önerisi (demo)",
+    text: "Şematik rota çizimi ve kurallı buluşma noktası önerisi. Gerçek harita ya da navigasyon verisi yok, kurgusal demo verisiyle çalışır.",
     icon: "map",
-    status: "soon",
+    status: "live",
   },
 ];
 

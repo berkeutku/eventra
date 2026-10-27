@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import EventArt from "@/components/EventArt";
 import Icon, { categoryIcon } from "@/components/Icons";
 import JoinRideButton from "@/components/JoinRideButton";
+import RouteSummary from "@/components/RouteSummary";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { categoryMeta } from "@/data/events";
 import { getCurrentUser, type AuthUser } from "@/lib/auth";
@@ -230,6 +231,13 @@ export default async function RideDetailPage({ params }: Props) {
               </div>
             </div>
           </div>
+
+          <RouteSummary
+            origin={ride.origin}
+            meetingPoint={ride.meetingPoint}
+            destination={ride.destination}
+            durationMinutes={ride.durationMinutes}
+          />
 
           <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
             <h2 className="text-2xl font-extrabold tracking-tight">
