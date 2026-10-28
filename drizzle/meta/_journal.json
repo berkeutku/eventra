@@ -43,6 +43,13 @@
       "when": 1793187133644,
       "tag": "0005_tan_firebird",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793188426224,
+      "tag": "0006_salty_pete_wisdom",
+      "breakpoints": true
     }
   ]
 }

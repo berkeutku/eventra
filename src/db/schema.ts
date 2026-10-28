@@ -147,3 +147,38 @@ export const loginAttempts = pgTable(
     index("login_attempts_email_time_idx").on(table.email, table.attemptedAt),
   ],
 );
+
+export const notificationType = pgEnum("notification_type", [
+  "ride_joined",
+  "ride_left",
+  "ride_cancelled",
+]);
+
+// Uygulama içi bildirimler. Her bildirimin tek bir alıcısı vardır.
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: notificationType("type").notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    // Yalnızca site içi yol (sunucuda üretilir), örn. /events/ornek-etkinlik
+    link: text("link").notNull(),
+    // Aynı olay için mükerrer bildirimi önlemek için isteğe bağlı anahtar.
+    dedupeKey: text("dedupe_key"),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("notifications_user_created_idx").on(table.userId, table.createdAt),
+    unique("notifications_user_dedupe_unique").on(
+      table.userId,
+      table.dedupeKey,
+    ),
+  ],
+);

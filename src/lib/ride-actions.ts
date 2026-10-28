@@ -1,13 +1,13 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { ridePassengers, rides } from "@/db/schema";
+import { rides } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { getEventById } from "@/lib/events";
 import { joinRide, type JoinOutcome } from "@/lib/ride-join";
+import { deleteRide, leaveRide } from "@/lib/ride-manage";
 
 export type CreateRideField =
   | "origin"
@@ -148,15 +148,18 @@ export async function deleteRideAction(formData: FormData): Promise<void> {
     return;
   }
 
-  // Sahiplik kontrolü sorgunun içinde: yalnızca kendi yolculuğunu silebilirsin.
-  await db
-    .delete(rides)
-    .where(and(eq(rides.id, rideId), eq(rides.driverId, user.id)));
+  try {
+    // Sahiplik kontrolü sorgunun içinde: yalnızca kendi yolculuğunu silebilirsin.
+    await deleteRide(user.id, rideId);
+  } catch (error) {
+    console.error("Yolculuk silinemedi:", error);
+  }
 
-  revalidatePath("/panel");
+  revalidatePath("/", "layout");
 }
 
-export type JoinRideState = { success?: string;
+export type JoinRideState = {
+  success?: string;
   message?: string;
 };
 
@@ -196,8 +199,7 @@ export async function joinRideAction(
 
   switch (outcome.status) {
     case "joined":
-      revalidatePath("/events/[id]", "page");
-      revalidatePath("/panel");
+      revalidatePath("/", "layout");
       return { success: "Koltuğun ayrıldı. Yolculuğa katıldın." };
     case "full":
       return { message: "Bu yolculuk az önce doldu." };
@@ -230,13 +232,12 @@ export async function leaveRideAction(formData: FormData): Promise<void> {
     return;
   }
 
-  // Yalnızca kendi katılımını silebilirsin.
-  await db
-    .delete(ridePassengers)
-    .where(
-      and(eq(ridePassengers.rideId, rideId), eq(ridePassengers.userId, user.id)),
-    );
+  try {
+    // Yalnızca kendi katılımını silebilirsin.
+    await leaveRide(user.id, rideId);
+  } catch (error) {
+    console.error("Yolculuktan ayrılınamadı:", error);
+  }
 
-  revalidatePath("/events/[id]", "page");
-  revalidatePath("/panel");
+  revalidatePath("/", "layout");
 }

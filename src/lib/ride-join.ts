@@ -1,6 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../db";
-import { ridePassengers, rides, users } from "../db/schema";
+import { notifications, ridePassengers, rides, users } from "../db/schema";
 
 export type JoinOutcome =
   | { status: "joined"; eventId: string }
@@ -32,6 +32,8 @@ export async function joinRide(
         eventId: rides.eventId,
         seats: rides.seats,
         driverId: rides.driverId,
+        origin: rides.origin,
+        destination: rides.destination,
       })
       .from(rides)
       .where(eq(rides.id, rideId))
@@ -76,6 +78,21 @@ export async function joinRide(
     }
 
     await tx.insert(ridePassengers).values({ rideId: ride.id, userId });
+
+    // Sürücüye bildirim: katılımla aynı işlemde yazılır, katılım geri alınırsa bildirim de olmaz.
+    const [passenger] = await tx
+      .select({ name: users.name })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    await tx.insert(notifications).values({
+      userId: ride.driverId,
+      type: "ride_joined",
+      title: "Yolculuğuna yeni bir yolcu katıldı",
+      body: `${passenger?.name ?? "Bir yolcu"}, ${ride.origin} → ${ride.destination} yolculuğuna katıldı.`,
+      link: `/events/${ride.eventId}/yolculuk/${ride.id}`,
+    });
 
     return { status: "joined", eventId: ride.eventId };
   });
