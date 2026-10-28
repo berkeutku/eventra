@@ -9,7 +9,7 @@ const initialState: LoginState = {};
 const inputClass =
   "mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-base text-ink placeholder:text-muted/60";
 
-export default function LoginForm() {
+export default function LoginForm({ next }: { next: string }) {
   const [state, formAction, pending] = useActionState(
     loginAction,
     initialState,
@@ -20,6 +20,8 @@ export default function LoginForm() {
       action={formAction}
       className="mt-8 space-y-6 rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5"
     >
+      <input type="hidden" name="next" value={next} />
+
       {state.message && (
         <p
           role="alert"

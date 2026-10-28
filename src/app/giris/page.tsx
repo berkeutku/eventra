@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import LoginForm from "@/components/LoginForm";
 import { getCurrentUser } from "@/lib/auth";
+import { safeNextPath } from "@/lib/safe-redirect";
 
 export const dynamic = "force-dynamic";
 
@@ -10,11 +11,17 @@ export const metadata: Metadata = {
   description: "Eventra hesabınla giriş yap.",
 };
 
-export default async function LoginPage() {
+type Props = {
+  searchParams: Promise<{ next?: string | string[] }>;
+};
+
+export default async function LoginPage({ searchParams }: Props) {
+  const { next } = await searchParams;
+  const nextPath = safeNextPath(next);
   const user = await getCurrentUser();
 
   if (user) {
-    redirect("/panel");
+    redirect(nextPath);
   }
 
   return (
@@ -35,7 +42,7 @@ export default async function LoginPage() {
           </p>
         </div>
 
-        <LoginForm />
+        <LoginForm next={nextPath} />
       </div>
     </main>
   );

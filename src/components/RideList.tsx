@@ -55,7 +55,7 @@ function RideAction({ ride }: { ride: RideItem }) {
 
   if (!user) {
     return (
-      <Link href="/giris" className={primaryLink}>
+      <Link href={`/giris?next=/events/${ride.eventId}`} className={primaryLink}>
         Katılmak için giriş yap
       </Link>
     );
@@ -256,7 +256,7 @@ function EmptyRides({ eventId }: { eventId: string }) {
             <Link href="/kayit" className={primaryLink}>
               Kayıt ol
             </Link>
-            <Link href="/giris" className={secondaryLink}>
+            <Link href={`/giris?next=/events/${eventId}`} className={secondaryLink}>
               Giriş yap
             </Link>
           </div>

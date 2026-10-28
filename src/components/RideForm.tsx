@@ -141,7 +141,7 @@ export default function RideForm({ eventId }: Props) {
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
-            href="/giris"
+            href={`/giris?next=/events/${eventId}/yolculuk-olustur`}
             className="rounded-full bg-violet px-6 py-3 text-sm font-bold text-white hover:bg-sky"
           >
             Giriş yap

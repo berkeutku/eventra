@@ -72,7 +72,7 @@ function ActionArea({
   if (!user) {
     return (
       <Link
-        href="/giris"
+        href={`/giris?next=/events/${ride.eventId}/yolculuk/${ride.id}`}
         className="inline-block rounded-full bg-violet px-6 py-3 text-sm font-bold text-white hover:bg-sky"
       >
         Katılmak için giriş yap

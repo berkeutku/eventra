@@ -12,6 +12,7 @@ import {
   recordFailedLogin,
 } from "@/lib/login-throttle";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { safeNextPath } from "@/lib/safe-redirect";
 
 export type LoginState = {
   message?: string;
@@ -90,5 +91,6 @@ export async function loginAction(
     return { message: GENERIC_ERROR, values };
   }
 
-  redirect("/panel");
+  // Yönlendirme adresi her zaman sunucuda doğrulanır (yalnızca site içi yollar).
+  redirect(safeNextPath(formData.get("next")));
 }
