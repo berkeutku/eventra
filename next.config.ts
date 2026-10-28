@@ -8,6 +8,12 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=()",
   },
+  {
+    // Siteyi bozmayan, sınırlı bir CSP. Tam CSP yayın sonrasına bırakıldı.
+    key: "Content-Security-Policy",
+    value:
+      "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+  },
 ];
 
 const nextConfig: NextConfig = {
