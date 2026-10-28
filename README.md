@@ -2,6 +2,8 @@
 
 **Your Event. Your Route.**
 
+**Live demo:** https://eventra-one-azure.vercel.app
+
 Eventra is a ride-sharing web app (installable PWA) that connects people who attended the same event (concert, match, theatre) so they can travel home together after it ends.
 
 > **This is a portfolio demo, not a commercial product.** There is no real payment, no real ticket provider, no e-Devlet integration and no real map data. Everything that is simulated is labeled "Demo" in the interface. All events, venues and teams are fictional. The user interface is in Turkish; code and technical documentation are in English.
