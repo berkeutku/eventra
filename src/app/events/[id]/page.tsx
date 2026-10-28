@@ -143,7 +143,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
             </p>
 
             <TicketVerificationCard eventId={event.id} verified={verified} />
-            <RideList rides={rides} />
+            <RideList rides={rides} eventId={event.id} />
           </div>
         </div>
       </section>

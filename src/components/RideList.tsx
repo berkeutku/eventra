@@ -20,6 +20,11 @@ type SortKey = "match" | "time" | "cost";
 const inputClass =
   "mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-base text-ink placeholder:text-muted/60";
 
+const primaryLink =
+  "inline-flex items-center justify-center rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky";
+const secondaryLink =
+  "inline-flex items-center justify-center rounded-full border border-line px-6 py-3 text-sm font-bold text-ink transition-colors hover:bg-lilac";
+
 function normalize(text: string): string {
   return text.toLocaleLowerCase("tr-TR");
 }
@@ -50,18 +55,15 @@ function RideAction({ ride }: { ride: RideItem }) {
 
   if (!user) {
     return (
-      <Link
-        href="/giris"
-        className="text-sm font-bold text-violet hover:underline"
-      >
-        Katılmak için giriş yap &rarr;
+      <Link href="/giris" className={primaryLink}>
+        Katılmak için giriş yap
       </Link>
     );
   }
 
   if (ride.isOwn) {
     return (
-      <span className="rounded-full bg-lilac px-4 py-2 text-sm font-bold text-violet">
+      <span className="inline-flex items-center rounded-full bg-lilac px-4 py-2.5 text-sm font-bold text-violet">
         Bu senin yolculuğun
       </span>
     );
@@ -70,7 +72,7 @@ function RideAction({ ride }: { ride: RideItem }) {
   if (ride.joined) {
     return (
       <div className="flex flex-wrap items-center gap-3">
-        <span className="inline-flex items-center gap-2 rounded-full bg-sea px-4 py-2 text-sm font-bold text-mint-ink">
+        <span className="inline-flex items-center gap-2 rounded-full bg-sea px-4 py-2.5 text-sm font-bold text-mint-ink">
           <span
             aria-hidden="true"
             className="h-1.5 w-1.5 rounded-full bg-mint"
@@ -81,7 +83,7 @@ function RideAction({ ride }: { ride: RideItem }) {
           <input type="hidden" name="rideId" value={ride.id} />
           <button
             type="submit"
-            className="rounded-full border border-line px-4 py-2 text-sm font-bold text-ink hover:bg-lilac"
+            className="rounded-full border border-line px-4 py-2.5 text-sm font-bold text-ink hover:bg-lilac"
           >
             Ayrıl
           </button>
@@ -93,15 +95,18 @@ function RideAction({ ride }: { ride: RideItem }) {
   if (user.role !== "passenger") {
     return (
       <p className="text-sm text-muted">
-        Yolculuğa katılmak için Yolcu rolünde bir hesap gerekir.
+        Yolculuğa katılmak için Yolcu rolünde olmalısın.{" "}
+        <Link href="/panel" className="font-bold text-violet hover:underline">
+          Panele git &rarr;
+        </Link>
       </p>
     );
   }
 
   if (left === 0) {
     return (
-      <span className="rounded-full bg-peach px-4 py-2 text-sm font-bold text-coral-ink">
-        Yolculuk dolu
+      <span className="inline-flex items-center rounded-full bg-peach px-4 py-2.5 text-sm font-bold text-coral-ink">
+        Yolculukta yer kalmadı
       </span>
     );
   }
@@ -125,7 +130,7 @@ function RideCard({
 
   return (
     <li
-      className={`rounded-2xl border p-6 ${
+      className={`rounded-2xl border bg-white p-5 sm:p-6 ${
         best ? "border-violet ring-2 ring-violet/20" : "border-line"
       }`}
     >
@@ -146,25 +151,25 @@ function RideCard({
         </div>
       )}
 
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-extrabold tracking-tight">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h3 className="text-lg font-extrabold leading-snug tracking-tight">
             {ride.origin} → {ride.destination}
           </h3>
-          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
-            Sürücü: {ride.driverName}
+          <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
+            <span>Sürücü: {ride.driverName}</span>
             {ride.driverVerified && <VerifiedBadge />}
           </p>
         </div>
-        <div className="text-right">
+        <div className="shrink-0 text-right">
           <p className="text-2xl font-extrabold tracking-tight text-violet">
             {share} TL
           </p>
-          <p className="text-xs text-muted">tahmini kişi başı</p>
+          <p className="text-xs text-muted">kişi başı, tahmini</p>
         </div>
       </div>
 
-      <dl className="mt-5 grid gap-4 sm:grid-cols-3">
+      <dl className="mt-5 grid gap-4 rounded-xl bg-surface p-4 sm:grid-cols-3">
         <div>
           <dt className="text-xs font-bold uppercase tracking-wider text-muted">
             Buluşma noktası
@@ -191,11 +196,11 @@ function RideCard({
       </dl>
 
       {showScore && (
-        <details className="mt-5 rounded-xl bg-surface p-3 text-sm">
+        <details className="mt-4 rounded-xl border border-line p-3 text-sm">
           <summary className="cursor-pointer font-bold text-ink">
             Neden bu puan?
           </summary>
-          <ul className="mt-3 space-y-2">
+          <ul className="mt-3 space-y-3">
             {item.reasons.map((reason) => (
               <li
                 key={reason.key}
@@ -219,21 +224,86 @@ function RideCard({
         </details>
       )}
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5">
+      <div className="mt-5 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
         <RideAction ride={ride} />
         <Link
           href={`/events/${ride.eventId}/yolculuk/${ride.id}`}
-          className="text-sm font-bold text-violet hover:underline"
+          className="inline-flex items-center justify-center rounded-full border border-line px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-lilac"
         >
-          Detayları gör &rarr;
+          Detayları gör
         </Link>
       </div>
     </li>
   );
 }
 
-export default function RideList({ rides }: { rides: RideItem[] }) {
+function EmptyRides({ eventId }: { eventId: string }) {
   const user = useAuthUser();
+
+  return (
+    <div className="mt-8 rounded-2xl bg-surface p-6 text-center sm:p-8">
+      <p className="text-lg font-extrabold text-ink">
+        Bu etkinlik için henüz yolculuk oluşturulmamış
+      </p>
+
+      {!user && (
+        <>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+            Hesap oluştur, Sürücü rolüne geçip ilk yolculuğu sen aç ya da
+            başkası bir yolculuk açtığında katıl.
+          </p>
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <Link href="/kayit" className={primaryLink}>
+              Kayıt ol
+            </Link>
+            <Link href="/giris" className={secondaryLink}>
+              Giriş yap
+            </Link>
+          </div>
+        </>
+      )}
+
+      {user?.role === "driver" && (
+        <>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+            İlk yolculuğu sen oluştur, aynı etkinliğe gidenler seni burada
+            bulsun.
+          </p>
+          <div className="mt-5 flex justify-center">
+            <Link
+              href={`/events/${eventId}/yolculuk-olustur`}
+              className={primaryLink}
+            >
+              Yolculuk oluştur
+            </Link>
+          </div>
+        </>
+      )}
+
+      {user?.role === "passenger" && (
+        <>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+            Bir sürücü yolculuk açtığında burada görünecek. Sen de yolculuk
+            oluşturmak istersen panelinden Sürücü rolüne geçebilirsin.
+          </p>
+          <div className="mt-5 flex justify-center">
+            <Link href="/panel" className={secondaryLink}>
+              Panele git
+            </Link>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default function RideList({
+  rides,
+  eventId,
+}: {
+  rides: RideItem[];
+  eventId: string;
+}) {
   const [query, setQuery] = useState("");
   const [minSeats, setMinSeats] = useState("0");
   const [sort, setSort] = useState<SortKey | null>(null);
@@ -246,24 +316,7 @@ export default function RideList({ rides }: { rides: RideItem[] }) {
   );
 
   if (rides.length === 0) {
-    return (
-      <div className="mt-8 rounded-2xl bg-surface p-6 text-center">
-        <p className="font-bold text-ink">
-          Bu etkinlik için henüz yolculuk yok
-        </p>
-        <p className="mt-1 text-sm text-muted">
-          Sürücü olarak giriş yapıp ilk yolculuğu sen oluşturabilirsin.
-        </p>
-        {!user && (
-          <Link
-            href="/giris"
-            className="mt-4 inline-block text-sm font-bold text-violet hover:underline"
-          >
-            Giriş sayfasına git &rarr;
-          </Link>
-        )}
-      </div>
-    );
+    return <EmptyRides eventId={eventId} />;
   }
 
   const hasPreference = destination.trim() !== "" || preferredTime !== "";
@@ -425,7 +478,7 @@ export default function RideList({ rides }: { rides: RideItem[] }) {
           </button>
         </div>
       ) : (
-        <ul className="mt-4 space-y-4">
+        <ul className="mt-4 space-y-5">
           {visibleRides.map((item) => (
             <RideCard
               key={item.ride.id}

@@ -23,7 +23,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 sm:top-3 sm:px-4 sm:pt-3">
       <div className="border-b border-line bg-surface/90 backdrop-blur sm:mx-auto sm:max-w-5xl sm:rounded-full sm:border-0 sm:bg-white/90 sm:shadow-lg sm:shadow-violet/10 sm:ring-1 sm:ring-black/5">
-        <div className="flex h-16 items-center justify-between px-5 sm:pl-6 sm:pr-3">
+        <div className="flex h-16 items-center justify-between px-4 sm:pl-6 sm:pr-3">
           <Link href="/" aria-label="Eventra ana sayfa">
             <Logo />
           </Link>
@@ -73,12 +73,20 @@ export default function Header() {
                 </form>
               </>
             ) : (
-              <Link
-                href="/giris"
-                className="ml-1 rounded-full bg-violet px-5 py-2.5 text-white transition-colors hover:bg-sky"
-              >
-                Giriş Yap
-              </Link>
+              <>
+                <Link
+                  href="/giris"
+                  className="ml-1 rounded-full px-4 py-2 text-ink ring-1 ring-line transition-colors hover:bg-lilac"
+                >
+                  Giriş Yap
+                </Link>
+                <Link
+                  href="/kayit"
+                  className="rounded-full bg-violet px-5 py-2.5 text-white transition-colors hover:bg-sky"
+                >
+                  Kayıt Ol
+                </Link>
+              </>
             )}
           </nav>
 
@@ -87,18 +95,26 @@ export default function Header() {
               <form action={logoutAction}>
                 <button
                   type="submit"
-                  className="rounded-full bg-lilac px-4 py-2 text-sm font-bold text-violet"
+                  className="inline-flex min-h-11 items-center rounded-full bg-lilac px-4 text-sm font-bold text-violet"
                 >
                   Çıkış
                 </button>
               </form>
             ) : (
-              <Link
-                href="/giris"
-                className="rounded-full bg-violet px-4 py-2 text-sm font-bold text-white"
-              >
-                Giriş Yap
-              </Link>
+              <div className="flex items-center gap-1">
+                <Link
+                  href="/giris"
+                  className="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-bold text-ink hover:bg-lilac"
+                >
+                  Giriş Yap
+                </Link>
+                <Link
+                  href="/kayit"
+                  className="inline-flex min-h-11 items-center rounded-full bg-violet px-4 text-sm font-bold text-white"
+                >
+                  Kayıt Ol
+                </Link>
+              </div>
             )}
           </div>
         </div>

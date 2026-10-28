@@ -312,7 +312,7 @@ export default async function RideDetailPage({ params }: Props) {
                 </p>
               ) : ride.passengers.length === 0 ? (
                 <p className="rounded-2xl bg-surface p-4 text-sm text-muted">
-                  Henüz katılan yolcu yok.
+                  Henüz yolcu katılmadı. Biri katıldığında adı burada görünecek.
                 </p>
               ) : (
                 <ul className="space-y-3">
