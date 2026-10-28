@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/app/hesap/actions";
 import { useAuthUser } from "@/components/AuthProvider";
+import Icon from "@/components/Icons";
 import Logo from "@/components/Logo";
+import { UnreadBadge } from "@/components/UnreadProvider";
 import { roleLabels } from "@/lib/roles";
 
 const links = [
@@ -19,6 +21,7 @@ export default function Header() {
   const initial = user
     ? user.name.trim().charAt(0).toLocaleUpperCase("tr-TR")
     : "";
+  const notificationsActive = pathname.startsWith("/bildirimler");
 
   return (
     <header className="sticky top-0 z-40 sm:top-3 sm:px-4 sm:pt-3">
@@ -54,6 +57,19 @@ export default function Header() {
 
             {user ? (
               <>
+                <Link
+                  href="/bildirimler"
+                  aria-current={notificationsActive ? "page" : undefined}
+                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 transition-colors ${
+                    notificationsActive
+                      ? "bg-lilac text-violet"
+                      : "text-ink hover:bg-lilac"
+                  }`}
+                >
+                  <Icon name="bell" className="h-4 w-4" />
+                  Bildirimler
+                  <UnreadBadge />
+                </Link>
                 <Link
                   href="/panel"
                   className="group ml-1 flex items-center gap-2 rounded-full bg-lilac py-1.5 pl-1.5 pr-4 text-violet transition-colors hover:bg-violet hover:text-white"

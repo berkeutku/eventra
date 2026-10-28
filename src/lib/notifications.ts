@@ -87,3 +87,27 @@ export async function markAllNotificationsRead(
 
   return updated.length;
 }
+
+// Bildirimi yalnızca sahibi için okundu yapar ve gideceği adresi döner.
+// Daha önce okunmuşsa ilk okunma zamanı korunur. Başkasının bildirimi için null döner.
+export async function openNotification(
+  userId: string,
+  notificationId: string,
+): Promise<string | null> {
+  if (!UUID_PATTERN.test(notificationId)) {
+    return null;
+  }
+
+  const rows = await db
+    .update(notifications)
+    .set({ readAt: sql`coalesce(${notifications.readAt}, now())` })
+    .where(
+      and(
+        eq(notifications.id, notificationId),
+        eq(notifications.userId, userId),
+      ),
+    )
+    .returning({ link: notifications.link });
+
+  return rows[0]?.link ?? null;
+}

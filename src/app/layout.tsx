@@ -6,7 +6,9 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import ToastProvider from "@/components/Toast";
+import UnreadProvider from "@/components/UnreadProvider";
 import { getCurrentUser, type AuthUser } from "@/lib/auth";
+import { countUnread } from "@/lib/notifications";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -44,23 +46,39 @@ async function loadUser(): Promise<AuthUser | null> {
   }
 }
 
+async function loadUnread(user: AuthUser | null): Promise<number> {
+  if (!user) {
+    return 0;
+  }
+
+  try {
+    return await countUnread(user.id);
+  } catch (error) {
+    console.error("Bildirim sayısı okunamadı:", error);
+    return 0;
+  }
+}
+
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const user = await loadUser();
+  const unread = await loadUnread(user);
 
   return (
     <html lang="tr" className={`${jakarta.variable} ${caveat.variable}`}>
       <body className="flex min-h-screen flex-col antialiased">
         <AuthProvider user={user}>
-          <ToastProvider>
-            <Header />
-            <div className="flex-1 pb-24 sm:pb-0">{children}</div>
-            <Footer />
-            <BottomNav />
-          </ToastProvider>
+          <UnreadProvider initial={unread}>
+            <ToastProvider>
+              <Header />
+              <div className="flex-1 pb-24 sm:pb-0">{children}</div>
+              <Footer />
+              <BottomNav />
+            </ToastProvider>
+          </UnreadProvider>
         </AuthProvider>
         <ServiceWorkerRegister />
       </body>

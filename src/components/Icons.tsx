@@ -116,7 +116,7 @@ const paths = {
       <path d="M12 7v5l3 2" />
     </>
   ),
-  star: <path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z" />, mic: (<><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" /></>), cap: (<><path d="m2.5 9 9.5-4.5L21.5 9 12 13.5z" /><path d="M6.5 11.5V16c0 1.4 2.5 2.5 5.5 2.5s5.5-1.1 5.5-2.5v-4.5M21.5 9v5" /></>), spark: (<><path d="M12 4v4M12 16v4M4 12h4M16 12h4" /><path d="m7 7 2 2M15 15l2 2M17 7l-2 2M9 15l-2 2" /></>), arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
+  star: <path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9 6.8 19.6l1-5.8L3.5 9.7l5.9-.9z" />, mic: (<><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" /></>), cap: (<><path d="m2.5 9 9.5-4.5L21.5 9 12 13.5z" /><path d="M6.5 11.5V16c0 1.4 2.5 2.5 5.5 2.5s5.5-1.1 5.5-2.5v-4.5M21.5 9v5" /></>), spark: (<><path d="M12 4v4M12 16v4M4 12h4M16 12h4" /><path d="m7 7 2 2M15 15l2 2M17 7l-2 2M9 15l-2 2" /></>), bell: (<><path d="M6 17v-6a6 6 0 0 1 12 0v6l1.5 2h-15z" /><path d="M10 21h4" /></>), arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
 } satisfies Record<string, ReactNode>;
 
