@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Eventra
 
-## Getting Started
+**Your Event. Your Route.**
 
-First, run the development server:
+Eventra is a ride-sharing web app (installable PWA) that connects people who attended the same event (concert, match, theatre) so they can travel home together after it ends.
+
+> **This is a portfolio demo, not a commercial product.** There is no real payment, no real ticket provider, no e-Devlet integration and no real map data. Everything that is simulated is labeled "Demo" in the interface. All events, venues and teams are fictional. The user interface is in Turkish; code and technical documentation are in English.
+
+## Features
+
+- **Event-based rides:** every ride belongs to one event; riders only plan with people going to the same event.
+- **Accounts and sessions:** email and password sign-up, scrypt password hashing, cookie-based server-side sessions (no external auth library).
+- **One account, switchable role:** new accounts start as a passenger. The active role (driver or passenger) can be switched from the dashboard at any time.
+- **Create and join rides:** drivers create rides; passengers join them. Seat capacity, double joining, one-ride-per-event and "drivers cannot join their own ride" rules are enforced on the server inside a database transaction with row locks.
+- **Fair cost sharing:** the estimated cost per person is `ceil(total / (seats + 1))`, split equally including the driver. No payment is collected.
+- **Explainable matching:** rides are ranked with a transparent rule-based score (destination 50, departure time 20, cost 20, seats 10). Every card has a "Why this score?" breakdown. No AI is used.
+- **Meeting point suggestions (Demo):** rule-based suggestions (walking 40, crowd 40, lighting 10, access 10) from fictional data, plus a schematic, not-to-scale route summary.
+- **Ticket verification (Demo):** simulated provider; code format `EVT-XXX-XXX` plus a check character. Only a SHA-256 digest of the code is stored, and one code can be used by one account.
+- **Passenger privacy:** passenger names are shown only to the ride's driver and to passengers who joined that ride (filtered on the server).
+- **PWA:** web app manifest, icons, and a service worker that only caches an offline fallback page and static assets. Logged-in pages and database data are never cached.
+
+## Tech stack
+
+- Next.js 16 (App Router, Turbopack), React, TypeScript
+- Tailwind CSS v4
+- PostgreSQL on Neon (free plan), Drizzle ORM, `pg`, drizzle-kit migrations
+- Node.js `crypto` (scrypt, SHA-256) for passwords and session tokens
+- Plus Jakarta Sans and Caveat via `next/font/google`
+
+## Getting started
+
+Requirements: Node.js (LTS), Git, and a PostgreSQL database (a free Neon project works).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/berkeutku/eventra.git
+cd eventra
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Create a `.env` file in the project root with a single variable:
