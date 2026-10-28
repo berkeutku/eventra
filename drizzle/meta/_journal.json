@@ -36,6 +36,13 @@
       "when": 1793169267371,
       "tag": "0004_lucky_spacker_dave",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793187133644,
+      "tag": "0005_tan_firebird",
+      "breakpoints": true
     }
   ]
 }

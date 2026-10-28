@@ -1,4 +1,11 @@
-export type EventCategory = "concert" | "match" | "theatre";
+export type EventCategory =
+  | "concert"
+  | "match"
+  | "theatre"
+  | "festival"
+  | "standup"
+  | "university"
+  | "other";
 
 export type EventItem = {
   id: string;
@@ -31,6 +38,30 @@ export const categoryMeta: Record<
     gradient: "bg-linear-to-br from-[#5b1a3a] via-coral to-sun",
     soft: "bg-peach",
     accent: "text-coral-ink",
+  },
+  festival: {
+    label: "Festival",
+    gradient: "bg-linear-to-br from-[#4d2a00] via-sun to-coral",
+    soft: "bg-[#fff1d6]",
+    accent: "text-[#8a5a00]",
+  },
+  standup: {
+    label: "Stand-up",
+    gradient: "bg-linear-to-br from-night via-[#7a2e6b] to-coral",
+    soft: "bg-[#fde7f3]",
+    accent: "text-[#9b2c6a]",
+  },
+  university: {
+    label: "Üniversite",
+    gradient: "bg-linear-to-br from-[#0b2a4d] via-[#2b6cb0] to-mint",
+    soft: "bg-[#e3f0fd]",
+    accent: "text-[#1f5a99]",
+  },
+  other: {
+    label: "Diğer",
+    gradient: "bg-linear-to-br from-night via-[#3d3f63] to-[#8e77ff]",
+    soft: "bg-[#ecedf5]",
+    accent: "text-[#4a4c6a]",
   },
 };
 
@@ -95,5 +126,45 @@ export const events: EventItem[] = [
     startsAt: "2026-12-26T20:30:00+03:00",
     description:
       "Müzikli komedi oyunu. Yılın son hafta sonu, şehir merkezinde yoğunluk yüksek.",
+  },
+  {
+    id: "kis-isiklari-festivali",
+    title: "Kış Işıkları Festivali",
+    category: "festival",
+    city: "Bursa",
+    venue: "Göl Kıyısı Festival Alanı",
+    startsAt: "2027-01-09T17:00:00+03:00",
+    description:
+      "Müzik, yemek tezgâhları ve ışık gösterileriyle bir kış festivali. Alan şehir dışında, çıkışta araç yoğunluğu bekleniyor.",
+  },
+  {
+    id: "gulduren-gece-standup",
+    title: "Güldüren Gece",
+    category: "standup",
+    city: "İstanbul",
+    venue: "Kent Sahnesi",
+    startsAt: "2027-01-16T21:00:00+03:00",
+    description:
+      "Birkaç komedyenin yer aldığı stand-up gecesi. Gösteri gece yarısına yakın bitiyor, toplu taşıma sınırlı.",
+  },
+  {
+    id: "kampus-kariyer-gunleri",
+    title: "Kampüs Kariyer Günleri",
+    category: "university",
+    city: "Ankara",
+    venue: "Kuzey Kampüsü Konferans Salonu",
+    startsAt: "2027-01-23T10:00:00+03:00",
+    description:
+      "Öğrencilere yönelik sunumlar ve tanışma etkinliği. Kampüs çıkışındaki servis ve otobüsler kalabalık olabiliyor.",
+  },
+  {
+    id: "kitap-ve-sanat-fuari",
+    title: "Kitap ve Sanat Fuarı",
+    category: "other",
+    city: "İstanbul",
+    venue: "Sahil Fuar Alanı",
+    startsAt: "2027-01-30T11:00:00+03:00",
+    description:
+      "Yayınevleri, imza günleri ve sanat atölyeleri. Hafta sonu yoğunluğu nedeniyle otopark çıkışı uzun sürebilir.",
   },
 ];

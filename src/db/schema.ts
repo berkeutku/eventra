@@ -16,7 +16,7 @@ import {
 export const eventCategory = pgEnum("event_category", [
   "concert",
   "match",
-  "theatre",
+  "theatre", "festival", "standup", "university", "other",
 ]);
 
 export const userRole = pgEnum("user_role", ["driver", "passenger"]);

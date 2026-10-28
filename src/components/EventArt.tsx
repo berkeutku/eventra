@@ -75,6 +75,6 @@ export default function EventArt({
           />
         </>
       )}
-    </svg>
+    {category === "festival" && (<g><path d="M0 50 Q100 110 200 50 T400 50" stroke="#fff" strokeOpacity="0.35" strokeWidth="3" /><g fill="#fff" fillOpacity="0.4"><circle cx="50" cy="82" r="9" /><circle cx="130" cy="86" r="9" /><circle cx="270" cy="22" r="9" /><circle cx="350" cy="30" r="9" /></g><g fill="#fff" fillOpacity="0.18"><circle cx="90" cy="150" r="34" /><circle cx="210" cy="140" r="48" /><circle cx="330" cy="156" r="30" /></g></g>)}{category === "standup" && (<g><path d="M200 0 120 200h160z" fill="#fff" fillOpacity="0.14" /><path d="M200 120v50M170 172h60" stroke="#fff" strokeOpacity="0.4" strokeWidth="6" strokeLinecap="round" /><rect x="184" y="64" width="32" height="52" rx="16" fill="#fff" fillOpacity="0.4" /></g>)}{category === "university" && (<g fill="#fff" fillOpacity="0.3"><path d="M200 50 330 105 200 160 70 105z" /><path d="M120 135v32c0 14 36 26 80 26s80-12 80-26v-32l-80 36z" fillOpacity="0.18" /></g>)}{category === "other" && (<g fill="#fff" fillOpacity="0.22"><circle cx="200" cy="100" r="70" /><circle cx="200" cy="100" r="44" fillOpacity="0.2" /><circle cx="70" cy="50" r="14" /><circle cx="340" cy="150" r="18" /></g>)}</svg>
   );
 }
