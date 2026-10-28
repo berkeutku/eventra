@@ -2,8 +2,7 @@ import Logo from "@/components/Logo";
 
 export default function Footer() {
   return (
-    <footer className="px-4 pb-6 pt-16">
-      <div className="mx-auto max-w-5xl rounded-3xl bg-night px-8 py-10 text-white">
+    <footer className="px-4 pb-6 pt-10">      <div className="mx-auto max-w-5xl rounded-3xl bg-night px-8 py-10 text-white">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Logo tone="light" />

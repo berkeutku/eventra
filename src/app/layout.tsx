@@ -69,12 +69,12 @@ export default async function RootLayout({
 
   return (
     <html lang="tr" className={`${jakarta.variable} ${caveat.variable}`}>
-      <body className="flex min-h-screen flex-col antialiased">
+      <body className="flex min-h-screen flex-col pb-[calc(4.75rem_+_env(safe-area-inset-bottom))] antialiased sm:pb-0">
         <AuthProvider user={user}>
           <UnreadProvider initial={unread}>
             <ToastProvider>
               <Header />
-              <div className="flex-1 pb-24 sm:pb-0">{children}</div>
+              <div className="flex-1">{children}</div>
               <Footer />
               <BottomNav />
             </ToastProvider>

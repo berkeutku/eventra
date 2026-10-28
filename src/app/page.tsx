@@ -5,6 +5,7 @@ import EventCard from "@/components/EventCard";
 import HeroScroller from "@/components/HeroScroller";
 import Icon, { type IconName } from "@/components/Icons";
 import type { EventItem } from "@/data/events";
+import { getCurrentUser } from "@/lib/auth";
 import { getEvents } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
@@ -196,6 +197,7 @@ function StatusBadge({ status }: { status: FeatureStatus }) {
 
 export default async function HomePage() {
   const upcoming = await loadUpcomingEvents();
+  const user = await getCurrentUser().catch(() => null);
 
   return (
     <main>
@@ -342,8 +344,8 @@ export default async function HomePage() {
 
       <section className="px-6 py-20 sm:py-28">
         <div className="reveal mx-auto max-w-6xl">
-          <h2 className="text-center text-3xl font-extrabold tracking-tight sm:text-5xl">
-            Sürücü müsün, yolcu mu?
+          <h2 className="mx-auto max-w-3xl text-center text-3xl font-extrabold tracking-tight sm:text-5xl">
+            Tek hesap, istediğin zaman sürücü ya da yolcu
           </h2>
 
           <div className="mt-12 grid gap-6 lg:grid-cols-2">
@@ -363,10 +365,12 @@ export default async function HomePage() {
                 ))}
               </ul>
               <Link
-                href="/kayit"
+                href={user ? "/panel" : "/kayit"}
                 className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-violet transition-transform hover:-translate-y-0.5"
               >
-                Sürücü olarak başla
+                {user
+                  ? "Panelinden Sürücü rolüne geç"
+                  : "Kayıt ol, sonra Sürücü rolüne geç"}
                 <Icon name="arrow" className="h-4 w-4" />
               </Link>
             </article>
@@ -387,10 +391,10 @@ export default async function HomePage() {
                 ))}
               </ul>
               <Link
-                href="/kayit"
+                href={user ? "/events" : "/kayit"}
                 className="mt-8 inline-flex items-center gap-2 rounded-full bg-night px-6 py-3 text-sm font-bold text-white transition-transform hover:-translate-y-0.5"
               >
-                Yolcu olarak başla
+                {user ? "Etkinliklere göz at" : "Hesap oluştur"}
                 <Icon name="arrow" className="h-4 w-4" />
               </Link>
             </article>
@@ -476,10 +480,10 @@ export default async function HomePage() {
               Etkinlikleri Keşfet
             </Link>
             <Link
-              href="/giris"
+              href={user ? "/panel" : "/giris"}
               className="rounded-full px-8 py-4 text-base font-bold text-white ring-1 ring-white/40 transition-colors hover:bg-white/10"
             >
-              Giriş Yap
+              {user ? "Panelime git" : "Giriş Yap"}
             </Link>
           </div>
         </div>
