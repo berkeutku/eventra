@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Caveat, Plus_Jakarta_Sans } from "next/font/google";
 import AuthProvider from "@/components/AuthProvider";
 import BottomNav from "@/components/BottomNav";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { getCurrentUser, type AuthUser } from "@/lib/auth";
 import "./globals.css";
 
@@ -21,6 +22,16 @@ export const metadata: Metadata = {
   title: "Eventra | Your Event. Your Route.",
   description:
     "Etkinlik sonrası ulaşım sorununa çözüm: aynı etkinliğe katılan kişilerle ortak yolculuk planla.",
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    title: "Eventra",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#6c4dff",
 };
 
 async function loadUser(): Promise<AuthUser | null> {
@@ -48,6 +59,7 @@ export default async function RootLayout({
           <Footer />
           <BottomNav />
         </AuthProvider>
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
