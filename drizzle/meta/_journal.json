@@ -29,6 +29,13 @@
       "when": 1793141658725,
       "tag": "0003_tough_norrin_radd",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793169267371,
+      "tag": "0004_lucky_spacker_dave",
+      "breakpoints": true
     }
   ]
 }

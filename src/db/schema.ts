@@ -131,3 +131,19 @@ export const ticketVerifications = pgTable(
     index("ticket_verifications_event_id_idx").on(table.eventId),
   ],
 );
+
+
+// Hatalı giriş denemeleri: giriş deneme sınırı için kullanılır.
+export const loginAttempts = pgTable(
+  "login_attempts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    attemptedAt: timestamp("attempted_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("login_attempts_email_time_idx").on(table.email, table.attemptedAt),
+  ],
+);
