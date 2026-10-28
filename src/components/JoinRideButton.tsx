@@ -1,13 +1,25 @@
 "use client";
 
 import { useActionState } from "react";
+import { useToast } from "@/components/Toast";
 import { joinRideAction, type JoinRideState } from "@/lib/ride-actions";
 
 const initialState: JoinRideState = {};
 
 export default function JoinRideButton({ rideId }: { rideId: string }) {
+  const toast = useToast();
+
   const [state, formAction, pending] = useActionState(
-    joinRideAction,
+    async (previous: JoinRideState, formData: FormData) => {
+      const result = await joinRideAction(previous, formData);
+
+      // Onay yalnızca sunucu katılımı gerçekten kaydettiğinde gösterilir.
+      if (result.success) {
+        toast.show(result.success);
+      }
+
+      return result;
+    },
     initialState,
   );
 

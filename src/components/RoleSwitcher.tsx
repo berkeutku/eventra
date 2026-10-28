@@ -1,13 +1,25 @@
 "use client";
 
 import { switchRoleAction } from "@/app/panel/actions";
+import { useToast } from "@/components/Toast";
 import { roleLabels, type Role } from "@/lib/roles";
 
 export default function RoleSwitcher({ currentRole }: { currentRole: Role }) {
+  const toast = useToast();
   const nextRole: Role = currentRole === "driver" ? "passenger" : "driver";
 
+  async function handleSwitch(formData: FormData) {
+    const ok = await switchRoleAction(formData);
+
+    if (ok) {
+      toast.show(`${roleLabels[nextRole]} rolüne geçtin.`);
+    } else {
+      toast.show("Rol değiştirilemedi. Lütfen tekrar dene.", "info");
+    }
+  }
+
   return (
-    <form action={switchRoleAction} className="mt-6 rounded-2xl bg-surface p-5">
+    <form action={handleSwitch} className="mt-6 rounded-2xl bg-surface p-5">
       <input type="hidden" name="role" value={nextRole} />
       <p className="text-sm font-bold text-ink">
         Aktif rolün: {roleLabels[currentRole]}

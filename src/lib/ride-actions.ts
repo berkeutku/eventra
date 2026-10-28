@@ -156,7 +156,7 @@ export async function deleteRideAction(formData: FormData): Promise<void> {
   revalidatePath("/panel");
 }
 
-export type JoinRideState = {
+export type JoinRideState = { success?: string;
   message?: string;
 };
 
@@ -198,7 +198,7 @@ export async function joinRideAction(
     case "joined":
       revalidatePath("/events/[id]", "page");
       revalidatePath("/panel");
-      return {};
+      return { success: "Koltuğun ayrıldı. Yolculuğa katıldın." };
     case "full":
       return { message: "Bu yolculuk az önce doldu." };
     case "already_joined":

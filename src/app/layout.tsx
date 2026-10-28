@@ -5,6 +5,7 @@ import BottomNav from "@/components/BottomNav";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import ToastProvider from "@/components/Toast";
 import { getCurrentUser, type AuthUser } from "@/lib/auth";
 import "./globals.css";
 
@@ -54,10 +55,12 @@ export default async function RootLayout({
     <html lang="tr" className={`${jakarta.variable} ${caveat.variable}`}>
       <body className="flex min-h-screen flex-col antialiased">
         <AuthProvider user={user}>
-          <Header />
-          <div className="flex-1 pb-24 sm:pb-0">{children}</div>
-          <Footer />
-          <BottomNav />
+          <ToastProvider>
+            <Header />
+            <div className="flex-1 pb-24 sm:pb-0">{children}</div>
+            <Footer />
+            <BottomNav />
+          </ToastProvider>
         </AuthProvider>
         <ServiceWorkerRegister />
       </body>

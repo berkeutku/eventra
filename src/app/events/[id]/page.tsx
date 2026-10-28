@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import EventArt from "@/components/EventArt";
 import Icon, { categoryIcon, type IconName } from "@/components/Icons";
 import RideList from "@/components/RideList";
+import ShareButton from "@/components/ShareButton";
 import TicketVerificationCard from "@/components/TicketVerificationCard";
 import { isTicketVerified } from "@/lib/ticket-queries";
 import { categoryMeta } from "@/data/events";
@@ -11,6 +12,7 @@ import { getEventById } from "@/lib/events";
 import { formatEventDate, formatEventTime } from "@/lib/format";
 import { getCurrentUser } from "@/lib/auth";
 import { getRidesForEvent } from "@/lib/ride-queries";
+import { calcSharePerPerson, remainingSeats } from "@/lib/ride-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +35,33 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+// Takvim günü farkı (Türkiye saatine göre). Bugün 0, yarın 1, geçmiş negatif.
+function daysUntil(iso: string): number {
+  const toDay = (date: Date) =>
+    date.toLocaleDateString("en-CA", { timeZone: "Europe/Istanbul" });
+  const toUtc = (day: string) => {
+    const [year, month, date] = day.split("-").map(Number);
+    return Date.UTC(year, month - 1, date);
+  };
+
+  return Math.round(
+    (toUtc(toDay(new Date(iso))) - toUtc(toDay(new Date()))) / 86_400_000,
+  );
+}
+
+function countdownLabel(days: number): string {
+  if (days < 0) {
+    return "Etkinlik tarihi geçti";
+  }
+  if (days === 0) {
+    return "Bugün";
+  }
+  if (days === 1) {
+    return "Yarın";
+  }
+  return `${days} gün sonra`;
+}
+
 export default async function EventDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
@@ -46,6 +75,22 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
   const rides = await getRidesForEvent(event.id, user?.id);
   const verified = user ? await isTicketVerified(user.id, event.id) : false;
   const meta = categoryMeta[event.category];
+
+  const openSeats = rides.reduce((sum, ride) => sum + remainingSeats(ride), 0);
+  const shares = rides.map((ride) =>
+    calcSharePerPerson(ride.totalCost, ride.seats),
+  );
+  const lowestShare = shares.length > 0 ? Math.min(...shares) : null;
+
+  const stats: { label: string; value: string }[] = [
+    { label: "Etkinliğe kalan", value: countdownLabel(daysUntil(event.startsAt)) },
+    { label: "Açık yolculuk", value: String(rides.length) },
+    { label: "Toplam boş koltuk", value: String(openSeats) },
+    {
+      label: "En düşük kişi başı (tahmini)",
+      value: lowestShare === null ? "—" : `${lowestShare} TL`,
+    },
+  ];
 
   const details: { label: string; value: string; icon: IconName }[] = [
     { label: "Tarih", value: formatEventDate(event.startsAt), icon: "calendar" },
@@ -123,6 +168,9 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
             <p className="mt-8 leading-relaxed text-muted">
               {event.description}
             </p>
+            <div className="mt-6">
+              <ShareButton title={event.title} />
+            </div>
           </div>
 
           <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
@@ -141,6 +189,19 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
             <p className="mt-2 text-muted">
               Bu etkinliğe giden sürücülerin paylaştığı yolculuklar.
             </p>
+
+            <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {stats.map((stat) => (
+                <div key={stat.label} className="rounded-2xl bg-surface p-4">
+                  <dt className="text-xs font-bold uppercase tracking-wider text-muted">
+                    {stat.label}
+                  </dt>
+                  <dd className="mt-1 text-xl font-extrabold tracking-tight text-ink">
+                    {stat.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
 
             <TicketVerificationCard eventId={event.id} verified={verified} />
             <RideList rides={rides} eventId={event.id} />

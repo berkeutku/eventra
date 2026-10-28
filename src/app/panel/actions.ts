@@ -8,25 +8,32 @@ import { getCurrentUser } from "@/lib/auth";
 
 // Giriş yapmış kullanıcının aktif rolünü değiştirir (sürücü <-> yolcu).
 // Kimlik her zaman oturumdan alınır, formdan gelen bir kullanıcı numarasına güvenilmez.
-export async function switchRoleAction(formData: FormData): Promise<void> {
+// Rol gerçekten bu istekten sonra istenen değerdeyse true döner.
+export async function switchRoleAction(formData: FormData): Promise<boolean> {
   const user = await getCurrentUser();
 
   if (!user) {
-    return;
+    return false;
   }
 
   const role = String(formData.get("role") ?? "");
 
   if (role !== "driver" && role !== "passenger") {
-    return;
+    return false;
   }
 
   if (role === user.role) {
-    return;
+    return true;
   }
 
-  await db.update(users).set({ role }).where(eq(users.id, user.id));
+  try {
+    await db.update(users).set({ role }).where(eq(users.id, user.id));
+  } catch (error) {
+    console.error("Rol değiştirilemedi:", error);
+    return false;
+  }
 
   // Üst menü ve panel rolü sunucuda okuduğu için tüm sayfaları tazele.
   revalidatePath("/", "layout");
+  return true;
 }
