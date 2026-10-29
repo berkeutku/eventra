@@ -86,7 +86,7 @@ export default async function RootLayout({
   const unread = await loadUnread(user);
 
   return (
-    <html lang="tr" className={`${jakarta.variable} ${caveat.variable}`}>
+    <html lang="tr" data-scroll-behavior="smooth" className={`${jakarta.variable} ${caveat.variable}`}>
       <body className="flex min-h-screen flex-col pb-[calc(4.75rem_+_env(safe-area-inset-bottom))] antialiased sm:pb-0">
         <AuthProvider user={user}>
           <UnreadProvider initial={unread}>
