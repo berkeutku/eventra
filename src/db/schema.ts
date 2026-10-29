@@ -182,3 +182,32 @@ export const notifications = pgTable(
     ),
   ],
 );
+
+
+// Telefon ve tarayıcı push abonelikleri. Her cihaz uç noktası (endpoint) benzersizdir.
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull().unique(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("push_subscriptions_user_idx").on(table.userId)],
+);
+
+// Hangi bildirimin push için "alındığını" tutar. Aynı bildirimin iki kez gönderilmesini engeller.
+export const pushDeliveries = pgTable("push_deliveries", {
+  notificationId: uuid("notification_id")
+    .primaryKey()
+    .references(() => notifications.id, { onDelete: "cascade" }),
+  claimedAt: timestamp("claimed_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});

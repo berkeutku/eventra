@@ -159,8 +159,8 @@ export default async function NotificationsPage() {
         )}
 
         <p className="mt-8 text-xs text-muted">
-          En son 30 bildirim gösterilir. Bildirimler yalnızca bu uygulamanın
-          içindedir, telefona bildirim gönderilmez.
+          En son 30 bildirim gösterilir. Bildirimler burada saklanır.
+          Telefona bildirim almak için panelinden bildirimleri açabilirsin.
         </p>
       </div>
     </main>

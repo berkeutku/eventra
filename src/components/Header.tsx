@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { logoutAction } from "@/app/hesap/actions";
 import { useAuthUser } from "@/components/AuthProvider";
 import Icon from "@/components/Icons";
+import LogoutForm from "@/components/LogoutForm";
 import Logo from "@/components/Logo";
 import { UnreadBadge } from "@/components/UnreadProvider";
 import { roleLabels } from "@/lib/roles";
@@ -79,14 +79,10 @@ export default function Header() {
                   </span>
                   {user.name} · {roleLabels[user.role]}
                 </Link>
-                <form action={logoutAction} className="contents">
-                  <button
-                    type="submit"
-                    className="rounded-full px-4 py-2 text-ink transition-colors hover:bg-lilac"
-                  >
-                    Çıkış
-                  </button>
-                </form>
+                <LogoutForm
+                  className="contents"
+                  buttonClassName="rounded-full px-4 py-2 text-ink transition-colors hover:bg-lilac"
+                />
               </>
             ) : (
               <>
@@ -108,14 +104,7 @@ export default function Header() {
 
           <div className="sm:hidden">
             {user ? (
-              <form action={logoutAction}>
-                <button
-                  type="submit"
-                  className="inline-flex min-h-11 items-center rounded-full bg-lilac px-4 text-sm font-bold text-violet"
-                >
-                  Çıkış
-                </button>
-              </form>
+              <LogoutForm buttonClassName="inline-flex min-h-11 items-center rounded-full bg-lilac px-4 text-sm font-bold text-violet" />
             ) : (
               <div className="flex items-center gap-1">
                 <Link

@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { db } from "@/db";
 import { rides } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { getEventById } from "@/lib/events";
+import { sendPendingPush } from "@/lib/push";
 import { joinRide, type JoinOutcome } from "@/lib/ride-join";
 import { deleteRide, leaveRide } from "@/lib/ride-manage";
 
@@ -44,6 +46,11 @@ function checkText(value: string, label: string): string | undefined {
 
 function parseWholeNumber(value: string): number | null {
   return WHOLE_NUMBER.test(value) ? Number(value) : null;
+}
+
+// Yanıt kullanıcıya gittikten sonra bekleyen telefon bildirimlerini gönderir.
+function schedulePush() {
+  after(() => sendPendingPush());
 }
 
 export async function createRideAction(
@@ -151,6 +158,7 @@ export async function deleteRideAction(formData: FormData): Promise<void> {
   try {
     // Sahiplik kontrolü sorgunun içinde: yalnızca kendi yolculuğunu silebilirsin.
     await deleteRide(user.id, rideId);
+    schedulePush();
   } catch (error) {
     console.error("Yolculuk silinemedi:", error);
   }
@@ -200,6 +208,7 @@ export async function joinRideAction(
   switch (outcome.status) {
     case "joined":
       revalidatePath("/", "layout");
+      schedulePush();
       return { success: "Koltuğun ayrıldı. Yolculuğa katıldın." };
     case "full":
       return { message: "Bu yolculuk az önce doldu." };
@@ -235,6 +244,7 @@ export async function leaveRideAction(formData: FormData): Promise<void> {
   try {
     // Yalnızca kendi katılımını silebilirsin.
     await leaveRide(user.id, rideId);
+    schedulePush();
   } catch (error) {
     console.error("Yolculuktan ayrılınamadı:", error);
   }

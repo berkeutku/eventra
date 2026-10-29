@@ -61,7 +61,7 @@ export default function UnreadProvider({
 
     async function refresh() {
       try {
-        const response = await fetch("/api/notifications/unread", {
+        const response = await fetch("/api/unread", {
           cache: "no-store",
         });
 

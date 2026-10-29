@@ -50,6 +50,13 @@
       "when": 1793188426224,
       "tag": "0006_salty_pete_wisdom",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793226965531,
+      "tag": "0007_right_master_mold",
+      "breakpoints": true
     }
   ]
 }

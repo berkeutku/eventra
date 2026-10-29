@@ -1,6 +1,7 @@
 // Eventra service worker (demo).
-// Yalnızca çevrimdışı yedek sayfasını, ikonları ve değişmez statik dosyaları önbelleğe alır.
+// Çevrimdışı yedek sayfasını, ikonları ve değişmez statik dosyaları önbelleğe alır.
 // Giriş yapmış kullanıcıya ait sayfalar ve veritabanı verileri ASLA önbelleğe alınmaz.
+// Ayrıca sunucudan gelen push bildirimlerini gösterir.
 const CACHE_NAME = "eventra-offline-v2";
 const OFFLINE_URL = "/offline";
 const STATIC_PREFIX = "/_next/static/";
@@ -92,4 +93,66 @@ self.addEventListener("fetch", (event) => {
       }),
     );
   }
+});
+
+// Sunucudan gelen push bildirimi.
+self.addEventListener("push", (event) => {
+  let data = {};
+
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = {};
+  }
+
+  const title =
+    typeof data.title === "string" && data.title ? data.title : "Eventra";
+  const body = typeof data.body === "string" ? data.body : "";
+  const link = typeof data.link === "string" ? data.link : "/bildirimler";
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: "/icons/icon-192.png",
+      data: { link },
+    }),
+  );
+});
+
+// Bildirime dokunulunca ilgili sayfayı aç. Yalnızca site içi yollar kabul edilir.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const raw = event.notification.data && event.notification.data.link;
+  const link =
+    typeof raw === "string" && raw.startsWith("/") && !raw.startsWith("//")
+      ? raw
+      : "/bildirimler";
+
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+
+      for (const client of windows) {
+        if ("focus" in client) {
+          await client.focus();
+
+          if ("navigate" in client) {
+            try {
+              await client.navigate(link);
+            } catch {
+              // Gezinme başarısız olursa pencere yine de öne gelir.
+            }
+          }
+
+          return;
+        }
+      }
+
+      await self.clients.openWindow(link);
+    })(),
+  );
 });
