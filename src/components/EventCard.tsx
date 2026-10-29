@@ -1,11 +1,13 @@
 import Link from "next/link";
-import EventArt from "@/components/EventArt";
+import EventCover from "@/components/EventCover";
 import Icon, { categoryIcon } from "@/components/Icons";
+import { pickEventImage } from "@/data/event-images";
 import { categoryMeta, type EventItem } from "@/data/events";
 import { formatEventDate, formatEventTime } from "@/lib/format";
 
 export default function EventCard({ event }: { event: EventItem }) {
   const meta = categoryMeta[event.category];
+  const image = pickEventImage(event.category, event.id);
 
   return (
     <Link
@@ -13,9 +15,14 @@ export default function EventCard({ event }: { event: EventItem }) {
       className="group flex flex-col overflow-hidden rounded-3xl bg-white shadow-lg shadow-violet/10 ring-1 ring-black/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-violet/20"
     >
       <div className={`relative h-44 overflow-hidden ${meta.gradient}`}>
-        <EventArt
+        <EventCover
           category={event.category}
-          className="absolute inset-0 h-full w-full"
+          src={image?.src}
+          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-linear-to-t from-black/25 to-transparent"
         />
         <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-ink">
           <span className={meta.accent}>

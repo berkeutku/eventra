@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import EventArt from "@/components/EventArt";
+import EventCover from "@/components/EventCover"; import { pickEventImage } from "@/data/event-images";
 import Icon, { categoryIcon, type IconName } from "@/components/Icons";
 import RideList from "@/components/RideList";
 import ShareButton from "@/components/ShareButton";
@@ -101,13 +101,13 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
   return (
     <main>
       <section className={`relative overflow-hidden text-white ${meta.gradient}`}>
-        <EventArt
+        <EventCover src={pickEventImage(event.category, event.id)?.src} priority sizes="100vw"
           category={event.category}
           className="absolute inset-0 h-full w-full"
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-linear-to-t from-black/60 via-black/10 to-transparent"
+          className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-black/10"
         />
         <div className="relative mx-auto max-w-4xl px-6 pb-12 pt-8 sm:pb-16 sm:pt-12">
           <Link
