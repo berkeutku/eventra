@@ -102,7 +102,7 @@ The database tests create temporary users and rides and delete them afterwards. 
 ## Known limitations
 
 - No email verification and no password reset.
-- Login throttling is per email, not per IP, so someone can temporarily lock out a known email address. Registration is not rate limited.
+- Login throttling is per email, not per IP, so someone can temporarily lock out a known email address. Registration is limited per IP (stored only as a hash) and globally per hour.
 - The Content-Security-Policy is limited; a full script policy is not set yet.
 - Development and the demo deployment may share one database.
 - All events, venues, meeting point data and route sketches are fictional demo data.

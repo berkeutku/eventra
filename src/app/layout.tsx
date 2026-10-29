@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { unstable_rethrow } from "next/navigation";
 import { Caveat, Plus_Jakarta_Sans } from "next/font/google";
 import AuthProvider from "@/components/AuthProvider";
 import BottomNav from "@/components/BottomNav";
@@ -59,6 +60,7 @@ async function loadUser(): Promise<AuthUser | null> {
   try {
     return await getCurrentUser();
   } catch (error) {
+    unstable_rethrow(error);
     console.error("Oturum okunamadı:", error);
     return null;
   }
@@ -72,6 +74,7 @@ async function loadUnread(user: AuthUser | null): Promise<number> {
   try {
     return await countUnread(user.id);
   } catch (error) {
+    unstable_rethrow(error);
     console.error("Bildirim sayısı okunamadı:", error);
     return 0;
   }

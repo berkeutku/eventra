@@ -57,6 +57,13 @@
       "when": 1793226965531,
       "tag": "0007_right_master_mold",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793307950966,
+      "tag": "0008_lucky_supreme_intelligence",
+      "breakpoints": true
     }
   ]
 }

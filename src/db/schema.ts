@@ -211,3 +211,20 @@ export const pushDeliveries = pgTable("push_deliveries", {
     .notNull()
     .defaultNow(),
 });
+
+
+// Başarılı kayıtların kaydı: kayıt sınırı için. IP adresi ham olarak değil, özet (hash) olarak saklanır.
+export const signupAttempts = pgTable(
+  "signup_attempts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ipHash: text("ip_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("signup_attempts_created_idx").on(table.createdAt),
+    index("signup_attempts_ip_idx").on(table.ipHash, table.createdAt),
+  ],
+);

@@ -1,10 +1,12 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { createSession } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
+import { checkSignupAllowed, recordSignup } from "@/lib/signup-throttle";
 
 export type RegisterState = {
   errors?: Partial<Record<"name" | "email" | "password", string>>;
@@ -18,6 +20,19 @@ function isUniqueViolation(error: unknown): boolean {
   const direct = (error as { code?: string } | null)?.code;
   const nested = (error as { cause?: { code?: string } } | null)?.cause?.code;
   return direct === "23505" || nested === "23505";
+}
+
+// Vercel bu başlıkları kendisi doldurur. Başlık yoksa (yerel geliştirme) null döner.
+async function readClientIp(): Promise<string | null> {
+  const list = await headers();
+  const real = list.get("x-real-ip")?.trim();
+
+  if (real) {
+    return real;
+  }
+
+  const forwarded = list.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || null;
 }
 
 export async function registerAction(
@@ -49,6 +64,34 @@ export async function registerAction(
     return { errors, values };
   }
 
+  const ip = await readClientIp();
+
+  try {
+    const allowed = await checkSignupAllowed(ip);
+
+    if (allowed === "ip_limited") {
+      return {
+        message:
+          "Bu ağdan kısa sürede çok fazla hesap oluşturuldu. Lütfen bir süre sonra tekrar dene.",
+        values,
+      };
+    }
+
+    if (allowed === "global_limited") {
+      return {
+        message:
+          "Şu anda çok fazla kayıt isteği var. Lütfen biraz sonra tekrar dene.",
+        values,
+      };
+    }
+  } catch (error) {
+    // Sınır kontrolü başarısız olursa kayıt engellenmez.
+    console.error(
+      "Kayıt sınırı kontrol edilemedi:",
+      error instanceof Error ? error.message : "bilinmeyen hata",
+    );
+  }
+
   let userId: string;
 
   try {
@@ -72,6 +115,15 @@ export async function registerAction(
       message: "Hesap oluşturulamadı. Lütfen biraz sonra tekrar dene.",
       values,
     };
+  }
+
+  try {
+    await recordSignup(ip);
+  } catch (error) {
+    console.error(
+      "Kayıt kaydı yazılamadı:",
+      error instanceof Error ? error.message : "bilinmeyen hata",
+    );
   }
 
   await createSession(userId);
