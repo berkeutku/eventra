@@ -11,6 +11,11 @@ import { getCurrentUser, type AuthUser } from "@/lib/auth";
 import { countUnread } from "@/lib/notifications";
 import "./globals.css";
 
+const SITE_URL = "https://eventra-one-azure.vercel.app";
+const SITE_TITLE = "Eventra | Your Event. Your Route.";
+const SITE_DESCRIPTION =
+  "Aynı etkinliğe giden insanları etkinlik sonrası ortak yolculukta buluşturan bir portföy projesi (demo). Next.js, PostgreSQL ve PWA ile geliştirildi.";
+
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin", "latin-ext"],
   variable: "--font-jakarta",
@@ -22,14 +27,27 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: "Eventra | Your Event. Your Route.",
-  description:
-    "Etkinlik sonrası ulaşım sorununa çözüm: aynı etkinliğe katılan kişilerle ortak yolculuk planla.",
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
   icons: {
     apple: "/icons/apple-touch-icon.png",
   },
   appleWebApp: {
     title: "Eventra",
+  },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: "Eventra",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    locale: "tr_TR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
   },
 };
 

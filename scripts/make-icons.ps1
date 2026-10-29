@@ -1,10 +1,11 @@
 Add-Type -AssemblyName System.Drawing
 
-# Arka plan rengini değiştirmek istersen yalnızca bu satırı düzenle.
-$backgroundHex = "#fff8f0"
+# Kaynak logo ve zemin rengi. İstersen yalnızca bu iki satırı değiştir.
+$sourceName = "logo-mark.png"
+$backgroundHex = "#0f1020"
 
 $root = Split-Path -Parent $PSScriptRoot
-$source = Join-Path $root "public\logo-mark.png"
+$source = Join-Path $root ("public\" + $sourceName)
 $outDir = Join-Path $root "public\icons"
 $background = [System.Drawing.ColorTranslator]::FromHtml($backgroundHex)
 
@@ -34,9 +35,9 @@ function New-Icon([int]$size, [double]$logoRatio, [string]$name) {
   Write-Output "Üretildi: $target"
 }
 
-New-Icon 192 0.7 "icon-192.png"
-New-Icon 512 0.7 "icon-512.png"
-New-Icon 512 0.55 "icon-maskable-512.png"
-New-Icon 180 0.7 "apple-touch-icon.png"
+New-Icon 192 0.78 "icon-192.png"
+New-Icon 512 0.78 "icon-512.png"
+New-Icon 512 0.62 "icon-maskable-512.png"
+New-Icon 180 0.78 "apple-touch-icon.png"
 
 $logo.Dispose()
