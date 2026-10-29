@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Dashboard from "@/components/Dashboard";
+import StatsPanel from "@/components/StatsPanel";
 import { getCurrentUser } from "@/lib/auth";
 import { getRidesForDriver, getRidesForPassenger } from "@/lib/ride-queries";
+import { buildStats } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,8 @@ export default async function PanelPage() {
       ])
     : [[], []];
 
+  const stats = user ? buildStats(driverRides, passengerRides) : null;
+
   return (
     <main className="px-6 py-14 sm:py-20">
       <div className="mx-auto max-w-3xl">
@@ -32,11 +36,18 @@ export default async function PanelPage() {
         </p>
 
         {user ? (
-          <Dashboard
-            user={user}
-            driverRides={driverRides}
-            passengerRides={passengerRides}
-          />
+          <>
+            <Dashboard
+              user={user}
+              driverRides={driverRides}
+              passengerRides={passengerRides}
+            />
+            {stats && (
+              <div className="mt-6">
+                <StatsPanel stats={stats} />
+              </div>
+            )}
+          </>
         ) : (
           <div className="mt-8 rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
             <h2 className="text-2xl font-extrabold tracking-tight">
@@ -47,7 +58,7 @@ export default async function PanelPage() {
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
-                href="/giris"
+                href="/giris?next=/panel"
                 className="rounded-full bg-violet px-6 py-3 text-sm font-bold text-white hover:bg-sky"
               >
                 Giriş yap
