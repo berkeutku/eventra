@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Eventra",
     short_name: "Eventra",
     description:
-      "Etkinlik sonrası ortak yolculuk platformu. Portföy demosu, gerçek ödeme veya bilet entegrasyonu yoktur.",
+      "Etkinlik sonrası ortak yolculuk platformu. Demo uygulamadır, gerçek ödeme veya bilet entegrasyonu yoktur.",
     start_url: "/",
     scope: "/",
     display: "standalone",

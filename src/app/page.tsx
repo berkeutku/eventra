@@ -115,7 +115,7 @@ const features: {
     status: "live",
   },
   {
-    title: "Rota özeti ve buluşma önerisi (demo)",
+    title: "Bildirimler (uygulama içi ve telefon)", text: "Yolculuğuna biri katıldığında, ayrıldığında ya da katıldığın yolculuk iptal edildiğinde bildirim alırsın. Telefon bildirimi tarayıcı iznine bağlıdır ve desteklenen cihazlarda çalışır.", icon: "bell", status: "live", }, { title: "Uygulama olarak yüklenebilir (PWA)", text: "Eventra telefonuna ana ekran uygulaması olarak eklenebilir. Çevrimdışıyken yalnızca bir bilgi sayfası açılır, yolculuk verisi cihazda saklanmaz.", icon: "home", status: "live", }, { title: "Tahmini tasarruf ve rozetler", text: "Panelinde yolculuklarından hesaplanan tahmini tasarruf özeti ve gerçek kayıtlara dayanan rozetler görünür. Tutarlar tahmindir, ödeme alınmaz.", icon: "wallet", status: "live", }, { title: "Rota özeti ve buluşma önerisi (demo)" ,
     text: "Şematik rota çizimi ve kurallı buluşma noktası önerisi. Gerçek harita ya da navigasyon verisi yok, kurgusal demo verisiyle çalışır.",
     icon: "map",
     status: "live",
@@ -137,7 +137,7 @@ const passengerPerks = [
 const faqs = [
   {
     q: "Eventra nedir?",
-    a: "Aynı etkinliğe katılan kişileri etkinlik sonrası ortak yolculuklarda buluşturmayı hedefleyen bir yolculuk paylaşım platformu. Şu an bir portföy demosu olarak geliştiriliyor.",
+    a: "Aynı etkinliğe katılan kişileri etkinlik sonrası ortak yolculuklarda buluşturmayı hedefleyen bir yolculuk paylaşım platformu. Şu an bir demo olarak geliştiriliyor.",
   },
   {
     q: "Gerçek ödeme alınıyor mu?",

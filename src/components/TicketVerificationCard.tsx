@@ -61,7 +61,7 @@ export default function TicketVerificationCard({
       </div>
 
       <p className="mt-2 text-sm text-muted">
-        Bu bir simülasyondur. Gerçek bir bilet sağlayıcısına ya da e-Devlet'e
+        Bu bir simülasyondur. Gerçek bir bilet sağlayıcısına ya da e-Devlet&apos;e
         bağlantı yoktur. Kod yalnızca biçim ve sağlama karakteri açısından
         kontrol edilir.
       </p>

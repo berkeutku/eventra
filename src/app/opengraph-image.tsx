@@ -128,7 +128,7 @@ export default async function OpengraphImage() {
               color: "rgba(255,255,255,0.7)",
             }}
           >
-            Portfolio demo
+            Demo
           </div>
         </div>
       </div>
