@@ -14,7 +14,7 @@ export default function EventCard({ event }: { event: EventItem }) {
       href={`/events/${event.id}`}
       className="group flex flex-col overflow-hidden rounded-3xl bg-white shadow-lg shadow-violet/10 ring-1 ring-black/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-violet/20"
     >
-      <div className={`relative h-44 overflow-hidden ${meta.gradient}`}>
+      <div className={`event-zoom relative h-44 overflow-hidden ${meta.gradient}`}>
         <EventCover
           category={event.category}
           src={image?.src}

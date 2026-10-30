@@ -41,7 +41,7 @@ export default async function EventsPage({ searchParams }: Props) {
           <CategoryChips active={active} />
         </div>
         <p className="mt-4 text-xs text-muted">
-          Bu sayfadaki etkinlikler demo amaçlı kurgusal verilerdir.
+          {events.length} etkinlik · Bu sayfadaki etkinlikler demo amaçlı kurgusal verilerdir.
         </p>
 
         {events.length === 0 ? (
