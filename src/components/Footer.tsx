@@ -28,7 +28,7 @@ export default function Footer() {
             Kaynak kodu (GitHub)
           </a>
           <span className="text-white/60">
-            Etkinlikler kurgusaldır, etkinlik görselleri temsilidir.
+            Etkinlikler kurgusaldır, etkinlik görselleri temsilidir. Ziyaret istatistikleri çerez kullanılmadan toplanır.
           </span>
         </div>
       </div>

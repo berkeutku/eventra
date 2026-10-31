@@ -5,6 +5,7 @@ import AuthProvider from "@/components/AuthProvider";
 import BottomNav from "@/components/BottomNav";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import { Analytics } from "@vercel/analytics/next";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import ToastProvider from "@/components/Toast";
 import UnreadProvider from "@/components/UnreadProvider";
@@ -102,6 +103,7 @@ export default async function RootLayout({
           </UnreadProvider>
         </AuthProvider>
         <ServiceWorkerRegister />
+        <Analytics />
       </body>
     </html>
   );
