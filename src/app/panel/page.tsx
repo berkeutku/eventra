@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Dashboard from "@/components/Dashboard";
+import DeleteAccountCard from "@/components/DeleteAccountCard";
 import StatsPanel from "@/components/StatsPanel";
 import { getCurrentUser } from "@/lib/auth";
 import { getRidesForDriver, getRidesForPassenger } from "@/lib/ride-queries";
@@ -47,6 +48,9 @@ export default async function PanelPage() {
                 <StatsPanel stats={stats} />
               </div>
             )}
+            <div className="mt-6">
+              <DeleteAccountCard />
+            </div>
           </>
         ) : (
           <div className="mt-8 rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">

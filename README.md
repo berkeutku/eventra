@@ -22,6 +22,7 @@ Eventra is a ride-sharing web app (installable PWA) that connects people who att
 - **Notifications:** persistent in-app notifications (someone joined or left your ride, a ride you joined was cancelled) with an unread badge and a notifications page. A notification is written in the same database transaction as the action that causes it.
 - **Web Push (optional):** per-device subscriptions, delivery claimed in the database so a notification is never sent twice, dead subscriptions are cleaned up, and a device's subscription is removed on logout. It works in production builds over HTTPS; on iPhone it requires the app to be installed to the home screen.
 - **Estimated savings and badges:** a dashboard summary computed from your rides, clearly labeled as an estimate, and badges derived from real records at read time (nobody can award themselves a badge).
+- **Account deletion:** users can delete their account with password confirmation (wrong passwords count toward the login throttle). Their data is removed in one transaction and affected riders or drivers are notified without naming the deleted user.
 - **Passenger privacy:** passenger names are shown only to the ride's driver and to passengers who joined that ride (filtered on the server).
 - **PWA:** web app manifest, icons, a service worker that only caches an offline fallback page and static assets (logged-in pages and database data are never cached), and push handling.
 - **Social preview:** a link preview image generated at build time.
