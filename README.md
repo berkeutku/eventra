@@ -101,6 +101,7 @@ Eventra can list real events from the biletimGO partner API. Real events are hid
 - **Times:** biletimGO dates carry no time zone and are interpreted as Turkey time (UTC+3).
 - **Rides on real events:** ride creation is limited to events of 24 hours or less, until 12 hours after they end. Ticket verification (a demo simulation) and the fictional meeting point suggestions are hidden for real events.
 - **Disclosure:** ticket links can contain partner tracking parameters. Eventra does not sell tickets.
+- **Daily sync:** a Vercel Cron job calls `/api/cron/biletimgo` once a day (the Hobby plan allows at most one run per day). The route requires `Authorization: Bearer <CRON_SECRET>` and only returns counts. Required server environment variables: `BILETIMGO_API_TOKEN`, `CRON_SECRET`, and `SHOW_REAL_EVENTS=1` to show real events.
 
 Commands (the token is read from the environment, never from a file in the repository):
 
