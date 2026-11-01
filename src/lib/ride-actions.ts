@@ -6,6 +6,7 @@ import { after } from "next/server";
 import { db } from "@/db";
 import { rides } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
+import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
 import { sendPendingPush } from "@/lib/push";
 import { joinRide, type JoinOutcome } from "@/lib/ride-join";
@@ -74,6 +75,12 @@ export async function createRideAction(
 
   if (!event) {
     return { message: "Etkinlik bulunamadı." };
+  }
+
+  const blocked = rideCreationBlockReason(event);
+
+  if (blocked) {
+    return { message: rideBlockMessages[blocked] };
   }
 
   const origin = readText(formData, "origin");

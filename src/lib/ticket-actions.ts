@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { ticketVerifications } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
-import { getEventById } from "@/lib/events";
+import { getDemoEventById as getEventById } from "@/lib/events";
 import { isTicketVerified } from "@/lib/ticket-queries";
 import { checkTicket, generateDemoTicketCode } from "@/lib/ticket-provider";
 

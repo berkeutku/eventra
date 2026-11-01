@@ -227,10 +227,12 @@ export default function RideForm({ eventId }: Props) {
         hint="Kalabalıkta kolay bulunacak, herkese açık bir nokta seç."
       />
 
-      <MeetingPointSuggestions
+      {!eventId.startsWith("bgo-") && (
+        <MeetingPointSuggestions
         value={values.meetingPoint}
         onSelect={(name) => update("meetingPoint", name)}
       />
+      )}
 
       <div className="grid gap-6 sm:grid-cols-2">
         <TextInput

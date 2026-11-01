@@ -7,7 +7,8 @@ import { formatEventDate, formatEventTime } from "@/lib/format";
 
 export default function EventCard({ event }: { event: EventItem }) {
   const meta = categoryMeta[event.category];
-  const image = pickEventImage(event.category, event.id);
+  const isReal = event.source === "biletimgo";
+  const image = event.imageUrl ?? pickEventImage(event.category, event.id)?.src;
 
   return (
     <Link
@@ -17,7 +18,7 @@ export default function EventCard({ event }: { event: EventItem }) {
       <div className={`event-zoom relative h-44 overflow-hidden ${meta.gradient}`}>
         <EventCover
           category={event.category}
-          src={image?.src}
+          src={image}
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
         />
         <div
@@ -29,6 +30,9 @@ export default function EventCard({ event }: { event: EventItem }) {
             <Icon name={categoryIcon[event.category]} className="h-3.5 w-3.5" />
           </span>
           {meta.label}
+        </span>
+        <span className="absolute right-4 top-4 rounded-full bg-night/80 px-3 py-1 text-xs font-bold text-white">
+          {isReal ? "biletimGO" : "Demo etkinlik"}
         </span>
       </div>
 
@@ -44,6 +48,12 @@ export default function EventCard({ event }: { event: EventItem }) {
           <Icon name="calendar" className="h-4 w-4 shrink-0" />
           {formatEventDate(event.startsAt)} · {formatEventTime(event.startsAt)}
         </p>
+        {isReal && event.priceText ? (
+          <p className="mt-1.5 flex items-center gap-2 text-sm text-muted">
+            <Icon name="wallet" className="h-4 w-4 shrink-0" />
+            {event.priceText}
+          </p>
+        ) : null}
         <p className="mt-3 line-clamp-2 flex-1 text-sm leading-relaxed text-muted">
           {event.description}
         </p>

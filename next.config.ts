@@ -26,7 +26,15 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  async headers() {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "www.biletimgo.com",
+        pathname: "/images/**",
+      },
+    ],
+  },  async headers() {
     return [
       {
         source: "/:path*",

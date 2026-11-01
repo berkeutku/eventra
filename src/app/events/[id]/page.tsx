@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import EventCover from "@/components/EventCover"; import { pickEventImage } from "@/data/event-images";
+import EventCover from "@/components/EventCover";
 import Icon, { categoryIcon, type IconName } from "@/components/Icons";
 import RideList from "@/components/RideList";
 import ShareButton from "@/components/ShareButton";
 import TicketVerificationCard from "@/components/TicketVerificationCard";
-import { isTicketVerified } from "@/lib/ticket-queries";
+import { pickEventImage } from "@/data/event-images";
 import { categoryMeta } from "@/data/events";
+import { getCurrentUser } from "@/lib/auth";
+import { safeBiletimgoUrl } from "@/lib/biletimgo/normalize";
+import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
 import { formatEventDate, formatEventTime } from "@/lib/format";
-import { getCurrentUser } from "@/lib/auth";
 import { getRidesForEvent } from "@/lib/ride-queries";
 import { calcSharePerPerson, remainingSeats } from "@/lib/ride-utils";
+import { isTicketVerified } from "@/lib/ticket-queries";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${event.title} | Eventra`,
-    description: event.description,
+    description: event.description.slice(0, 160),
   };
 }
 
@@ -73,8 +76,22 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
 
   const user = await getCurrentUser();
   const rides = await getRidesForEvent(event.id, user?.id);
-  const verified = user ? await isTicketVerified(user.id, event.id) : false;
   const meta = categoryMeta[event.category];
+
+  const isReal = event.source === "biletimgo";
+  const now = new Date();
+  const endTime = new Date(event.endsAt ?? event.startsAt).getTime();
+  const ended = isReal && endTime < now.getTime();
+  const notListed = isReal && event.isActive === false;
+  const blocked = rideCreationBlockReason(event, now);
+  const ticketHref =
+    isReal && event.ticketUrl ? safeBiletimgoUrl(event.ticketUrl) : null;
+  const noTickets =
+    event.priceText?.trim().toLocaleLowerCase("tr-TR") === "aktif bilet yok";
+  const verified =
+    !isReal && user ? await isTicketVerified(user.id, event.id) : false;
+  const imageSrc =
+    event.imageUrl ?? pickEventImage(event.category, event.id)?.src;
 
   const openSeats = rides.reduce((sum, ride) => sum + remainingSeats(ride), 0);
   const shares = rides.map((ride) =>
@@ -92,17 +109,36 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
     },
   ];
 
+  const startDate = formatEventDate(event.startsAt);
+  const endDate = event.endsAt ? formatEventDate(event.endsAt) : null;
+  const dateValue =
+    endDate && endDate !== startDate ? `${startDate} – ${endDate}` : startDate;
+  const timeValue = event.endsAt
+    ? `${formatEventTime(event.startsAt)} – ${formatEventTime(event.endsAt)}`
+    : formatEventTime(event.startsAt);
+
   const details: { label: string; value: string; icon: IconName }[] = [
-    { label: "Tarih", value: formatEventDate(event.startsAt), icon: "calendar" },
-    { label: "Saat", value: formatEventTime(event.startsAt), icon: "clock" },
+    { label: "Tarih", value: dateValue, icon: "calendar" },
+    { label: "Saat", value: timeValue, icon: "clock" },
     { label: "Mekan", value: `${event.venue}, ${event.city}`, icon: "pin" },
   ];
+
+  if (isReal && event.address) {
+    details.push({ label: "Adres", value: event.address, icon: "map" });
+  }
+
+  if (isReal && event.organizer) {
+    details.push({ label: "Organizatör", value: event.organizer, icon: "user" });
+  }
 
   return (
     <main>
       <section className={`relative overflow-hidden text-white ${meta.gradient}`}>
-        <EventCover src={pickEventImage(event.category, event.id)?.src} priority sizes="100vw"
+        <EventCover
           category={event.category}
+          src={imageSrc}
+          priority
+          sizes="100vw"
           className="absolute inset-0 h-full w-full"
         />
         <div
@@ -117,15 +153,20 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
             &larr; Tüm etkinlikler
           </Link>
           <div className="mt-16 sm:mt-24">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-ink">
-              <span className={meta.accent}>
-                <Icon
-                  name={categoryIcon[event.category]}
-                  className="h-3.5 w-3.5"
-                />
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-ink">
+                <span className={meta.accent}>
+                  <Icon
+                    name={categoryIcon[event.category]}
+                    className="h-3.5 w-3.5"
+                  />
+                </span>
+                {meta.label}
               </span>
-              {meta.label}
-            </span>
+              <span className="rounded-full bg-night/80 px-3 py-1.5 text-xs font-bold text-white">
+                {isReal ? "biletimGO" : "Demo etkinlik"}
+              </span>
+            </div>
             <h1 className="mt-4 text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl">
               {event.title}
             </h1>
@@ -147,6 +188,18 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
             </div>
           )}
 
+          {notListed && (
+            <div role="status" className="rounded-2xl bg-peach p-4 text-sm font-medium text-coral-ink">
+              Bu etkinlik artık biletimGO&apos;da listelenmiyor. Satış kapanmış, biletler tükenmiş ya da etkinlik sona ermiş olabilir. Mevcut yolculuklar aşağıda görünmeye devam eder.
+            </div>
+          )}
+
+          {ended && !notListed && (
+            <div role="status" className="rounded-2xl bg-lilac p-4 text-sm font-medium text-ink">
+              Bu etkinlik sona erdi.
+            </div>
+          )}
+
           <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
             <dl className="grid gap-6 sm:grid-cols-3">
               {details.map((item) => (
@@ -156,16 +209,18 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                   >
                     <Icon name={item.icon} className="h-5 w-5" />
                   </span>
-                  <div>
+                  <div className="min-w-0">
                     <dt className="text-xs font-bold uppercase tracking-wider text-muted">
                       {item.label}
                     </dt>
-                    <dd className="mt-0.5 font-bold text-ink">{item.value}</dd>
+                    <dd className="mt-0.5 break-words font-bold text-ink">
+                      {item.value}
+                    </dd>
                   </div>
                 </div>
               ))}
             </dl>
-            <p className="mt-8 leading-relaxed text-muted">
+            <p className="mt-8 whitespace-pre-line leading-relaxed text-muted">
               {event.description}
             </p>
             <div className="mt-6">
@@ -173,22 +228,63 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
             </div>
           </div>
 
+          {isReal && (
+            <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+              <h2 className="text-2xl font-extrabold tracking-tight">Bilet</h2>
+              {event.priceText && (
+                <p className="mt-3 text-ink">
+                  Fiyat: <strong>{event.priceText}</strong>{" "}
+                  <span className="text-sm text-muted">
+                    (para birimi ve güncel fiyat için biletimGO sayfasına bak)
+                  </span>
+                </p>
+              )}
+              <div className="mt-5">
+                {ticketHref && !noTickets ? (
+                  <a
+                    href={ticketHref}
+                    target="_blank"
+                    rel="noopener noreferrer sponsored"
+                    className="inline-flex items-center gap-2 rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky"
+                  >
+                    Bileti biletimGO&apos;da gör
+                    <Icon name="arrow" className="h-4 w-4" />
+                  </a>
+                ) : (
+                  <p className="text-sm font-bold text-ink">
+                    Şu an biletimGO&apos;da aktif bilet görünmüyor.
+                  </p>
+                )}
+              </div>
+              <p className="mt-4 text-xs leading-relaxed text-muted">
+                Eventra bilet satmaz, satış biletimGO üzerinden yapılır. Bu bağlantı Eventra&apos;nın biletimGO iş ortaklığına ait takip bilgisi içerir. Etkinlik bilgileri biletimGO&apos;dan alınır, fiyat ve bilet durumu değişebilir.
+              </p>
+            </div>
+          )}
+
           <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <h2 className="text-2xl font-extrabold tracking-tight">
                 Ortak yolculuklar
               </h2>
-              <Link
-                href={`/events/${event.id}/yolculuk-olustur`}
-                className="inline-flex items-center gap-2 rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky"
-              >
-                <Icon name="car" className="h-4 w-4" />
-                Yolculuk Oluştur
-              </Link>
+              {blocked ? null : (
+                <Link
+                  href={`/events/${event.id}/yolculuk-olustur`}
+                  className="inline-flex items-center gap-2 rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky"
+                >
+                  <Icon name="car" className="h-4 w-4" />
+                  Yolculuk Oluştur
+                </Link>
+              )}
             </div>
             <p className="mt-2 text-muted">
               Bu etkinliğe giden sürücülerin paylaştığı yolculuklar.
             </p>
+            {blocked ? (
+              <p className="mt-4 rounded-2xl bg-surface p-4 text-sm text-muted">
+                {rideBlockMessages[blocked]}
+              </p>
+            ) : null}
 
             <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {stats.map((stat) => (
@@ -203,7 +299,9 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
               ))}
             </dl>
 
-            <TicketVerificationCard eventId={event.id} verified={verified} />
+            {!isReal && (
+              <TicketVerificationCard eventId={event.id} verified={verified} />
+            )}
             <RideList rides={rides} eventId={event.id} />
           </div>
         </div>
