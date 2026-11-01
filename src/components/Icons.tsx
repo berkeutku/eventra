@@ -125,7 +125,7 @@ export type IconName = keyof typeof paths;
 export const categoryIcon: Record<EventCategory, IconName> = {
   concert: "music",
   match: "ball",
-  theatre: "mask", festival: "star", standup: "mic", university: "cap", other: "spark",
+  theatre: "mask", festival: "star", standup: "mic", university: "cap", other: "spark", party: "music", workshop: "cap", kids: "star",
 };
 
 export default function Icon({

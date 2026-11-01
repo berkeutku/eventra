@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   index,
   integer,
@@ -17,19 +18,46 @@ export const eventCategory = pgEnum("event_category", [
   "concert",
   "match",
   "theatre", "festival", "standup", "university", "other",
+  "party",
+  "workshop",
+  "kids",
 ]);
 
 export const userRole = pgEnum("user_role", ["driver", "passenger"]);
 
-export const events = pgTable("events", {
-  id: text("id").primaryKey(),
-  title: text("title").notNull(),
-  category: eventCategory("category").notNull(),
-  city: text("city").notNull(),
-  venue: text("venue").notNull(),
-  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
-  description: text("description").notNull(),
-});
+export const events = pgTable(
+  "events",
+  {
+    id: text("id").primaryKey(),
+    title: text("title").notNull(),
+    category: eventCategory("category").notNull(),
+    city: text("city").notNull(),
+    venue: text("venue").notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    description: text("description").notNull(),
+    // biletimGO entegrasyonu için eklenen alanlar (hepsi geriye uyumlu)
+    source: text("source").notNull().default("demo"),
+    externalId: text("external_id"),
+    ticketUrl: text("ticket_url"),
+    imageUrl: text("image_url"),
+    address: text("address"),
+    organizer: text("organizer"),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    priceText: text("price_text"),
+    sourceCategory: text("source_category"),
+    cityKey: text("city_key"),
+    isActive: boolean("is_active").notNull().default(true),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
+    missedRuns: integer("missed_runs").notNull().default(0),
+  },
+  (table) => [
+    unique("events_source_external_unique").on(table.source, table.externalId),
+    index("events_active_starts_idx").on(table.isActive, table.startsAt),
+    index("events_city_key_idx").on(table.cityKey),
+    index("events_category_idx").on(table.category),
+    check("events_source_check", sql`${table.source} in ('demo', 'biletimgo')`),
+  ],
+);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -48,7 +76,7 @@ export const rides = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     eventId: text("event_id")
       .notNull()
-      .references(() => events.id, { onDelete: "cascade" }),
+      .references(() => events.id, { onDelete: "restrict" }),
     driverId: uuid("driver_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -117,7 +145,7 @@ export const ticketVerifications = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     eventId: text("event_id")
       .notNull()
-      .references(() => events.id, { onDelete: "cascade" }),
+      .references(() => events.id, { onDelete: "restrict" }),
     codeHash: text("code_hash").notNull().unique(),
     verifiedAt: timestamp("verified_at", { withTimezone: true })
       .notNull()
@@ -227,4 +255,25 @@ export const signupAttempts = pgTable(
     index("signup_attempts_created_idx").on(table.createdAt),
     index("signup_attempts_ip_idx").on(table.ipHash, table.createdAt),
   ],
+);
+
+// Senkronizasyon çalışmalarının kaydı. Aynı anda iki çalışmayı engellemek için de kullanılır.
+export const syncRuns = pgTable(
+  "sync_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    source: text("source").notNull(),
+    status: text("status").notNull(), // running | success | failed | suspicious
+    startedAt: timestamp("started_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    fetchedCount: integer("fetched_count"),
+    insertedCount: integer("inserted_count"),
+    updatedCount: integer("updated_count"),
+    skippedCount: integer("skipped_count"),
+    deactivatedCount: integer("deactivated_count"),
+    errorCode: text("error_code"),
+  },
+  (table) => [index("sync_runs_started_idx").on(table.source, table.startedAt)],
 );

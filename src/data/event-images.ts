@@ -11,7 +11,7 @@ const IMAGES: Record<EventCategory, EventImage[]> = {
   festival: [{ src: "/events/festival-1.jpg" }, { src: "/events/festival-2.jpg" }],
   standup: [{ src: "/events/standup-1.jpg" }],
   university: [{ src: "/events/university-1.jpg" }],
-  other: [{ src: "/events/other-1.jpg" }],
+  other: [{ src: "/events/other-1.jpg" }], party: [], workshop: [], kids: [],
 };
 
 // Aynı etkinlik her zaman aynı fotoğrafı alır (kimliğinden hesaplanır).

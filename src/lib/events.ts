@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { events } from "@/db/schema";
 import type { EventItem } from "@/data/events";
@@ -15,11 +15,28 @@ function toEventItem(row: EventRow): EventItem {
     venue: row.venue,
     startsAt: row.startsAt.toISOString(),
     description: row.description,
+    source: row.source === "biletimgo" ? "biletimgo" : "demo",
+    ticketUrl: row.ticketUrl,
+    imageUrl: row.imageUrl,
+    address: row.address,
+    organizer: row.organizer,
+    endsAt: row.endsAt ? row.endsAt.toISOString() : null,
+    priceText: row.priceText,
+    sourceCategory: row.sourceCategory,
+    isActive: row.isActive,
   };
 }
 
+// ŞİMDİLİK yalnızca demo etkinlikler listelenir ve açılabilir. Gerçek (biletimGO)
+// etkinlikler arayüz hazır olunca bilerek açılacak (Faz 4). Bu yüzden veritabanına
+// gerçek etkinlik yazılsa bile sayfalar, yolculuk oluşturma ve bilet doğrulama
+// onları görmez ve reddeder.
 export const getEvents = cache(async (): Promise<EventItem[]> => {
-  const rows = await db.select().from(events).orderBy(asc(events.startsAt));
+  const rows = await db
+    .select()
+    .from(events)
+    .where(eq(events.source, "demo"))
+    .orderBy(asc(events.startsAt));
   return rows.map(toEventItem);
 });
 
@@ -28,7 +45,7 @@ export const getEventById = cache(
     const rows = await db
       .select()
       .from(events)
-      .where(eq(events.id, id))
+      .where(and(eq(events.id, id), eq(events.source, "demo")))
       .limit(1);
     return rows[0] ? toEventItem(rows[0]) : null;
   },

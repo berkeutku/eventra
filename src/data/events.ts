@@ -5,7 +5,10 @@ export type EventCategory =
   | "festival"
   | "standup"
   | "university"
-  | "other";
+  | "other"
+  | "party"
+  | "workshop"
+  | "kids";
 
 export type EventItem = {
   id: string;
@@ -15,6 +18,16 @@ export type EventItem = {
   venue: string;
   startsAt: string; // ISO format: 2026-11-21T20:00:00+03:00
   description: string;
+  // Aşağıdakiler isteğe bağlıdır; demo etkinliklerde boş kalır.
+  source?: "demo" | "biletimgo";
+  ticketUrl?: string | null;
+  imageUrl?: string | null;
+  address?: string | null;
+  organizer?: string | null;
+  endsAt?: string | null;
+  priceText?: string | null;
+  sourceCategory?: string | null;
+  isActive?: boolean;
 };
 
 export const categoryMeta: Record<
@@ -62,6 +75,24 @@ export const categoryMeta: Record<
     gradient: "bg-linear-to-br from-night via-[#3d3f63] to-[#8e77ff]",
     soft: "bg-[#ecedf5]",
     accent: "text-[#4a4c6a]",
+  },
+  party: {
+    label: "Parti",
+    gradient: "bg-linear-to-br from-[#2a0a4d] via-[#c026d3] to-coral",
+    soft: "bg-[#fae8ff]",
+    accent: "text-[#a21caf]",
+  },
+  workshop: {
+    label: "Atölye",
+    gradient: "bg-linear-to-br from-[#0b3d3a] via-[#0d9488] to-mint",
+    soft: "bg-[#ccfbf1]",
+    accent: "text-[#0f766e]",
+  },
+  kids: {
+    label: "Çocuk",
+    gradient: "bg-linear-to-br from-[#7c2d12] via-[#f59e0b] to-sun",
+    soft: "bg-[#fef9c3]",
+    accent: "text-[#a16207]",
   },
 };
 

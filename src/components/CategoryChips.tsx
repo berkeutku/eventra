@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import Icon, { categoryIcon } from "@/components/Icons";
 import { categoryMeta, type EventCategory } from "@/data/events";
 
-const categories = Object.keys(categoryMeta) as EventCategory[];
+const categories = (Object.keys(categoryMeta) as EventCategory[]).filter((category) => !["party", "workshop", "kids"].includes(category)); // Faz 4'te gerçek etkinliklerle birlikte açılacak
 
 export default function CategoryChips({ active }: { active?: EventCategory }) {
   const navRef = useRef<HTMLElement>(null);
