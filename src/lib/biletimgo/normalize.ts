@@ -39,7 +39,6 @@ export type NormalizeResult =
   | { ok: true; event: NormalizedEvent }
   | { ok: false; reason: string };
 
-// eslint-disable-next-line no-control-regex
 const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]/g;
 
 function stripControls(text: string): string {
@@ -270,7 +269,6 @@ export function safeBiletimgoUrl(
 
   const raw = value.trim();
 
-  // eslint-disable-next-line no-control-regex
   if (raw.length === 0 || raw.length > LIMITS.url || /[\u0000-\u0020\u007F]/.test(raw)) {
     return null;
   }
