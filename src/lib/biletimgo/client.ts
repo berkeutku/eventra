@@ -10,6 +10,7 @@ export type FetchLike = typeof fetch;
 export type FetchFailure =
   | "auth"
   | "forbidden"
+  | "forbidden_html"
   | "server"
   | "http"
   | "timeout"
@@ -59,7 +60,11 @@ export async function fetchBiletimgoEvents(
   }
 
   if (response.status === 403) {
-    throw new BiletimgoError("forbidden");
+    // Yanıt JSON değil HTML ise genellikle bir güvenlik katmanı (WAF/CDN) isteği engellemiştir.
+    const contentType = response.headers.get("content-type") ?? "";
+    throw new BiletimgoError(
+      contentType.includes("html") ? "forbidden_html" : "forbidden",
+    );
   }
 
   if (response.status >= 500) {

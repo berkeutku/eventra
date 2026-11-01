@@ -167,6 +167,16 @@ async function main() {
     const authFail = await runBiletimgoSync({ token: SECRET, apply: true, prefix, fetchImpl: statusFetch(401) });
     check("API 401: durum failed, kod auth, veri değişmez", authFail.status === "failed" && authFail.errorCode === "auth" && (await rowsOf(prefix)).length === 5);
     check("sonuçta token geçmez", !JSON.stringify(authFail).includes(SECRET) && !JSON.stringify(r1).includes(SECRET));
+    const jsonForbidden = await runBiletimgoSync({ token: SECRET, apply: true, prefix, fetchImpl: statusFetch(403) });
+    check("API 403 (JSON): kod forbidden, veri değişmez", jsonForbidden.status === "failed" && jsonForbidden.errorCode === "forbidden" && (await rowsOf(prefix)).length === 5);
+    const htmlForbidden = await runBiletimgoSync({
+      token: SECRET,
+      apply: true,
+      prefix,
+      fetchImpl: (async () =>
+        new Response("<html>blocked-page</html>", { status: 403, headers: { "content-type": "text/html" } })) as unknown as FetchLike,
+    });
+    check("API 403 (HTML): kod forbidden_html ve içerik sızdırılmaz", htmlForbidden.errorCode === "forbidden_html" && !JSON.stringify(htmlForbidden).includes("blocked-page"));
     const serverFail = await runBiletimgoSync({ token: SECRET, apply: true, prefix, fetchImpl: statusFetch(500) });
     check("API 500: durum failed, kod server", serverFail.status === "failed" && serverFail.errorCode === "server");
     const netFail = await runBiletimgoSync({
