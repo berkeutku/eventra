@@ -150,7 +150,7 @@ function RideSection({
   empty: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+    <section className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
       <h2 className="text-2xl font-extrabold tracking-tight">
         {title}{" "}
         <span className="rounded-full bg-lilac px-2.5 py-0.5 text-sm text-violet">
@@ -208,9 +208,9 @@ export default function RidesPanel({
         ) : (
           <EmptyState
             title="Henüz yolculuk oluşturmadın"
-            text="Yolculuk oluşturmak için Genel bakış sekmesinden Sürücü rolüne geç."
+            text="Yolculuk oluşturmak için profil sayfandan Sürücü rolüne geç."
             href="/panel"
-            label="Genel bakışa git"
+            label="Profile git"
           />
         )
       }

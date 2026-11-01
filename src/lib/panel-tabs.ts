@@ -1,24 +1,21 @@
-export type PanelTab =
-  | "genel"
-  | "yolculuklar"
-  | "favoriler"
-  | "basarilar"
-  | "ayarlar";
+export type PanelSection = "yolculuklar" | "favoriler" | "basarilar" | "ayarlar";
 
-export const TAB_ITEMS: { key: PanelTab; label: string }[] = [
-  { key: "genel", label: "Genel bakış" },
-  { key: "yolculuklar", label: "Yolculuklarım" },
-  { key: "favoriler", label: "Favoriler" },
-  { key: "basarilar", label: "Başarılar" },
-  { key: "ayarlar", label: "Ayarlar" },
-];
+export const SECTION_PATHS: Record<PanelSection, string> = {
+  yolculuklar: "/panel/yolculuklar",
+  favoriler: "/panel/favoriler",
+  basarilar: "/panel/basarilar",
+  ayarlar: "/panel/ayarlar",
+};
 
-export function tabHref(tab: PanelTab): string {
-  return tab === "genel" ? "/panel" : `/panel?sekme=${tab}`;
-}
-
-// Adres çubuğundaki ?sekme= değerini güvenle çözer; geçersizse "genel" döner.
-export function parseTab(value: string | string[] | undefined): PanelTab {
+// Eski sekmeli adresleri (/panel?sekme=favoriler) yeni sayfalara yönlendirmek için.
+export function legacyTabPath(
+  value: string | string[] | undefined,
+): string | null {
   const raw = Array.isArray(value) ? value[0] : value;
-  return TAB_ITEMS.find((item) => item.key === raw)?.key ?? "genel";
+
+  if (!raw || !Object.prototype.hasOwnProperty.call(SECTION_PATHS, raw)) {
+    return null;
+  }
+
+  return SECTION_PATHS[raw as PanelSection];
 }

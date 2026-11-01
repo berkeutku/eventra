@@ -26,7 +26,7 @@ export default function RouteSummary({
     : undefined;
 
   return (
-    <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+    <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="text-2xl font-extrabold tracking-tight">Rota özeti</h2>
         <span className="rounded-full bg-sun/30 px-2.5 py-0.5 text-xs font-extrabold uppercase tracking-wider text-ink">

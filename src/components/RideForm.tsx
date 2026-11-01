@@ -132,7 +132,7 @@ export default function RideForm({ eventId }: Props) {
 
   if (user === null) {
     return (
-      <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+      <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
         <h2 className="text-2xl font-extrabold tracking-tight">
           Önce giriş yapmalısın
         </h2>
@@ -160,7 +160,7 @@ export default function RideForm({ eventId }: Props) {
 
   if (user.role !== "driver") {
     return (
-      <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+      <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
         <h2 className="text-2xl font-extrabold tracking-tight">
           Bu sayfa sürücüler içindir
         </h2>
@@ -182,7 +182,7 @@ export default function RideForm({ eventId }: Props) {
     <form
       onSubmit={handleSubmit}
       noValidate
-      className="space-y-6 rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5"
+      className="space-y-6 rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5"
     >
       <input type="hidden" name="eventId" value={eventId} />
 

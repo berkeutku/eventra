@@ -224,9 +224,36 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="px-6 pt-24 sm:pt-32">
+      <section aria-label="Etkinlik ara" className="px-6 pt-10 sm:pt-14">
+        <form
+          action="/events"
+          method="get"
+          className="mx-auto flex max-w-2xl items-center gap-2 rounded-full bg-white p-2 shadow-sm ring-1 ring-black/10 focus-within:ring-2 focus-within:ring-violet"
+        >
+          <label htmlFor="home-search" className="sr-only">
+            Etkinlik, mekan veya şehir ara
+          </label>
+          <input
+            id="home-search"
+            type="search"
+            name="q"
+            maxLength={80}
+            autoComplete="off"
+            placeholder="Etkinlik, mekan veya şehir ara"
+            className="min-w-0 flex-1 bg-transparent px-4 py-3 text-base text-ink placeholder:text-muted/70 focus:outline-none"
+          />
+          <button
+            type="submit"
+            className="rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky"
+          >
+            Ara
+          </button>
+        </form>
+      </section>
+
+      <section className="px-6 pt-16 sm:pt-32">
         <div className="reveal mx-auto max-w-6xl">
-          <p className="font-hand text-3xl text-violet">sorun tanıdık mı?</p>
+          <p className="text-sm font-bold uppercase tracking-widest text-violet">sorun tanıdık mı?</p>
           <h2 className="mt-2 max-w-2xl text-3xl font-extrabold tracking-tight sm:text-5xl">
             Çıkış kapısında herkes aynı şeyi arıyor.
           </h2>
@@ -239,7 +266,7 @@ export default async function HomePage() {
             {problems.map((item) => (
               <div
                 key={item.title}
-                className="rounded-3xl bg-white p-6 shadow-lg shadow-violet/5 ring-1 ring-black/5"
+                className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5"
               >
                 <span className="grid h-12 w-12 place-items-center rounded-2xl bg-peach text-coral-ink">
                   <Icon name={item.icon} className="h-6 w-6" />
@@ -261,7 +288,7 @@ export default async function HomePage() {
         className="mt-24 bg-soft px-6 py-20 sm:mt-32 sm:py-28"
       >
         <div className="reveal mx-auto max-w-6xl">
-          <p className="text-center font-hand text-3xl text-violet">
+          <p className="text-center text-sm font-bold uppercase tracking-widest text-violet">
             çözüm çok basit
           </p>
           <h2 className="mt-2 text-center text-3xl font-extrabold tracking-tight sm:text-5xl">
@@ -295,7 +322,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="px-6 py-20 sm:py-28">
+      <section className="px-6 py-14 sm:py-28">
         <div className="reveal mx-auto max-w-6xl">
           <h2 className="max-w-2xl text-3xl font-extrabold tracking-tight sm:text-5xl">
             Neler yapabiliyorsun?
@@ -309,7 +336,7 @@ export default async function HomePage() {
             {features.map((feature) => (
               <article
                 key={feature.title}
-                className="flex flex-col rounded-3xl bg-white p-6 shadow-lg shadow-violet/5 ring-1 ring-black/5"
+                className="flex flex-col rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5"
               >
                 <div className="flex items-start justify-between gap-3">
                   <span className="grid h-12 w-12 place-items-center rounded-2xl bg-lilac text-violet">
@@ -329,10 +356,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-soft px-6 py-20 sm:py-28">
+      <section className="bg-soft px-6 py-14 sm:py-28">
         <div className="reveal mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
           <div>
-            <p className="font-hand text-3xl text-violet">kendin dene</p>
+            <p className="text-sm font-bold uppercase tracking-widest text-violet">kendin dene</p>
             <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-5xl">
               Masrafı paylaşınca yol hafifler.
             </h2>
@@ -345,7 +372,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="px-6 py-20 sm:py-28">
+      <section className="px-6 py-14 sm:py-28">
         <div className="reveal mx-auto max-w-6xl">
           <h2 className="mx-auto max-w-3xl text-center text-3xl font-extrabold tracking-tight sm:text-5xl">
             Tek hesap, istediğin zaman sürücü ya da yolcu
@@ -378,7 +405,7 @@ export default async function HomePage() {
               </Link>
             </article>
 
-            <article className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5 sm:p-10">
+            <article className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5 sm:p-10">
               <span className="grid h-14 w-14 place-items-center rounded-2xl bg-sea text-mint-ink">
                 <Icon name="user" className="h-7 w-7" />
               </span>
@@ -405,7 +432,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-soft px-6 py-20 sm:py-28">
+      <section className="bg-soft px-6 py-14 sm:py-28">
         <div className="reveal mx-auto max-w-6xl">
           <h2 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
             Yaklaşan etkinlikler
@@ -435,7 +462,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="px-6 py-20 sm:py-28">
+      <section className="px-6 py-14 sm:py-28">
         <div className="reveal mx-auto max-w-3xl">
           <h2 className="text-center text-3xl font-extrabold tracking-tight sm:text-5xl">
             Sık sorulan sorular

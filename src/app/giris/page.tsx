@@ -25,9 +25,9 @@ export default async function LoginPage({ searchParams }: Props) {
   }
 
   return (
-    <main className="px-6 py-14 sm:py-20">
+    <main className="px-6 py-10 sm:py-20">
       <div className="mx-auto max-w-xl">
-        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
           Giriş yap
         </h1>
         <p className="mt-4 text-lg text-muted">

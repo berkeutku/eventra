@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Logo from "@/components/Logo";
 import { realEventsEnabled } from "@/lib/flags";
 
@@ -30,6 +31,12 @@ export default function Footer() {
           >
             Kaynak kodu (GitHub)
           </a>
+          <Link
+            href="/gizlilik"
+            className="font-bold text-white underline-offset-4 hover:underline"
+          >
+            Gizlilik ve veri notu
+          </Link>
           <span className="text-white/60">
             {real
               ? "Demo etkinlik etiketli etkinlikler ve görselleri kurgusaldır. Ziyaret istatistikleri çerez kullanılmadan toplanır."

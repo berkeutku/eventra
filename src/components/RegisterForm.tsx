@@ -32,7 +32,7 @@ export default function RegisterForm() {
     <form
       action={formAction}
       noValidate
-      className="mt-8 space-y-6 rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5"
+      className="mt-8 space-y-6 rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5"
     >
       {state.message && (
         <p

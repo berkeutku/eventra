@@ -8,10 +8,10 @@ export const metadata: Metadata = {
 
 export default function AccountDeletedPage() {
   return (
-    <main className="px-6 py-20 sm:py-28">
+    <main className="px-6 py-14 sm:py-28">
       <div className="mx-auto max-w-xl text-center">
-        <p className="font-hand text-3xl text-violet">görüşürüz</p>
-        <h1 className="mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl">
+        <p className="text-sm font-bold uppercase tracking-widest text-violet">görüşürüz</p>
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-5xl">
           Hesabın silindi
         </h1>
         <p className="mt-4 text-lg text-muted">

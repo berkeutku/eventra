@@ -87,9 +87,9 @@ export default async function EventsPage({ searchParams }: Props) {
     "rounded-full border border-line bg-white px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-lilac";
 
   return (
-    <main className="px-6 py-14 sm:py-20">
+    <main className="px-6 py-10 sm:py-20">
       <div className="mx-auto max-w-6xl">
-        <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl">
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-6xl">
           Bugün hangi etkinliğe gidiyoruz?
         </h1>
         <p className="mt-4 max-w-xl text-lg text-muted">

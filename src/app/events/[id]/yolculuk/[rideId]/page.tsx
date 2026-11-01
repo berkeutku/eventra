@@ -193,7 +193,7 @@ export default async function RideDetailPage({ params }: Props) {
 
       <section className="px-6 py-10 sm:py-14">
         <div className="mx-auto max-w-4xl space-y-6">
-          <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+          <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
             <h2 className="text-2xl font-extrabold tracking-tight">Güzergâh</h2>
 
             <div className="mt-6 flex gap-4">
@@ -239,7 +239,7 @@ export default async function RideDetailPage({ params }: Props) {
             durationMinutes={ride.durationMinutes}
           />
 
-          <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+          <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
             <h2 className="text-2xl font-extrabold tracking-tight">
               Masraf paylaşımı
             </h2>
@@ -284,7 +284,7 @@ export default async function RideDetailPage({ params }: Props) {
             </p>
           </div>
 
-          <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+          <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="text-2xl font-extrabold tracking-tight">
                 Koltuklar ve yolcular

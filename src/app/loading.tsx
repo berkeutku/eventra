@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <main className="px-6 py-14 sm:py-20" aria-busy="true">
+    <main className="px-6 py-10 sm:py-20" aria-busy="true">
       <div className="mx-auto max-w-6xl animate-pulse motion-reduce:animate-none">
         <div className="h-10 w-2/3 rounded-xl bg-lilac sm:h-14" />
         <div className="mt-4 h-5 w-1/2 rounded-lg bg-lilac" />

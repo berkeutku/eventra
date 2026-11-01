@@ -203,7 +203,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
             </div>
           )}
 
-          <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+          <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
             <dl className="grid gap-6 sm:grid-cols-3">
               {details.map((item) => (
                 <div key={item.label} className="flex items-start gap-3">
@@ -232,7 +232,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
           </div>
 
           {isReal && (
-            <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+            <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
               <h2 className="text-2xl font-extrabold tracking-tight">Bilet</h2>
               {event.priceText && (
                 <p className="mt-3 text-ink">
@@ -265,7 +265,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
             </div>
           )}
 
-          <div className="rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5">
+          <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <h2 className="text-2xl font-extrabold tracking-tight">
                 Ortak yolculuklar

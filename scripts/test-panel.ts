@@ -1,5 +1,5 @@
 import { pickNextRide } from "../src/lib/panel";
-import { parseTab } from "../src/lib/panel-tabs";
+import { legacyTabPath } from "../src/lib/panel-tabs";
 import type { RideWithEvent } from "../src/lib/ride-utils";
 
 let passed = 0;
@@ -36,10 +36,10 @@ check("6 saatten eski etkinlik sayılmaz", pickNextRide([ride("d1", hours(-7))],
 check("aynı başlangıçta kalkış saati erken olan önce gelir", pickNextRide([ride("d1", hours(10), "23:30")], [ride("p1", hours(10), "21:00")], NOW)?.ride.id === "p1");
 check("geçersiz tarihli yolculuk atlanır", pickNextRide([ride("d1", "bozuk")], [ride("p1", hours(10))], NOW)?.ride.id === "p1");
 
-check("sekme yoksa genel", parseTab(undefined) === "genel");
-check("geçerli sekme kabul edilir", parseTab("favoriler") === "favoriler" && parseTab("ayarlar") === "ayarlar");
-check("geçersiz sekme genel olur", parseTab("admin") === "genel" && parseTab("") === "genel");
-check("dizi değerinde ilk eleman kullanılır", parseTab(["basarilar", "ayarlar"]) === "basarilar");
+check("sekme yoksa yönlendirme yok", legacyTabPath(undefined) === null);
+check("eski sekmeler yeni sayfalara yönlenir", legacyTabPath("favoriler") === "/panel/favoriler" && legacyTabPath("ayarlar") === "/panel/ayarlar" && legacyTabPath("yolculuklar") === "/panel/yolculuklar" && legacyTabPath("basarilar") === "/panel/basarilar");
+check("genel, geçersiz ve boş sekme yönlendirilmez", legacyTabPath("genel") === null && legacyTabPath("admin") === null && legacyTabPath("") === null && legacyTabPath("constructor") === null);
+check("dizi değerinde ilk eleman kullanılır", legacyTabPath(["basarilar", "ayarlar"]) === "/panel/basarilar");
 
 console.log(`\n${passed} test geçti, ${failed} test başarısız.`);
 
