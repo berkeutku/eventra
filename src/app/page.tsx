@@ -6,8 +6,8 @@ import HeroScroller from "@/components/HeroScroller";
 import Icon, { type IconName } from "@/components/Icons";
 import type { EventItem } from "@/data/events";
 import { getCurrentUser } from "@/lib/auth";
-import { getEvents } from "@/lib/events";
 import { realEventsEnabled } from "@/lib/flags";
+import { getEvents } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
 
@@ -79,14 +79,12 @@ const steps: { title: string; text: string; icon: IconName; tint: string }[] = [
 
 type FeatureStatus = "live" | "soon";
 
-type Feature = {
+const features: {
   title: string;
   text: string;
   icon: IconName;
   status: FeatureStatus;
-};
-
-const features: Feature[] = [
+}[] = [
   {
     title: "Etkinliğe özel yolculuklar",
     text: "Her yolculuk bir etkinliğe bağlı. Plan yalnızca o etkinliğe gidenler arasında yapılır.",
@@ -100,36 +98,15 @@ const features: Feature[] = [
     status: "live",
   },
   {
-    title: "Yolculuğa katılma",
-    text: "Yolcular boş koltuklu yolculuklara katılır. Koltuk kapasitesi sunucuda kontrol edilir, yolculuk dolunca katılım durur.",
-    icon: "users",
-    status: "live",
-  },
-  {
-    title: "Bildirimler (uygulama içi ve telefon)",
-    text: "Yolculuğuna biri katıldığında, ayrıldığında ya da katıldığın yolculuk iptal edildiğinde bildirim alırsın. Telefon bildirimi tarayıcı iznine bağlıdır ve desteklenen cihazlarda çalışır.",
-    icon: "bell",
-    status: "live",
-  },
-  {
     title: "Buluşma noktası ve varış tahmini",
     text: "Sürücü buluşma noktasını ve kalkış saatini belirler, tahmini varış saati hesaplanır.",
     icon: "pin",
     status: "live",
   },
   {
-    title: "Tahmini tasarruf ve rozetler",
-    text: "Profilinde yolculuklarından hesaplanan tahmini tasarruf özeti ve gerçek kayıtlara dayanan rozetler görünür. Tutarlar tahmindir, ödeme alınmaz.",
-    icon: "wallet",
-    status: "live",
-  },
-];
-
-const moreFeatures: Feature[] = [
-  {
-    title: "Uygulama olarak yüklenebilir (PWA)",
-    text: "Eventra telefonuna ana ekran uygulaması olarak eklenebilir. Çevrimdışıyken yalnızca bir bilgi sayfası açılır, yolculuk verisi cihazda saklanmaz.",
-    icon: "home",
+    title: "Yolculuğa katılma",
+    text: "Yolcular boş koltuklu yolculuklara katılır. Koltuk kapasitesi sunucuda kontrol edilir, yolculuk dolunca katılım durur.",
+    icon: "users",
     status: "live",
   },
   {
@@ -139,7 +116,7 @@ const moreFeatures: Feature[] = [
     status: "live",
   },
   {
-    title: "Rota özeti ve buluşma önerisi (demo)",
+    title: "Bildirimler (uygulama içi ve telefon)", text: "Yolculuğuna biri katıldığında, ayrıldığında ya da katıldığın yolculuk iptal edildiğinde bildirim alırsın. Telefon bildirimi tarayıcı iznine bağlıdır ve desteklenen cihazlarda çalışır.", icon: "bell", status: "live", }, { title: "Uygulama olarak yüklenebilir (PWA)", text: "Eventra telefonuna ana ekran uygulaması olarak eklenebilir. Çevrimdışıyken yalnızca bir bilgi sayfası açılır, yolculuk verisi cihazda saklanmaz.", icon: "home", status: "live", }, { title: "Tahmini tasarruf ve rozetler", text: "Panelinde yolculuklarından hesaplanan tahmini tasarruf özeti ve gerçek kayıtlara dayanan rozetler görünür. Tutarlar tahmindir, ödeme alınmaz.", icon: "wallet", status: "live", }, { title: "Rota özeti ve buluşma önerisi (demo)" ,
     text: "Şematik rota çizimi ve kurallı buluşma noktası önerisi. Gerçek harita ya da navigasyon verisi yok, kurgusal demo verisiyle çalışır.",
     icon: "map",
     status: "live",
@@ -221,23 +198,6 @@ function StatusBadge({ status }: { status: FeatureStatus }) {
   );
 }
 
-function FeatureCard({ feature }: { feature: Feature }) {
-  return (
-    <article className="flex flex-col rounded-3xl bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
-      <div className="flex items-start justify-between gap-3">
-        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-lilac text-violet">
-          <Icon name={feature.icon} className="h-6 w-6" />
-        </span>
-        <StatusBadge status={feature.status} />
-      </div>
-      <h3 className="mt-4 text-lg font-extrabold leading-snug">
-        {feature.title}
-      </h3>
-      <p className="mt-2 text-sm leading-relaxed text-muted">{feature.text}</p>
-    </article>
-  );
-}
-
 export default async function HomePage() {
   const upcoming = await loadUpcomingEvents();
   const user = await getCurrentUser().catch(() => null);
@@ -291,50 +251,51 @@ export default async function HomePage() {
         </form>
       </section>
 
-      <section className="px-6 pb-12 pt-10 sm:pb-20 sm:pt-14">
+      <section className="px-6 pt-16 sm:pt-32">
         <div className="reveal mx-auto max-w-6xl">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <h2 className="text-2xl font-extrabold tracking-tight sm:text-4xl">
-              Yaklaşan etkinlikler
-            </h2>
-            <Link
-              href="/events"
-              className="inline-flex items-center gap-2 font-bold text-violet hover:underline"
-            >
-              Tüm etkinlikleri gör
-              <Icon name="arrow" className="h-4 w-4" />
-            </Link>
-          </div>
-          <p className="mt-2 max-w-xl text-muted">
-            Katılacağın etkinliği seç, aynı yöne gidenlerle yolculuk planla.
+          <p className="text-sm font-bold uppercase tracking-widest text-violet">sorun tanıdık mı?</p>
+          <h2 className="mt-2 max-w-2xl text-3xl font-extrabold tracking-tight sm:text-5xl">
+            Çıkış kapısında herkes aynı şeyi arıyor.
+          </h2>
+          <p className="mt-4 max-w-xl text-lg text-muted">
+            Etkinlik biter, binlerce kişi aynı anda eve dönmeye çalışır. Bu
+            kaosu yolculuk planına çevirmek için Eventra doğdu.
           </p>
-          <div className="mt-5">
-            <CategoryChips />
-          </div>
 
-          {upcoming.length > 0 && (
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {upcoming.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
-          )}
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {problems.map((item) => (
+              <div
+                key={item.title}
+                className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5"
+              >
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-peach text-coral-ink">
+                  <Icon name={item.icon} className="h-6 w-6" />
+                </span>
+                <h3 className="mt-5 text-lg font-extrabold leading-snug">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">
+                  {item.text}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       <section
         id="nasil-calisir"
-        className="bg-soft px-6 py-12 sm:py-24"
+        className="mt-24 bg-soft px-6 py-20 sm:mt-32 sm:py-28"
       >
         <div className="reveal mx-auto max-w-6xl">
           <p className="text-center text-sm font-bold uppercase tracking-widest text-violet">
             çözüm çok basit
           </p>
-          <h2 className="mt-2 text-center text-2xl font-extrabold tracking-tight sm:text-4xl">
+          <h2 className="mt-2 text-center text-3xl font-extrabold tracking-tight sm:text-5xl">
             Üç adımda yolculuk
           </h2>
 
-          <ol className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-8">
+          <ol className="mt-16 grid gap-10 sm:grid-cols-3 sm:gap-8">
             {steps.map((step, index) => (
               <li key={step.title} className="relative">
                 {index < steps.length - 1 && (
@@ -351,7 +312,7 @@ export default async function HomePage() {
                     {index + 1}
                   </span>
                 </span>
-                <h3 className="mt-5 text-xl font-extrabold tracking-tight">
+                <h3 className="mt-6 text-xl font-extrabold tracking-tight">
                   {step.title}
                 </h3>
                 <p className="mt-2 text-muted">{step.text}</p>
@@ -361,85 +322,48 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="px-6 py-12 sm:py-20">
+      <section className="px-6 py-14 sm:py-28">
         <div className="reveal mx-auto max-w-6xl">
-          <p className="text-sm font-bold uppercase tracking-widest text-violet">
-            sorun tanıdık mı?
-          </p>
-          <h2 className="mt-2 max-w-2xl text-2xl font-extrabold tracking-tight sm:text-4xl">
-            Çıkış kapısında herkes aynı şeyi arıyor.
-          </h2>
-          <p className="mt-3 max-w-xl text-muted">
-            Etkinlik biter, binlerce kişi aynı anda eve dönmeye çalışır. Bu
-            kaosu yolculuk planına çevirmek için Eventra doğdu.
-          </p>
-
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {problems.map((item) => (
-              <li
-                key={item.title}
-                className="flex items-start gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5"
-              >
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-peach text-coral-ink">
-                  <Icon name={item.icon} className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="font-extrabold leading-snug">{item.title}</p>
-                  <p className="mt-1 text-sm leading-relaxed text-muted">
-                    {item.text}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <section className="bg-soft px-6 py-12 sm:py-24">
-        <div className="reveal mx-auto max-w-6xl">
-          <h2 className="max-w-2xl text-2xl font-extrabold tracking-tight sm:text-4xl">
+          <h2 className="max-w-2xl text-3xl font-extrabold tracking-tight sm:text-5xl">
             Neler yapabiliyorsun?
           </h2>
-          <p className="mt-3 max-w-xl text-muted">
-            Hangi özellikler bugün çalışıyor, hangileri demo. Hiçbirini
+          <p className="mt-4 max-w-xl text-lg text-muted">
+            Hangi özellikler bugün çalışıyor, hangileri yolda. Hiçbirini
             olduğundan farklı göstermiyoruz.
           </p>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => (
-              <FeatureCard key={feature.title} feature={feature} />
+              <article
+                key={feature.title}
+                className="flex flex-col rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-lilac text-violet">
+                    <Icon name={feature.icon} className="h-6 w-6" />
+                  </span>
+                  <StatusBadge status={feature.status} />
+                </div>
+                <h3 className="mt-5 text-lg font-extrabold leading-snug">
+                  {feature.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">
+                  {feature.text}
+                </p>
+              </article>
             ))}
           </div>
-
-          <details className="group mt-4">
-            <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-violet ring-1 ring-line hover:bg-lilac [&::-webkit-details-marker]:hidden">
-              Daha fazla özellik
-              <span
-                aria-hidden="true"
-                className="transition-transform group-open:rotate-45"
-              >
-                +
-              </span>
-            </summary>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {moreFeatures.map((feature) => (
-                <FeatureCard key={feature.title} feature={feature} />
-              ))}
-            </div>
-          </details>
         </div>
       </section>
 
-      <section className="px-6 py-12 sm:py-24">
-        <div className="reveal mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2">
+      <section className="bg-soft px-6 py-14 sm:py-28">
+        <div className="reveal mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
           <div>
-            <p className="text-sm font-bold uppercase tracking-widest text-violet">
-              kendin dene
-            </p>
-            <h2 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-4xl">
+            <p className="text-sm font-bold uppercase tracking-widest text-violet">kendin dene</p>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-5xl">
               Masrafı paylaşınca yol hafifler.
             </h2>
-            <p className="mt-3 max-w-md text-lg text-muted">
+            <p className="mt-4 max-w-md text-lg text-muted">
               Toplam masrafı ve boş koltuk sayısını ayarla, kişi başı tutarın
               nasıl değiştiğini gör. Sürücü dahil herkes eşit öder.
             </p>
@@ -448,18 +372,18 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-soft px-6 py-12 sm:py-24">
+      <section className="px-6 py-14 sm:py-28">
         <div className="reveal mx-auto max-w-6xl">
-          <h2 className="mx-auto max-w-3xl text-center text-2xl font-extrabold tracking-tight sm:text-4xl">
+          <h2 className="mx-auto max-w-3xl text-center text-3xl font-extrabold tracking-tight sm:text-5xl">
             Tek hesap, istediğin zaman sürücü ya da yolcu
           </h2>
 
-          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          <div className="mt-12 grid gap-6 lg:grid-cols-2">
             <article className="rounded-3xl bg-linear-to-br from-violet to-[#9a6bff] p-8 text-white sm:p-10">
               <span className="grid h-14 w-14 place-items-center rounded-2xl bg-white/15">
                 <Icon name="car" className="h-7 w-7" />
               </span>
-              <h3 className="mt-5 text-2xl font-extrabold">Sürücüysen</h3>
+              <h3 className="mt-6 text-2xl font-extrabold">Sürücüysen</h3>
               <ul className="mt-5 space-y-3 text-white/90">
                 {driverPerks.map((perk) => (
                   <li key={perk} className="flex gap-3">
@@ -475,7 +399,7 @@ export default async function HomePage() {
                 className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-violet transition-transform hover:-translate-y-0.5"
               >
                 {user
-                  ? "Profilinden Sürücü rolüne geç"
+                  ? "Panelinden Sürücü rolüne geç"
                   : "Kayıt ol, sonra Sürücü rolüne geç"}
                 <Icon name="arrow" className="h-4 w-4" />
               </Link>
@@ -485,7 +409,7 @@ export default async function HomePage() {
               <span className="grid h-14 w-14 place-items-center rounded-2xl bg-sea text-mint-ink">
                 <Icon name="user" className="h-7 w-7" />
               </span>
-              <h3 className="mt-5 text-2xl font-extrabold">Yolcuysan</h3>
+              <h3 className="mt-6 text-2xl font-extrabold">Yolcuysan</h3>
               <ul className="mt-5 space-y-3 text-muted">
                 {passengerPerks.map((perk) => (
                   <li key={perk} className="flex gap-3">
@@ -508,12 +432,42 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="px-6 py-12 sm:py-24">
+      <section className="bg-soft px-6 py-14 sm:py-28">
+        <div className="reveal mx-auto max-w-6xl">
+          <h2 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
+            Yaklaşan etkinlikler
+          </h2>
+          <p className="mt-4 max-w-xl text-lg text-muted">
+            Katılacağın etkinliği seç, aynı yöne gidenlerle yolculuk planla.
+          </p>
+          <div className="mt-6">
+            <CategoryChips />
+          </div>
+
+          {upcoming.length > 0 && (
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {upcoming.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+          )}
+
+          <Link
+            href="/events"
+            className="mt-8 inline-flex items-center gap-2 font-bold text-violet hover:underline"
+          >
+            Tüm etkinlikleri gör
+            <Icon name="arrow" className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
+      <section className="px-6 py-14 sm:py-28">
         <div className="reveal mx-auto max-w-3xl">
-          <h2 className="text-center text-2xl font-extrabold tracking-tight sm:text-4xl">
+          <h2 className="text-center text-3xl font-extrabold tracking-tight sm:text-5xl">
             Sık sorulan sorular
           </h2>
-          <div className="mt-8 space-y-3">
+          <div className="mt-10 space-y-3">
             {faqs.map((faq) => (
               <details
                 key={faq.q}
@@ -536,13 +490,13 @@ export default async function HomePage() {
       </section>
 
       <section className="px-6 pb-4">
-        <div className="reveal relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-linear-to-br from-violet to-[#9a6bff] px-8 py-12 text-center text-white sm:py-20">
+        <div className="reveal relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-linear-to-br from-violet to-[#9a6bff] px-8 py-14 text-center text-white sm:py-20">
           <Sparkle className="absolute right-8 top-8 h-8 w-8 text-white/40" />
           <Sparkle className="absolute bottom-8 left-10 h-6 w-6 text-mint" />
           <p className="font-hand text-3xl sm:text-4xl">
             iyi müzik, iyi insanlar, daha iyi yolculuklar.
           </p>
-          <h2 className="mx-auto mt-4 max-w-2xl text-2xl font-extrabold tracking-tight sm:text-5xl">
+          <h2 className="mx-auto mt-4 max-w-2xl text-3xl font-extrabold tracking-tight sm:text-5xl">
             Boş koltuğun birine yol olsun.
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-white/80">
@@ -559,7 +513,7 @@ export default async function HomePage() {
               href={user ? "/panel" : "/giris"}
               className="rounded-full px-8 py-4 text-base font-bold text-white ring-1 ring-white/40 transition-colors hover:bg-white/10"
             >
-              {user ? "Profilime git" : "Giriş Yap"}
+              {user ? "Panelime git" : "Giriş Yap"}
             </Link>
           </div>
         </div>
