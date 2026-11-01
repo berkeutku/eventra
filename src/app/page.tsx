@@ -6,6 +6,7 @@ import HeroScroller from "@/components/HeroScroller";
 import Icon, { type IconName } from "@/components/Icons";
 import type { EventItem } from "@/data/events";
 import { getCurrentUser } from "@/lib/auth";
+import { realEventsEnabled } from "@/lib/flags";
 import { getEvents } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
@@ -153,7 +154,9 @@ const faqs = [
   },
   {
     q: "Hangi etkinlikler listeleniyor?",
-    a: "Listelenen etkinlikler, mekanlar ve takımlar tamamen kurgusal demo verileridir.",
+    a: realEventsEnabled()
+      ? "Etkinlik bilgileri iş ortağımız biletimGO'dan alınır ve değişebilir; biletleri Eventra değil biletimGO satar. Demo etkinlik etiketli etkinlikler ise kurgusaldır ve yolculuk özelliklerini denemek için vardır."
+      : "Listelenen etkinlikler, mekanlar ve takımlar tamamen kurgusal demo verileridir.",
   },
 ];
 

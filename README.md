@@ -6,7 +6,7 @@ Eventra is a ride-sharing web app (installable PWA) that connects people who att
 
 **Live demo:** https://eventra-one-azure.vercel.app
 
-> **This is a demo, not a commercial product.** There is no real payment, no real ticket provider, no e-Devlet integration and no real map data. Everything that is simulated is labeled "Demo" in the interface. All events, venues and teams are fictional. The user interface is in Turkish; code and technical documentation are in English.
+> **This is a demo, not a commercial product.** There is no real payment, no real ticket provider, no e-Devlet integration and no real map data. Everything that is simulated is labeled "Demo" in the interface. The built-in demo events, venues and teams are fictional; real event listings (when enabled) come from the biletimGO partner API and are labeled as such. The user interface is in Turkish; code and technical documentation are in English.
 
 
 ## Features
@@ -90,6 +90,27 @@ npm run lint
 
 The database tests create temporary users and rides and delete them afterwards. They use the database from your `.env`, so use a development database.
 
+## biletimGO integration (optional, off by default)
+
+Eventra can list real events from the biletimGO partner API. Real events are hidden unless the server environment variable `SHOW_REAL_EVENTS=1` is set.
+
+- **Data flow:** biletimGO API -> server-side sync (`src/lib/biletimgo`) -> Neon PostgreSQL -> UI. The UI never calls the API.
+- **Token:** read only from the server environment variable `BILETIMGO_API_TOKEN`. It is never sent to the browser, logged, or included in error messages.
+- **Safe by design:** the sync never deletes events (rides and ticket verification rows reference events with `ON DELETE RESTRICT`). Events that disappear from the API are marked inactive after two consecutive misses. An empty response, a sudden drop in the event count or too many invalid records aborts the run. A dry-run mode writes nothing.
+- **Content handling:** descriptions arrive as URL-encoded HTML and are converted to plain text (no HTML is ever rendered). Ticket and image URLs are only accepted from `https://www.biletimgo.com`; the ticket link is stored and used unchanged and opened with `rel="noopener noreferrer sponsored"`.
+- **Times:** biletimGO dates carry no time zone and are interpreted as Turkey time (UTC+3).
+- **Rides on real events:** ride creation is limited to events of 24 hours or less, until 12 hours after they end. Ticket verification (a demo simulation) and the fictional meeting point suggestions are hidden for real events.
+- **Disclosure:** ticket links can contain partner tracking parameters. Eventra does not sell tickets.
+
+Commands (the token is read from the environment, never from a file in the repository):
+
+```bash
+npx tsx scripts/sync-biletimgo.ts            # dry run, writes nothing
+npx tsx scripts/sync-biletimgo.ts --apply    # writes events
+npx tsx scripts/test-biletimgo-normalize.ts  # parsing, time zone, categories, text safety
+npx tsx scripts/test-biletimgo-sync.ts       # sync rules against a test database (fake API responses)
+npx tsx scripts/test-event-rules.ts          # ride creation rules for real events
+```
 ## Security notes
 
 - Passwords are hashed with scrypt; sessions are random tokens whose SHA-256 digest is stored in the database. The cookie is `HttpOnly`, `SameSite=Lax`, `Secure` in production, and lasts 7 days.
@@ -128,4 +149,4 @@ public           icons, logo, event photos, service worker
 
 ## Credits
 
-Event photos are royalty-free stock images used as representative illustrations. All events are fictional.
+Event photos are royalty-free stock images used as representative illustrations. The built-in demo events are fictional.
