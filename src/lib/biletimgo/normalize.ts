@@ -253,6 +253,13 @@ export function normalizeCityKey(city: string): string {
 
 // Fiyat alanı METİN olarak korunur ("600", "350 - 657", "Aktif Bilet Yok").
 export function normalizePrice(value: unknown): string | null {
+  // API tek fiyatı bazen SAYI olarak gönderir; sayılar metne çevrilir.
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value >= 0 && value < 1e9
+      ? String(value)
+      : null;
+  }
+
   const text = cleanInline(value, LIMITS.price);
   return text === "" ? null : text;
 }

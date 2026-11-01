@@ -60,7 +60,8 @@ check("tek fiyat korunur", normalizePrice("600") === "600");
 check("aralık korunur", normalizePrice("350 - 657") === "350 - 657");
 check("Aktif Bilet Yok korunur", normalizePrice("Aktif Bilet Yok") === "Aktif Bilet Yok");
 check("boş fiyat null", normalizePrice("  ") === null);
-check("metin olmayan fiyat null", normalizePrice(12) === null);
+check("sayı olarak gelen fiyat metne çevrilir", normalizePrice(600) === "600" && normalizePrice(99.5) === "99.5");
+check("geçersiz sayı ve diğer türler null", normalizePrice(NaN) === null && normalizePrice(-5) === null && normalizePrice(Infinity) === null && normalizePrice(true) === null && normalizePrice({}) === null);
 check("çok uzun fiyat kısaltılır", (normalizePrice("9".repeat(100)) ?? "").length <= LIMITS.price);
 
 // URL
@@ -129,6 +130,7 @@ if (good.ok) {
   check("açıklama düz metin", e.description === "Merhaba");
 }
 
+check("API sayı olarak fiyat gönderirse etkinlikte metin olarak saklanır", (() => { const r = normalizeEvent({ ...base, fiyat: 600 }); return r.ok && r.event.priceText === "600"; })());
 const custom = normalizeEvent(base, "x-");
 check("özel önek uygulanır", custom.ok && custom.event.id === "x-12345");
 check("kimlik rakam değilse reddedilir", (() => { const r = normalizeEvent({ ...base, id: "12ab" }); return !r.ok && r.reason === "id"; })());
