@@ -5,7 +5,14 @@ import { pickEventImage } from "@/data/event-images";
 import { categoryMeta, type EventItem } from "@/data/events";
 import { formatEventDate, formatEventTime } from "@/lib/format";
 
-export default function EventCard({ event }: { event: EventItem }) {
+export default function EventCard({
+  event,
+  headingLevel = 3,
+}: {
+  event: EventItem;
+  headingLevel?: 2 | 3;
+}) {
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   const meta = categoryMeta[event.category];
   const isReal = event.source === "biletimgo";
   const image = event.imageUrl ?? pickEventImage(event.category, event.id)?.src;
@@ -37,9 +44,9 @@ export default function EventCard({ event }: { event: EventItem }) {
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="text-xl font-extrabold leading-tight tracking-tight">
+        <Heading className="text-xl font-extrabold leading-tight tracking-tight">
           {event.title}
-        </h3>
+        </Heading>
         <p className="mt-3 flex items-center gap-2 text-sm text-muted">
           <Icon name="pin" className="h-4 w-4 shrink-0" />
           {event.venue}, {event.city}

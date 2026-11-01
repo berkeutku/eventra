@@ -277,3 +277,23 @@ export const syncRuns = pgTable(
   },
   (table) => [index("sync_runs_started_idx").on(table.source, table.startedAt)],
 );
+
+// Kullanıcıların favori etkinlikleri. Yalnızca sahibi görür, hesap silinince birlikte silinir.
+export const eventFavorites = pgTable(
+  "event_favorites",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    eventId: text("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.eventId] }),
+    index("event_favorites_user_created_idx").on(table.userId, table.createdAt),
+  ],
+);

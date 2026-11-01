@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Dashboard from "@/components/Dashboard";
 import DeleteAccountCard from "@/components/DeleteAccountCard";
+import FavoritesCard from "@/components/FavoritesCard";
 import StatsPanel from "@/components/StatsPanel";
 import { getCurrentUser } from "@/lib/auth";
 import { getRidesForDriver, getRidesForPassenger } from "@/lib/ride-queries";
+import { listFavoriteEvents } from "@/lib/favorites";
 import { buildStats } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +27,7 @@ export default async function PanelPage() {
     : [[], []];
 
   const stats = user ? buildStats(driverRides, passengerRides) : null;
+  const favorites = user ? await listFavoriteEvents(user.id) : [];
 
   return (
     <main className="px-6 py-14 sm:py-20">
@@ -48,6 +51,9 @@ export default async function PanelPage() {
                 <StatsPanel stats={stats} />
               </div>
             )}
+            <div className="mt-6">
+              <FavoritesCard events={favorites} />
+            </div>
             <div className="mt-6">
               <DeleteAccountCard />
             </div>

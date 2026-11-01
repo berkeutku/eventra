@@ -71,6 +71,13 @@
       "when": 1793535926002,
       "tag": "0009_past_millenium_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793541483322,
+      "tag": "0010_orange_quicksilver",
+      "breakpoints": true
     }
   ]
 }

@@ -10,6 +10,7 @@ import {
 } from "@/lib/ride-actions";
 import { calcSharePerPerson } from "@/lib/ride-utils";
 import MeetingPointSuggestions from "@/components/MeetingPointSuggestions";
+import RideTemplatePicker from "@/components/RideTemplatePicker";
 import { roleLabels } from "@/lib/roles";
 
 type Props = {
@@ -184,6 +185,10 @@ export default function RideForm({ eventId }: Props) {
       className="space-y-6 rounded-3xl bg-white p-8 shadow-lg shadow-violet/5 ring-1 ring-black/5"
     >
       <input type="hidden" name="eventId" value={eventId} />
+
+      <RideTemplatePicker
+        onPick={(picked) => setValues((current) => ({ ...current, ...picked }))}
+      />
 
       <p className="text-sm text-muted">
         Sürücü olarak giriş yaptın: <strong>{user.name}</strong>

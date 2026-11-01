@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import EventCover from "@/components/EventCover";
 import Icon, { categoryIcon, type IconName } from "@/components/Icons";
 import RideList from "@/components/RideList";
+import FavoriteButton from "@/components/FavoriteButton";
 import ShareButton from "@/components/ShareButton";
 import TicketVerificationCard from "@/components/TicketVerificationCard";
 import { pickEventImage } from "@/data/event-images";
@@ -13,6 +14,7 @@ import { safeBiletimgoUrl } from "@/lib/biletimgo/normalize";
 import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
 import { formatEventDate, formatEventTime } from "@/lib/format";
+import { isFavorite } from "@/lib/favorites";
 import { getRidesForEvent } from "@/lib/ride-queries";
 import { calcSharePerPerson, remainingSeats } from "@/lib/ride-utils";
 import { isTicketVerified } from "@/lib/ticket-queries";
@@ -76,6 +78,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
 
   const user = await getCurrentUser();
   const rides = await getRidesForEvent(event.id, user?.id);
+  const favorite = user ? await isFavorite(user.id, event.id) : false;
   const meta = categoryMeta[event.category];
 
   const isReal = event.source === "biletimgo";
@@ -224,7 +227,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
               {event.description}
             </p>
             <div className="mt-6">
-              <ShareButton title={event.title} />
+              <div className="flex flex-wrap items-center gap-3"><ShareButton title={event.title} /><FavoriteButton eventId={event.id} initial={favorite} loggedIn={Boolean(user)} /></div>
             </div>
           </div>
 
