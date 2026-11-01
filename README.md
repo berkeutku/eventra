@@ -114,6 +114,10 @@ npx tsx scripts/test-biletimgo-normalize.ts  # parsing, time zone, categories, t
 npx tsx scripts/test-biletimgo-sync.ts       # sync rules against a test database (fake API responses)
 npx tsx scripts/test-event-rules.ts          # ride creation rules for real events
 ```
+## Quality
+
+Measured with Google PageSpeed Insights (mobile, 1 November 2026): the home page and the login page score 100 in all four categories; the events page scores 91 for performance (LCP 3.2 s) and 100 for accessibility, best practices and SEO.
+
 ## Security notes
 
 - Passwords are hashed with scrypt; sessions are random tokens whose SHA-256 digest is stored in the database. The cookie is `HttpOnly`, `SameSite=Lax`, `Secure` in production, and lasts 7 days.
