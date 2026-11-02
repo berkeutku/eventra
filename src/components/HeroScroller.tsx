@@ -12,13 +12,6 @@ const DEVICE_H = 664;
 const SCREEN_W = 300;
 const SCREEN_H = 640;
 
-const PHOTOS = [
-  "/hero/konser.jpg",
-  "/hero/cikis.jpg",
-  "/hero/arac.jpg",
-  "/hero/eve.jpg",
-];
-
 type Stage = 0 | 1 | 2 | 3;
 type Tap = 0 | 1 | 2 | 3;
 
@@ -31,7 +24,7 @@ const beats = [
   {
     hand: "tek dokunuşla",
     title: "Koltuğunu ayır",
-    text: "Sana uygun yolculuğa katıl. Koltuk sayısı ve masraf paylaşımı baştan belli.",
+    text: "Sana uygun yolculuğa katıl. Koltuklar doldukça yolculuk netleşir, masraf baştan paylaşılır.",
   },
   {
     hand: "ve birlikte dön",
@@ -42,9 +35,28 @@ const beats = [
 
 const TAPS: Record<1 | 2 | 3, { x: number; y: number }> = {
   1: { x: 150, y: 300 },
-  2: { x: 236, y: 392 },
+  2: { x: 242, y: 388 },
   3: { x: 150, y: 602 },
 };
+
+const PEOPLE = [
+  { letter: "Sen", color: "#6c4dff" },
+  { letter: "A", color: "#ff6b6b" },
+  { letter: "B", color: "#00d5a0" },
+  { letter: "C", color: "#ffb547" },
+];
+
+const CONFETTI = [
+  { dx: -64, dy: -48, r: 30, color: "#ff6b6b", round: false },
+  { dx: -26, dy: -78, r: -20, color: "#00d5a0", round: true },
+  { dx: 30, dy: -70, r: 50, color: "#ffb547", round: false },
+  { dx: 72, dy: -38, r: 10, color: "#6c4dff", round: true },
+  { dx: -84, dy: 8, r: 80, color: "#6c4dff", round: false },
+  { dx: 86, dy: 20, r: -40, color: "#ff6b6b", round: true },
+  { dx: -44, dy: 48, r: 20, color: "#ffb547", round: true },
+  { dx: 20, dy: 64, r: 70, color: "#00d5a0", round: false },
+  { dx: 60, dy: 52, r: -60, color: "#6c4dff", round: false },
+];
 
 function clamp(value: number): number {
   return Math.min(1, Math.max(0, value));
@@ -85,12 +97,12 @@ function Tapper({ show, x, y }: { show: boolean; x: number; y: number }) {
   return (
     <span
       aria-hidden="true"
-      className={`pointer-events-none absolute z-50 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white/30 ring-2 ring-white/70 transition-all duration-300 motion-reduce:transition-none ${
+      className={`pointer-events-none absolute z-50 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-violet/25 ring-2 ring-violet/60 transition-all duration-300 motion-reduce:transition-none ${
         show ? "scale-100 opacity-100" : "scale-50 opacity-0"
       }`}
       style={{ left: x, top: y }}
     >
-      <span className="h-3.5 w-3.5 rounded-full bg-white/90" />
+      <span className="h-3.5 w-3.5 rounded-full bg-violet" />
     </span>
   );
 }
@@ -134,11 +146,11 @@ function ScreenList({
 
   return (
     <div
-      className={`absolute inset-0 bg-surface pt-11 transition-all duration-500 motion-reduce:transition-none ${
+      className={`absolute inset-0 bg-surface transition-all duration-500 motion-reduce:transition-none ${
         stage === 0 ? "translate-x-0 opacity-100" : "-translate-x-6 opacity-0"
       }`}
     >
-      <div className="flex items-center justify-between px-4 pt-1">
+      <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between bg-surface px-4 pb-2 pt-12">
         <div className="flex items-center gap-2">
           <span className="grid h-7 w-7 place-items-center rounded-lg bg-violet text-sm font-extrabold text-white">
             e
@@ -152,58 +164,69 @@ function ScreenList({
         </span>
       </div>
 
-      <p className="mt-3 px-4 text-lg font-extrabold leading-tight text-ink">
-        Bugün hangi etkinliğe gidiyoruz?
-      </p>
+      <div className="absolute inset-x-0 bottom-16 top-[92px] overflow-hidden">
+        <div style={{ transform: "translateY(calc(var(--ls, 0) * -64px))" }}>
+          <p className="px-4 pt-2 text-lg font-extrabold leading-tight text-ink">
+            Bugün hangi etkinliğe gidiyoruz?
+          </p>
 
-      <div className="mx-4 mt-3 flex h-10 items-center rounded-full bg-white px-4 text-sm text-muted ring-1 ring-black/10">
-        Etkinlik ara
-      </div>
-
-      <div className="mt-3 flex gap-2 px-4 text-xs font-bold">
-        <span className="rounded-full bg-night px-3 py-1.5 text-white">Tümü</span>
-        <span className="rounded-full bg-white px-3 py-1.5 text-ink ring-1 ring-black/10">
-          Konser
-        </span>
-        <span className="rounded-full bg-white px-3 py-1.5 text-ink ring-1 ring-black/10">
-          Tiyatro
-        </span>
-        <span className="rounded-full bg-white px-3 py-1.5 text-ink ring-1 ring-black/10">
-          Stand-up
-        </span>
-      </div>
-
-      <div className="mx-4 mt-3 overflow-hidden rounded-3xl bg-white ring-1 ring-black/5">
-        <Cover src={cover1} className="h-24">
-          <span className="absolute left-3 top-3 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-ink">
-            Konser
-          </span>
-          <span className="absolute right-3 top-3 -rotate-2 rounded-md bg-sun px-2 py-0.5 text-[11px] font-bold text-[#412402]">
-            Demo etkinlik
-          </span>
-        </Cover>
-        <div className="flex gap-3 p-3">
-          <div className="flex h-12 w-11 shrink-0 flex-col items-center justify-center rounded-xl bg-lilac text-violet">
-            <span className="text-lg font-extrabold leading-none">21</span>
-            <span className="text-[11px] font-bold">Kas</span>
+          <div className="mx-4 mt-3 flex h-10 items-center rounded-full bg-white px-4 text-sm text-muted ring-1 ring-black/10">
+            Etkinlik ara
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-extrabold leading-tight text-ink">
-              Gece Yolculuğu Konseri
-            </p>
-            <p className="mt-1 text-xs text-muted">
-              Liman Sahnesi, İstanbul · 21:00
-            </p>
+
+          <div className="mt-3 flex gap-2 px-4 text-xs font-bold">
+            <span className="rounded-full bg-night px-3 py-1.5 text-white">
+              Tümü
+            </span>
+            <span className="rounded-full bg-white px-3 py-1.5 text-ink ring-1 ring-black/10">
+              Konser
+            </span>
+            <span className="rounded-full bg-white px-3 py-1.5 text-ink ring-1 ring-black/10">
+              Tiyatro
+            </span>
+            <span className="rounded-full bg-white px-3 py-1.5 text-ink ring-1 ring-black/10">
+              Stand-up
+            </span>
+          </div>
+
+          <div className="mx-4 mt-3 overflow-hidden rounded-3xl bg-white ring-1 ring-black/5">
+            <Cover src={cover1} className="h-24">
+              <span className="absolute left-3 top-3 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-ink">
+                Konser
+              </span>
+              <span className="absolute right-3 top-3 -rotate-2 rounded-md bg-sun px-2 py-0.5 text-[11px] font-bold text-[#412402]">
+                Demo etkinlik
+              </span>
+            </Cover>
+            <div className="flex gap-3 p-3">
+              <div className="flex h-12 w-11 shrink-0 flex-col items-center justify-center rounded-xl bg-lilac text-violet">
+                <span className="text-lg font-extrabold leading-none">21</span>
+                <span className="text-[11px] font-bold">Kas</span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-extrabold leading-tight text-ink">
+                  Gece Yolculuğu Konseri
+                </p>
+                <p className="mt-1 text-xs text-muted">
+                  Liman Sahnesi, İstanbul · 21:00
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mx-4 mt-3 overflow-hidden rounded-3xl bg-white ring-1 ring-black/5">
+            <Cover src={cover2} className="h-24">
+              <span className="absolute left-3 top-3 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-ink">
+                Stand-up
+              </span>
+            </Cover>
+            <div className="p-3">
+              <p className="text-sm font-extrabold leading-tight text-ink">
+                Kahkaha Gecesi
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className="mx-4 mt-3 overflow-hidden rounded-3xl bg-white ring-1 ring-black/5">
-        <Cover src={cover2} className="h-20">
-          <span className="absolute left-3 top-3 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-ink">
-            Stand-up
-          </span>
-        </Cover>
       </div>
 
       <div className="absolute inset-x-0 bottom-0 flex h-16 items-start justify-around border-t border-black/5 bg-white/95 pt-2.5">
@@ -229,12 +252,14 @@ function RideRow({
   seats,
   price,
   primary,
+  pressed,
 }: {
   to: string;
   time: string;
   seats: number;
   price: number;
   primary: boolean;
+  pressed: boolean;
 }) {
   return (
     <div className="mx-4 mt-2.5 rounded-2xl bg-white p-3 ring-1 ring-black/5">
@@ -251,11 +276,11 @@ function RideRow({
       </div>
       <div className="mt-2 flex justify-end">
         <span
-          className={`inline-flex h-8 items-center rounded-full px-5 text-xs font-bold ${
+          className={`inline-flex h-8 items-center rounded-full px-5 text-xs font-bold transition-transform duration-200 ${
             primary
               ? "bg-violet text-white"
               : "bg-white text-violet ring-1 ring-violet/30"
-          }`}
+          } ${primary && pressed ? "scale-90" : "scale-100"}`}
         >
           Katıl
         </span>
@@ -264,7 +289,15 @@ function RideRow({
   );
 }
 
-function ScreenDetail({ stage, cover1 }: { stage: Stage; cover1?: string }) {
+function ScreenDetail({
+  stage,
+  tap,
+  cover1,
+}: {
+  stage: Stage;
+  tap: Tap;
+  cover1?: string;
+}) {
   const position =
     stage === 1
       ? "translate-x-0 opacity-100"
@@ -320,20 +353,35 @@ function ScreenDetail({ stage, cover1 }: { stage: Stage; cover1?: string }) {
       <p className="mt-3 px-4 text-sm font-extrabold text-ink">
         Ortak yolculuklar
       </p>
-      <RideRow to="Kadıköy" time="23:30" seats={3} price={120} primary />
-      <RideRow to="Beşiktaş" time="23:45" seats={2} price={95} primary={false} />
+      <RideRow
+        to="Kadıköy"
+        time="23:30"
+        seats={3}
+        price={120}
+        primary
+        pressed={tap === 2}
+      />
+      <RideRow
+        to="Beşiktaş"
+        time="23:45"
+        seats={2}
+        price={95}
+        primary={false}
+        pressed={false}
+      />
     </div>
   );
 }
 
-const PEOPLE = [
-  { letter: "A", color: "#ff6b6b" },
-  { letter: "B", color: "#00d5a0" },
-  { letter: "C", color: "#ffb547" },
-  { letter: "Sen", color: "#6c4dff" },
-];
-
-function ScreenJoined({ stage }: { stage: Stage }) {
+function ScreenJoined({
+  stage,
+  tap,
+  fill,
+}: {
+  stage: Stage;
+  tap: Tap;
+  fill: number;
+}) {
   const position =
     stage === 2
       ? "translate-x-0 opacity-100"
@@ -371,27 +419,37 @@ function ScreenJoined({ stage }: { stage: Stage }) {
         </p>
       </div>
 
-      <div className="mx-4 mt-2.5 flex items-center gap-2 rounded-2xl bg-white p-3 ring-1 ring-black/5">
-        {PEOPLE.map((person, index) => (
-          <span
-            key={person.letter}
-            className={`grid h-9 w-9 place-items-center rounded-full text-[11px] font-extrabold text-white transition-all duration-500 motion-reduce:transition-none ${
-              stage === 2 ? "scale-100 opacity-100" : "scale-50 opacity-0"
-            } ${person.letter === "Sen" ? "ring-2 ring-night" : ""}`}
-            style={{
-              backgroundColor: person.color,
-              transitionDelay: stage === 2 ? `${200 + index * 120}ms` : "0ms",
-            }}
-          >
-            {person.letter}
-          </span>
-        ))}
-        <span className="grid h-9 w-9 place-items-center rounded-full border-2 border-dashed border-violet/30 text-xs text-violet/50">
-          +
-        </span>
+      <div className="mx-4 mt-2.5 rounded-2xl bg-white p-3 ring-1 ring-black/5">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-extrabold text-ink">Yolcular</p>
+          <p className="text-xs font-bold text-violet">
+            {Math.max(1, fill)} / 4 koltuk dolu
+          </p>
+        </div>
+        <div className="mt-2 flex items-center gap-2">
+          {PEOPLE.map((person, index) => {
+            const visible = stage === 2 && index < fill;
+
+            return (
+              <span
+                key={person.letter}
+                className={`grid h-9 w-9 place-items-center rounded-full text-[11px] font-extrabold text-white transition-all duration-500 motion-reduce:transition-none ${
+                  visible ? "scale-100 opacity-100" : "scale-50 opacity-0"
+                } ${person.letter === "Sen" ? "ring-2 ring-night" : ""}`}
+                style={{ backgroundColor: person.color }}
+              >
+                {person.letter}
+              </span>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="absolute inset-x-4 bottom-4 flex h-11 items-center justify-center rounded-full bg-violet text-sm font-bold text-white">
+      <div
+        className={`absolute inset-x-4 bottom-4 flex h-11 items-center justify-center rounded-full text-sm font-bold text-white transition-all duration-200 ${
+          tap === 3 ? "scale-95 bg-sky" : "scale-100 bg-violet"
+        }`}
+      >
         Yola çık
       </div>
     </div>
@@ -399,17 +457,46 @@ function ScreenJoined({ stage }: { stage: Stage }) {
 }
 
 function ScreenArrived({ stage }: { stage: Stage }) {
+  const on = stage === 3;
+
   return (
     <div
       className={`absolute inset-0 bg-surface pt-11 transition-all duration-500 motion-reduce:transition-none ${
-        stage === 3 ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+        on ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
       }`}
     >
-      <div className="mt-10 flex flex-col items-center px-6 text-center">
-        <span className="grid h-16 w-16 place-items-center rounded-full bg-mint text-night">
-          <Icon name="check" className="h-8 w-8" />
-        </span>
-        <p className="mt-4 text-xl font-extrabold text-ink">Eve vardın</p>
+      <div className="mt-12 flex flex-col items-center px-6 text-center">
+        <div className="relative">
+          <span
+            className={`grid h-16 w-16 place-items-center rounded-full bg-mint text-night transition-transform duration-500 motion-reduce:transition-none ${
+              on ? "scale-100" : "scale-0"
+            }`}
+            style={{ transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+          >
+            <Icon name="check" className="h-8 w-8" />
+          </span>
+          {CONFETTI.map((piece, index) => (
+            <span
+              key={index}
+              aria-hidden="true"
+              className="absolute left-1/2 top-1/2 block"
+              style={{
+                width: piece.round ? 8 : 12,
+                height: piece.round ? 8 : 6,
+                marginLeft: piece.round ? -4 : -6,
+                marginTop: piece.round ? -4 : -3,
+                borderRadius: piece.round ? 999 : 2,
+                backgroundColor: piece.color,
+                opacity: on ? 1 : 0,
+                transform: on
+                  ? `translate(${piece.dx}px, ${piece.dy}px) rotate(${piece.r}deg)`
+                  : "translate(0px, 0px) scale(0.2)",
+                transition: `transform 800ms cubic-bezier(0.2, 0.8, 0.2, 1) ${200 + index * 40}ms, opacity 300ms ${200 + index * 40}ms`,
+              }}
+            />
+          ))}
+        </div>
+        <p className="mt-5 text-xl font-extrabold text-ink">Eve vardın</p>
         <p className="mt-1 text-sm text-muted">Yolculuk tamamlandı.</p>
       </div>
 
@@ -448,7 +535,7 @@ export default function HeroScroller() {
   const slotRef = useRef<HTMLDivElement>(null);
   const [stage, setStage] = useState<Stage>(0);
   const [tap, setTap] = useState<Tap>(0);
-  const [failed, setFailed] = useState<boolean[]>([false, false, false, false]);
+  const [fill, setFill] = useState(1);
 
   const cover1 = pickEventImage("concert", "gece-yolculugu-konseri")?.src;
   const cover2 = pickEventImage("standup", "stand-up-gecesi")?.src;
@@ -481,16 +568,19 @@ export default function HeroScroller() {
       }
 
       section!.style.setProperty("--p", p.toFixed(4));
-      setStage(p < 0.18 ? 0 : p < 0.45 ? 1 : p < 0.72 ? 2 : 3);
+      section!.style.setProperty("--ls", clamp(p / 0.1).toFixed(3));
+
+      setStage(p < 0.22 ? 0 : p < 0.45 ? 1 : p < 0.78 ? 2 : 3);
       setTap(
-        p >= 0.12 && p < 0.18
+        p >= 0.15 && p < 0.22
           ? 1
-          : p >= 0.39 && p < 0.45
+          : p >= 0.38 && p < 0.45
             ? 2
-            : p >= 0.66 && p < 0.72
+            : p >= 0.7 && p < 0.78
               ? 3
               : 0,
       );
+      setFill(p < 0.5 ? 1 : p < 0.57 ? 2 : p < 0.64 ? 3 : 4);
     }
 
     function schedule() {
@@ -524,89 +614,88 @@ export default function HeroScroller() {
   }, []);
 
   const primary =
-    "inline-flex items-center gap-2 rounded-full bg-violet px-7 py-3.5 text-base font-bold text-white transition-colors hover:bg-sky";
+    "inline-flex items-center gap-2 rounded-full bg-violet px-7 py-3.5 text-base font-bold text-white shadow-soft transition-colors hover:bg-sky";
   const secondary =
-    "rounded-full bg-white/10 px-7 py-3.5 text-base font-bold text-white ring-1 ring-white/40 backdrop-blur transition-colors hover:bg-white/20";
+    "rounded-full bg-white px-7 py-3.5 text-base font-bold text-violet ring-1 ring-violet/25 transition-colors hover:bg-lilac";
 
   return (
     <section
       ref={sectionRef}
       aria-label="Eventra tanıtımı"
-      className="relative h-[340vh] overflow-clip rounded-b-[2rem] bg-[#14102e] motion-reduce:h-auto sm:rounded-b-[3rem] lg:h-[400vh]"
+      className="relative h-[300vh] overflow-clip rounded-b-[2rem] bg-surface motion-reduce:h-auto sm:rounded-b-[3rem] lg:h-[360vh]"
     >
       <div className="sticky top-0 h-svh overflow-hidden motion-reduce:static motion-reduce:h-auto motion-reduce:min-h-svh">
+        <div aria-hidden="true" className="absolute inset-0 bg-surface" />
         <div
           aria-hidden="true"
           className="absolute inset-0"
           style={{
-            background:
-              "linear-gradient(160deg, #14102e 0%, #2b1d6e 60%, #4a35c9 100%)",
+            backgroundImage:
+              "radial-gradient(rgba(108,77,255,0.13) 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute -left-24 top-10 h-80 w-80 rounded-full bg-violet/20 blur-3xl"
+          style={{
+            transform:
+              "translate(calc(var(--p, 0) * 90px), calc(var(--p, 0) * 140px))",
+            willChange: "transform",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute -right-16 top-1/3 h-72 w-72 rounded-full bg-coral/20 blur-3xl"
+          style={{
+            transform:
+              "translate(calc(var(--p, 0) * -70px), calc(var(--p, 0) * -110px))",
+            willChange: "transform",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-mint/25 blur-3xl"
+          style={{
+            transform:
+              "translate(calc(var(--p, 0) * 60px), calc(var(--p, 0) * -90px))",
+            willChange: "transform",
           }}
         />
 
-        <div aria-hidden="true" className="absolute inset-0">
-          {PHOTOS.map((src, index) =>
-            failed[index] ? null : (
-              <div
-                key={src}
-                className={`absolute inset-0 transition-opacity duration-[1100ms] motion-reduce:transition-none ${
-                  stage === index ? "opacity-100" : "opacity-0"
-                }`}
-                style={{
-                  transform:
-                    "translateY(calc(var(--p, 0) * -28px)) scale(calc(1.06 + var(--p, 0) * 0.08))",
-                  willChange: "transform",
-                }}
-              >
-                <Image
-                  src={src}
-                  alt=""
-                  fill
-                  priority={index === 0}
-                  sizes="100vw"
-                  quality={70}
-                  className="object-cover"
-                  onError={() =>
-                    setFailed((current) =>
-                      current.map((value, i) => (i === index ? true : value)),
-                    )
-                  }
-                />
-              </div>
-            ),
-          )}
-          <div className="absolute inset-0 bg-linear-to-b from-[#0a081e]/80 via-[#0a081e]/40 to-[#0a081e]/80 lg:hidden" />
-          <div className="absolute inset-0 hidden bg-linear-to-r from-[#0a081e]/90 via-[#0a081e]/55 to-[#0a081e]/20 lg:block" />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(120% 90% at 50% 40%, transparent 45%, rgba(5,4,15,0.55) 100%)",
-            }}
-          />
-        </div>
-
         <p className="sr-only">
           Çizim: Eventra uygulamasında bir etkinlik seçilir, ortak yolculuğa
-          katılınır ve yolcular geceleyin eve birlikte döner. Arka plandaki
-          fotoğraflar temsilidir.
+          katılınır, koltuklar dolar ve yolculuk eve varışla tamamlanır.
         </p>
 
         <div className="relative mx-auto grid h-full max-w-6xl grid-rows-[auto_minmax(0,1fr)] gap-3 px-5 pb-8 pt-20 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:grid-rows-1 lg:items-center lg:gap-10 lg:pb-10 lg:pt-20 motion-reduce:h-auto">
           <div className="relative z-20">
             <div className="grid">
               <div className={layer(stage === 0)} inert={stage !== 0}>
-                <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-white ring-1 ring-white/25 backdrop-blur">
-                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-mint" />
+                <p className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-violet ring-1 ring-black/5">
+                  <span
+                    aria-hidden="true"
+                    className="h-1.5 w-1.5 rounded-full bg-mint"
+                  />
                   Etkinlik sonrası ortak yolculuk
                 </p>
-                <h1 className="mt-4 text-3xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
-                  Etkinlik bitti, <span className="text-gradient">yolculuk başlasın!</span>
+                <h1 className="mt-4 text-3xl font-extrabold leading-[1.05] tracking-tight text-ink sm:text-5xl lg:text-6xl">
+                  Etkinlik bitti,{" "}
+                  <span
+                    style={{
+                      backgroundImage: "linear-gradient(90deg, #6c4dff, #ff6b6b)",
+                      WebkitBackgroundClip: "text",
+                      backgroundClip: "text",
+                      color: "transparent",
+                    }}
+                  >
+                    yolculuk başlasın!
+                  </span>
                 </h1>
-                <p className="mt-3 hidden -rotate-1 font-hand text-4xl text-[#ff9d9d] sm:inline-block">
+                <p className="mt-3 hidden -rotate-1 font-hand text-4xl text-coral-ink sm:inline-block">
                   Aynı etkinlikteyiz, aynı yoldayız.
                 </p>
-                <p className="mt-3 hidden max-w-md text-base text-white/85 sm:block">
+                <p className="mt-3 hidden max-w-md text-base text-muted sm:block">
                   Konser çıkışı taksi kuyruğu, derbi sonrası otopark trafiği,
                   gece yarısı dolu duraklar. Eventra, aynı etkinlikten aynı yöne
                   dönenleri buluşturur.
@@ -635,11 +724,15 @@ export default function HeroScroller() {
                     <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet text-xl font-extrabold text-white sm:h-12 sm:w-12">
                       {index + 1}
                     </span>
-                    <p className="mt-2 font-hand text-3xl text-[#ff9d9d]">{item.hand}</p>
-                    <h2 className="mt-1 text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl">
+                    <p className="mt-2 font-hand text-3xl text-coral-ink">
+                      {item.hand}
+                    </p>
+                    <h2 className="mt-1 text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">
                       {item.title}
                     </h2>
-                    <p className="mt-2 max-w-md text-base text-white/85">{item.text}</p>
+                    <p className="mt-2 max-w-md text-base text-muted">
+                      {item.text}
+                    </p>
 
                     {index === 2 && (
                       <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -659,12 +752,15 @@ export default function HeroScroller() {
               })}
             </div>
 
-            <div aria-hidden="true" className="mt-5 hidden items-center gap-2 lg:flex">
+            <div
+              aria-hidden="true"
+              className="mt-5 hidden items-center gap-2 lg:flex"
+            >
               {[0, 1, 2, 3].map((dot) => (
                 <span
                   key={dot}
                   className={`h-1.5 rounded-full transition-all duration-500 motion-reduce:transition-none ${
-                    stage === dot ? "w-8 bg-white" : "w-1.5 bg-white/35"
+                    stage === dot ? "w-8 bg-violet" : "w-1.5 bg-violet/25"
                   }`}
                 />
               ))}
@@ -677,10 +773,6 @@ export default function HeroScroller() {
           >
             <div
               aria-hidden="true"
-              className="absolute left-1/2 top-1/2 h-[70%] w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet/40 blur-3xl"
-            />
-            <div
-              aria-hidden="true"
               className="relative"
               style={{
                 width: `calc(${DEVICE_W}px * var(--ps, 0.7))`,
@@ -688,12 +780,12 @@ export default function HeroScroller() {
                 perspective: "1800px",
               }}
             >
-              <div className="absolute inset-x-[10%] -bottom-4 h-8 rounded-full bg-black/60 blur-xl" />
+              <div className="absolute inset-x-[8%] -bottom-5 h-8 rounded-full bg-violet/40 blur-xl" />
               <div
                 className="absolute inset-0"
                 style={{
                   transform:
-                    "rotateY(calc(-9deg + var(--p, 0) * 12deg)) rotateX(3deg)",
+                    "translateY(calc(var(--p, 0) * -20px)) rotateY(calc(-9deg + var(--p, 0) * 12deg)) rotateX(3deg)",
                   transformStyle: "preserve-3d",
                 }}
               >
@@ -708,7 +800,7 @@ export default function HeroScroller() {
                     background:
                       "linear-gradient(145deg, #62626b 0%, #1d1d22 38%, #3b3b43 70%, #17171b 100%)",
                     boxShadow:
-                      "0 40px 80px -24px rgba(0,0,0,0.75), inset 0 0 0 1px rgba(255,255,255,0.14)",
+                      "0 40px 80px -24px rgba(60,40,160,0.55), inset 0 0 0 1px rgba(255,255,255,0.14)",
                   }}
                 >
                   <span className="absolute -left-[3px] top-24 h-7 w-[3px] rounded-l bg-[#3b3b43]" />
@@ -723,8 +815,8 @@ export default function HeroScroller() {
                   >
                     <StatusBar light={stage === 1} />
                     <ScreenList stage={stage} cover1={cover1} cover2={cover2} />
-                    <ScreenDetail stage={stage} cover1={cover1} />
-                    <ScreenJoined stage={stage} />
+                    <ScreenDetail stage={stage} tap={tap} cover1={cover1} />
+                    <ScreenJoined stage={stage} tap={tap} fill={fill} />
                     <ScreenArrived stage={stage} />
                     <Tapper show={tap === 1} x={TAPS[1].x} y={TAPS[1].y} />
                     <Tapper show={tap === 2} x={TAPS[2].x} y={TAPS[2].y} />
@@ -745,8 +837,8 @@ export default function HeroScroller() {
           </div>
         </div>
 
-        <p className="absolute bottom-3 left-5 z-20 text-[11px] text-white/60 sm:left-6">
-          Temsili fotoğraflar · ekranlar örnektir (demo)
+        <p className="absolute bottom-3 left-5 z-20 text-[11px] text-muted sm:left-6">
+          Ekranlar örnektir (demo)
         </p>
       </div>
     </section>
