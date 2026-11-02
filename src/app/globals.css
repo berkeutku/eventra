@@ -25,12 +25,20 @@
   --font-sans: var(--font-jakarta), system-ui, sans-serif;
   --font-hand: var(--font-caveat), cursive;
 
+  --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
   --radius-3xl: 2rem;
+
+  --shadow-sm: 0 6px 20px rgba(108, 77, 255, 0.08), 0 1px 2px rgba(16, 16, 32, 0.04);
+  --shadow-soft: 0 14px 34px rgba(108, 77, 255, 0.16), 0 2px 6px rgba(16, 16, 32, 0.06);
 }
 
 body {
-  background: var(--color-surface);
+  background:
+    radial-gradient(48rem 26rem at 0 0, rgba(108, 77, 255, 0.07), transparent 65%),
+    radial-gradient(40rem 24rem at 100% 6rem, rgba(255, 107, 107, 0.06), transparent 65%),
+    var(--color-surface);
+  background-repeat: no-repeat;
   color: var(--color-ink);
   font-family: var(--font-sans);
 }
@@ -78,7 +86,6 @@ body {
   outline-offset: 3px;
 }
 
-/* eventra-polish */
 ::selection {
   background: var(--color-lilac);
   color: var(--color-ink);
@@ -101,7 +108,7 @@ p {
 @media (prefers-reduced-motion: no-preference) {
   button:not(:disabled):active,
   a[class*="rounded-full"]:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
   }
 
   .event-zoom img {
