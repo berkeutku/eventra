@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { and, asc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, ilike, lt, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { events } from "@/db/schema";
 import type { EventCategory, EventItem } from "@/data/events";
@@ -36,12 +36,20 @@ export function realEventsEnabled(): boolean {
 }
 
 export type SourceFilter = "all" | "real" | "demo";
+export type WhenFilter = "all" | "today" | "week" | "weekend" | "month";
+
+const WHEN_VALUES: WhenFilter[] = ["all", "today", "week", "weekend", "month"];
+
+export function parseWhen(value: string): WhenFilter {
+  return WHEN_VALUES.find((item) => item === value) ?? "all";
+}
 
 export type EventFilters = {
   category?: EventCategory;
   cityKey?: string;
   query?: string;
   source?: SourceFilter;
+  when?: WhenFilter;
 };
 
 export type EventPage = {
@@ -52,6 +60,43 @@ export type EventPage = {
 };
 
 export type CityOption = { key: string; name: string; total: number };
+
+const DAY_MS = 86_400_000;
+const TR_OFFSET_MS = 3 * 3_600_000; // Türkiye sabit UTC+3
+
+// Seçilen zaman aralığı (Türkiye saatine göre): [from, to)
+function whenRange(
+  when: Exclude<WhenFilter, "all">,
+  now: Date,
+): { from: Date; to: Date } {
+  const local = now.getTime() + TR_OFFSET_MS;
+  const dayNumber = Math.floor(local / DAY_MS);
+  const todayStart = dayNumber * DAY_MS - TR_OFFSET_MS;
+  const weekday = (dayNumber + 4) % 7; // 0 pazar, 6 cumartesi
+
+  if (when === "today") {
+    return { from: new Date(todayStart), to: new Date(todayStart + DAY_MS) };
+  }
+
+  if (when === "week") {
+    return { from: new Date(todayStart), to: new Date(todayStart + 7 * DAY_MS) };
+  }
+
+  if (when === "month") {
+    return { from: new Date(todayStart), to: new Date(todayStart + 30 * DAY_MS) };
+  }
+
+  if (weekday === 0) {
+    return { from: new Date(todayStart), to: new Date(todayStart + DAY_MS) };
+  }
+
+  if (weekday === 6) {
+    return { from: new Date(todayStart), to: new Date(todayStart + 2 * DAY_MS) };
+  }
+
+  const saturday = todayStart + (6 - weekday) * DAY_MS;
+  return { from: new Date(saturday), to: new Date(saturday + 2 * DAY_MS) };
+}
 
 // Etkinlik, bitiş saatine (yoksa başlangıç + 6 saate) kadar "yaklaşan" sayılır.
 const UPCOMING = sql`coalesce(${events.endsAt}, ${events.startsAt} + interval '6 hours') >= now()`;
@@ -87,6 +132,16 @@ function conditions(filters: EventFilters, withCategory: boolean): SQL {
 
   if (filters.cityKey) {
     parts.push(eq(events.cityKey, filters.cityKey));
+  }
+
+  const when = filters.when;
+
+  if (when && when !== "all") {
+    const range = whenRange(when, new Date());
+    parts.push(lt(events.startsAt, range.to));
+    parts.push(
+      sql`coalesce(${events.endsAt}, ${events.startsAt} + interval '6 hours') >= ${range.from.toISOString()}::timestamptz`,
+    );
   }
 
   const query = filters.query?.trim();

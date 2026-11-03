@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useAuthUser } from "@/components/AuthProvider";
+import DriverRating from "@/components/DriverRating";
 import JoinCelebration from "@/components/JoinCelebration";
 import JoinRideButton from "@/components/JoinRideButton";
 import VerifiedBadge from "@/components/VerifiedBadge";
@@ -202,6 +203,10 @@ function RideCard({
           <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
             <span>Sürücü: {ride.driverName}</span>
             {ride.driverVerified && <VerifiedBadge />}
+            <DriverRating
+              rating={ride.driverRating}
+              count={ride.driverRatingCount}
+            />
           </p>
         </div>
         <div className="shrink-0 text-right">

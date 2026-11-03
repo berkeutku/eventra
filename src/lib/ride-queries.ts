@@ -3,6 +3,7 @@ import { db } from "@/db";
 import {
   events,
   ridePassengers,
+  rideRatings,
   rides,
   ticketVerifications,
   users,
@@ -21,12 +22,22 @@ function driverVerifiedSql() {
   return sql<boolean>`exists (select 1 from ${ticketVerifications} where ${ticketVerifications.userId} = ${rides.driverId} and ${ticketVerifications.eventId} = ${rides.eventId})`;
 }
 
+// Sürücünün tüm yolculuklardan aldığı ortalama puan (tek ondalık) ve değerlendirme sayısı.
+function driverRatingSql() {
+  return sql<number | null>`(select round(avg(${rideRatings.score})::numeric, 1)::float8 from ${rideRatings} where ${rideRatings.rateeId} = ${rides.driverId})`;
+}
+
+function driverRatingCountSql() {
+  return sql<number>`(select count(*)::int from ${rideRatings} where ${rideRatings.rateeId} = ${rides.driverId})`;
+}
+
 function toRideItem(
   ride: RideRow,
   driverName: string,
   passengerCount: number,
   driverVerified: boolean,
   flags: { joined: boolean; isOwn: boolean },
+  rating?: { value: number | null; count: number },
 ): RideItem {
   return {
     id: ride.id,
@@ -45,6 +56,8 @@ function toRideItem(
     joined: flags.joined,
     isOwn: flags.isOwn,
     driverVerified,
+    driverRating: rating ? rating.value : null,
+    driverRatingCount: rating ? rating.count : 0,
   };
 }
 
@@ -58,6 +71,8 @@ export async function getRidesForEvent(
       driverName: users.name,
       passengerCount: passengerCountSql(),
       driverVerified: driverVerifiedSql(),
+      driverRating: driverRatingSql(),
+      driverRatingCount: driverRatingCountSql(),
     })
     .from(rides)
     .innerJoin(users, eq(rides.driverId, users.id))
@@ -95,6 +110,7 @@ export async function getRidesForEvent(
         joined: joinedIds.has(row.ride.id),
         isOwn: userId !== undefined && row.ride.driverId === userId,
       },
+      { value: row.driverRating, count: row.driverRatingCount },
     ),
   );
 }
@@ -177,6 +193,8 @@ export async function getRideDetail(
       driverName: users.name,
       passengerCount: passengerCountSql(),
       driverVerified: driverVerifiedSql(),
+      driverRating: driverRatingSql(),
+      driverRatingCount: driverRatingCountSql(),
     })
     .from(rides)
     .innerJoin(users, eq(rides.driverId, users.id))
@@ -210,6 +228,7 @@ export async function getRideDetail(
       row.passengerCount,
       row.driverVerified,
       { joined, isOwn },
+      { value: row.driverRating, count: row.driverRatingCount },
     ),
     passengers:
       isOwn || joined

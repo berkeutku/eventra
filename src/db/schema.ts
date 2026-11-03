@@ -297,3 +297,73 @@ export const eventFavorites = pgTable(
     index("event_favorites_user_created_idx").on(table.userId, table.createdAt),
   ],
 );
+
+
+// Yolculuk sonrası karşılıklı puanlama (1-5). Yolculuk silinse bile puan kalır (rideId boşalır),
+// böylece kötü puan alan biri yolculuğunu silerek puanını temizleyemez.
+export const rideRatings = pgTable(
+  "ride_ratings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    rideId: uuid("ride_id").references(() => rides.id, { onDelete: "set null" }),
+    raterId: uuid("rater_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    rateeId: uuid("ratee_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    score: integer("score").notNull(),
+    comment: text("comment"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique("ride_ratings_unique").on(table.rideId, table.raterId, table.rateeId),
+    index("ride_ratings_ratee_idx").on(table.rateeId),
+    check("ride_ratings_score_check", sql`${table.score} between 1 and 5`),
+    check("ride_ratings_not_self_check", sql`${table.raterId} <> ${table.rateeId}`),
+  ],
+);
+
+// Kullanıcı şikâyetleri. Şu an incelemek için bir yönetici paneli yok, kayıtlar elle okunur.
+export const userReports = pgTable(
+  "user_reports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    reporterId: uuid("reporter_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    reportedId: uuid("reported_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    rideId: uuid("ride_id").references(() => rides.id, { onDelete: "set null" }),
+    reason: text("reason").notNull(),
+    details: text("details"),
+    status: text("status").notNull().default("open"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique("user_reports_unique").on(
+      table.reporterId,
+      table.reportedId,
+      table.rideId,
+    ),
+    index("user_reports_reported_idx").on(table.reportedId),
+    index("user_reports_reporter_time_idx").on(table.reporterId, table.createdAt),
+    check(
+      "user_reports_reason_check",
+      sql`${table.reason} in ('no_show', 'unsafe', 'harassment', 'wrong_info', 'other')`,
+    ),
+    check(
+      "user_reports_status_check",
+      sql`${table.status} in ('open', 'reviewed', 'dismissed')`,
+    ),
+    check("user_reports_not_self_check", sql`${table.reporterId} <> ${table.reportedId}`),
+  ],
+);

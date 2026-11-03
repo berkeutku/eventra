@@ -1,359 +1,384 @@
-"use client";
-
+import { cache } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import DriverRating from "@/components/DriverRating";
+import EventCover from "@/components/EventCover";
+import Icon, { categoryIcon } from "@/components/Icons";
+import JoinCelebration from "@/components/JoinCelebration";
+import JoinRideButton from "@/components/JoinRideButton";
+import RideFeedback from "@/components/RideFeedback";
+import RouteSummary from "@/components/RouteSummary";
+import VerifiedBadge from "@/components/VerifiedBadge";
+import { pickEventImage } from "@/data/event-images";
+import { categoryMeta } from "@/data/events";
+import { getCurrentUser, type AuthUser } from "@/lib/auth";
+import { getEventById } from "@/lib/events";
+import { formatEventDate, formatEventTime } from "@/lib/format";
+import { leaveRideAction } from "@/lib/ride-actions";
+import { getRideDetail, type RideDetail } from "@/lib/ride-queries";
 import {
-  startTransition,
-  useActionState,
-  useState,
-  type ReactNode,
-} from "react";
-import { useAuthUser } from "@/components/AuthProvider";
-import MeetingPointSuggestions from "@/components/MeetingPointSuggestions";
-import RideTemplatePicker from "@/components/RideTemplatePicker";
-import {
-  createRideAction,
-  type CreateRideField,
-  type CreateRideState,
-} from "@/lib/ride-actions";
-import { calcSharePerPerson } from "@/lib/ride-utils";
-import { roleLabels } from "@/lib/roles";
+  calcArrival,
+  calcSharePerPerson,
+  remainingSeats,
+} from "@/lib/ride-utils";
+
+export const dynamic = "force-dynamic";
 
 type Props = {
-  eventId: string;
+  params: Promise<{ id: string; rideId: string }>;
 };
 
-type FormValues = {
-  origin: string;
-  destination: string;
-  meetingPoint: string;
-  departureTime: string;
-  duration: string;
-  seats: string;
-  cost: string;
-};
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const initialState: CreateRideState = {};
+const loadPage = cache(async (eventId: string, rideId: string) => {
+  if (!UUID_PATTERN.test(rideId)) {
+    return null;
+  }
 
-const emptyForm: FormValues = {
-  origin: "",
-  destination: "",
-  meetingPoint: "",
-  departureTime: "",
-  duration: "",
-  seats: "3",
-  cost: "",
-};
+  const event = await getEventById(eventId);
 
-function parseWholeNumber(value: string): number | null {
-  const trimmed = value.trim();
-  return /^\d+$/.test(trimmed) ? Number(trimmed) : null;
+  if (!event) {
+    return null;
+  }
+
+  const user = await getCurrentUser();
+  const ride = await getRideDetail(rideId, user?.id);
+
+  if (!ride || ride.eventId !== event.id) {
+    return null;
+  }
+
+  return { event, ride, user };
+});
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id, rideId } = await params;
+  const data = await loadPage(id, rideId);
+
+  if (!data) {
+    return { title: "Yolculuk bulunamadı | Eventra" };
+  }
+
+  return {
+    title: `${data.ride.origin} → ${data.ride.destination} | Eventra`,
+  };
 }
 
-const baseInput =
-  "mt-2 w-full rounded-xl border bg-white px-4 py-3 text-base text-ink placeholder:text-muted/60";
+function ActionArea({
+  ride,
+  user,
+}: {
+  ride: RideDetail;
+  user: AuthUser | null;
+}) {
+  if (!user) {
+    return (
+      <Link
+        href={`/giris?next=/events/${ride.eventId}/yolculuk/${ride.id}`}
+        className="inline-block rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky"
+      >
+        Katılmak için giriş yap
+      </Link>
+    );
+  }
 
-type TextInputProps = {
-  id: CreateRideField;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  error?: string;
-  placeholder?: string;
-  hint?: string;
-  type?: "text" | "time";
-  inputMode?: "numeric";
-};
+  if (ride.isOwn) {
+    return (
+      <span className="inline-block rounded-full bg-lilac px-4 py-2 text-sm font-bold text-violet">
+        Bu senin yolculuğun
+      </span>
+    );
+  }
 
-function TextInput({
-  id,
-  label,
-  value,
-  onChange,
-  error,
-  placeholder,
-  hint,
-  type = "text",
-  inputMode,
-}: TextInputProps) {
+  if (ride.joined) {
+    return (
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="inline-flex items-center gap-2 rounded-full bg-sea px-4 py-2 text-sm font-bold text-mint-ink">
+          <span
+            aria-hidden="true"
+            className="h-1.5 w-1.5 rounded-full bg-mint"
+          />
+          Bu yolculuğa katıldın
+        </span>
+        <form action={leaveRideAction}>
+          <input type="hidden" name="rideId" value={ride.id} />
+          <button
+            type="submit"
+            className="rounded-full border border-line px-4 py-2 text-sm font-bold text-ink hover:bg-lilac"
+          >
+            Yolculuktan ayrıl
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  if (user.role !== "passenger") {
+    return (
+      <p className="text-sm text-muted">
+        Yolculuğa katılmak için Yolcu rolünde bir hesap gerekir. Rolünü
+        profilindeki anahtardan değiştirebilirsin.
+      </p>
+    );
+  }
+
+  if (remainingSeats(ride) === 0) {
+    return (
+      <span className="inline-block rounded-full bg-peach px-4 py-2 text-sm font-bold text-coral-ink">
+        Yolculuk dolu
+      </span>
+    );
+  }
+
+  return <JoinRideButton rideId={ride.id} />;
+}
+
+function SeatDots({ seats, taken }: { seats: number; taken: number }) {
   return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-bold text-ink">
-        {label}
-      </label>
-      <input
-        id={id}
-        name={id}
-        type={type}
-        value={value}
-        inputMode={inputMode}
-        autoComplete="off"
-        placeholder={placeholder}
-        onChange={(event) => onChange(event.target.value)}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={
-          error ? `${id}-error` : hint ? `${id}-hint` : undefined
-        }
-        className={`${baseInput} ${error ? "border-coral" : "border-line"}`}
-      />
-      {error ? (
-        <p
-          id={`${id}-error`}
-          role="alert"
-          className="mt-2 text-sm font-medium text-coral-ink"
+    <div
+      className="flex flex-wrap items-center gap-2"
+      role="img"
+      aria-label={`${seats} koltuğun ${taken} tanesi dolu`}
+    >
+      {Array.from({ length: seats }, (_, index) => (
+        <span
+          key={index}
+          className={`grid h-9 w-9 place-items-center rounded-full text-xs font-extrabold ${
+            index < taken
+              ? "bg-violet text-white"
+              : "border-2 border-dashed border-violet/40 text-violet/60"
+          }`}
         >
-          {error}
-        </p>
-      ) : hint ? (
-        <p id={`${id}-hint`} className="mt-2 text-sm text-muted">
-          {hint}
-        </p>
-      ) : null}
+          {index < taken ? index + 1 : ""}
+        </span>
+      ))}
     </div>
   );
 }
 
-function Section({
-  step,
-  title,
-  children,
-}: {
-  step: number;
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="rounded-2xl bg-surface p-5 sm:p-6">
-      <h2 className="flex items-center gap-3 text-base font-extrabold text-ink">
-        <span
-          aria-hidden="true"
-          className="grid h-7 w-7 place-items-center rounded-full bg-violet text-xs font-extrabold text-white"
-        >
-          {step}
-        </span>
-        {title}
-      </h2>
-      <div className="mt-4 space-y-6">{children}</div>
-    </section>
-  );
-}
+const card =
+  "rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-8";
 
-const shell = "rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-8";
+export default async function RideDetailPage({ params }: Props) {
+  const { id, rideId } = await params;
+  const data = await loadPage(id, rideId);
 
-export default function RideForm({ eventId }: Props) {
-  const user = useAuthUser();
-  const [state, formAction, pending] = useActionState(
-    createRideAction,
-    initialState,
-  );
-  const [values, setValues] = useState<FormValues>(emptyForm);
-
-  const errors = state.errors ?? {};
-
-  function update(field: keyof FormValues, value: string) {
-    setValues((current) => ({ ...current, [field]: value }));
+  if (!data) {
+    notFound();
   }
 
-  // Formu kendimiz gönderiyoruz: böylece hata olsa bile yazdıkların kutularda kalır.
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    startTransition(() => {
-      formAction(formData);
-    });
-  }
+  const { event, ride, user } = data;
+  const meta = categoryMeta[event.category];
+  const imageSrc =
+    event.imageUrl ?? pickEventImage(event.category, event.id)?.src;
 
-  if (user === null) {
-    return (
-      <div className={shell}>
-        <h2 className="text-2xl font-extrabold tracking-tight">
-          Önce giriş yapmalısın
-        </h2>
-        <p className="mt-2 text-muted">
-          Yolculuk oluşturmak için giriş yapmalı ve hesabının rolü Sürücü
-          olmalı.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href={`/giris?next=/events/${eventId}/yolculuk-olustur`}
-            className="rounded-full bg-violet px-6 py-3 text-sm font-bold text-white hover:bg-sky"
-          >
-            Giriş yap
-          </Link>
-          <Link
-            href="/kayit"
-            className="rounded-full border border-line px-6 py-3 text-sm font-bold text-ink hover:bg-lilac"
-          >
-            Hesap oluştur
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (user.role !== "driver") {
-    return (
-      <div className={shell}>
-        <h2 className="text-2xl font-extrabold tracking-tight">
-          Bu sayfa sürücüler içindir
-        </h2>
-        <p className="mt-2 text-muted">
-          {user.name} olarak {roleLabels[user.role]} rolüyle giriş yaptın.
-          Yolculuk oluşturmak için profilindeki anahtardan Sürücü rolüne
-          geçebilirsin.
-        </p>
-        <Link
-          href="/panel"
-          className="mt-5 inline-flex rounded-full bg-violet px-6 py-3 text-sm font-bold text-white hover:bg-sky"
-        >
-          Profile git
-        </Link>
-      </div>
-    );
-  }
-
-  const costNumber = parseWholeNumber(values.cost);
-  const previewShare =
-    costNumber !== null && costNumber <= 5000
-      ? calcSharePerPerson(costNumber, Number(values.seats))
-      : null;
+  const left = remainingSeats(ride);
+  const peopleNow = ride.passengerCount + 1;
+  const shareNow = calcSharePerPerson(ride.totalCost, ride.passengerCount);
+  const shareFull = calcSharePerPerson(ride.totalCost, ride.seats);
+  const arrival = calcArrival(ride.departureTime, ride.durationMinutes);
 
   return (
-    <form onSubmit={handleSubmit} noValidate className={`space-y-6 ${shell}`}>
-      <input type="hidden" name="eventId" value={eventId} />
+    <main>
+      <JoinCelebration joined={Boolean(ride.joined)} />
 
-      <RideTemplatePicker
-        onPick={(picked) => setValues((current) => ({ ...current, ...picked }))}
-      />
-
-      <p className="text-sm text-muted">
-        Sürücü olarak giriş yaptın: <strong>{user.name}</strong>
-      </p>
-
-      {state.message && (
-        <p
-          role="alert"
-          className="rounded-2xl bg-peach p-4 text-sm font-medium text-coral-ink"
-        >
-          {state.message}
-        </p>
-      )}
-
-      <Section step={1} title="Nereden nereye?">
-        <div className="grid gap-6 sm:grid-cols-2">
-          <TextInput
-            id="origin"
-            label="Başlangıç noktası"
-            value={values.origin}
-            onChange={(value) => update("origin", value)}
-            error={errors.origin}
-            placeholder="Örn. Etkinlik alanı otoparkı"
-          />
-          <TextInput
-            id="destination"
-            label="Varış noktası"
-            value={values.destination}
-            onChange={(value) => update("destination", value)}
-            error={errors.destination}
-            placeholder="Örn. Kadıköy"
-          />
-        </div>
-
-        <TextInput
-          id="meetingPoint"
-          label="Buluşma noktası"
-          value={values.meetingPoint}
-          onChange={(value) => update("meetingPoint", value)}
-          error={errors.meetingPoint}
-          placeholder="Örn. Ana kapı çıkışı, mavi tabela önü"
-          hint="Kalabalıkta kolay bulunacak, herkese açık bir nokta seç."
+      <section className={`relative overflow-hidden text-white ${meta.gradient}`}>
+        <EventCover
+          src={imageSrc}
+          priority
+          sizes="100vw"
+          category={event.category}
+          className="absolute inset-0 h-full w-full"
         />
-
-        {!eventId.startsWith("bgo-") && (
-          <MeetingPointSuggestions
-            value={values.meetingPoint}
-            onSelect={(name) => update("meetingPoint", name)}
-          />
-        )}
-      </Section>
-
-      <Section step={2} title="Ne zaman yola çıkıyorsun?">
-        <div className="grid gap-6 sm:grid-cols-2">
-          <TextInput
-            id="departureTime"
-            label="Kalkış saati"
-            type="time"
-            value={values.departureTime}
-            onChange={(value) => update("departureTime", value)}
-            error={errors.departureTime}
-          />
-          <TextInput
-            id="duration"
-            label="Tahmini yolculuk süresi (dakika)"
-            inputMode="numeric"
-            value={values.duration}
-            onChange={(value) => update("duration", value)}
-            error={errors.duration}
-            placeholder="Örn. 45"
-          />
-        </div>
-      </Section>
-
-      <Section step={3} title="Koltuk ve masraf">
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div>
-            <label htmlFor="seats" className="block text-sm font-bold text-ink">
-              Boş koltuk sayısı
-            </label>
-            <select
-              id="seats"
-              name="seats"
-              value={values.seats}
-              onChange={(event) => update("seats", event.target.value)}
-              className={`${baseInput} ${errors.seats ? "border-coral" : "border-line"}`}
-            >
-              {[1, 2, 3, 4, 5, 6].map((count) => (
-                <option key={count} value={count}>
-                  {count}
-                </option>
-              ))}
-            </select>
-            {errors.seats && (
-              <p role="alert" className="mt-2 text-sm font-medium text-coral-ink">
-                {errors.seats}
-              </p>
-            )}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-black/10"
+        />
+        <div className="relative mx-auto max-w-4xl px-6 pb-10 pt-8 sm:pb-14 sm:pt-12">
+          <Link
+            href={`/events/${event.id}`}
+            className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-bold backdrop-blur hover:bg-white/25"
+          >
+            &larr; {event.title}
+          </Link>
+          <div className="mt-12 sm:mt-16">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-ink">
+              <span className={meta.accent}>
+                <Icon
+                  name={categoryIcon[event.category]}
+                  className="h-3.5 w-3.5"
+                />
+              </span>
+              {formatEventDate(event.startsAt)} ·{" "}
+              {formatEventTime(event.startsAt)}
+            </span>
+            <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+              {ride.origin} → {ride.destination}
+            </h1>
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-white/85">
+              Sürücü: {ride.driverName}
+              {ride.driverVerified && <VerifiedBadge />}
+              <DriverRating
+                rating={ride.driverRating}
+                count={ride.driverRatingCount}
+                tone="light"
+              />
+            </p>
           </div>
-          <TextInput
-            id="cost"
-            label="Tahmini toplam yol masrafı (TL)"
-            inputMode="numeric"
-            value={values.cost}
-            onChange={(value) => update("cost", value)}
-            error={errors.cost}
-            placeholder="Örn. 600"
-            hint="Yakıt, otoyol gibi tahmini toplam masraf."
+        </div>
+      </section>
+
+      <section className="px-6 py-10 sm:py-14">
+        <div className="mx-auto max-w-4xl space-y-6">
+          <RideFeedback rideId={ride.id} />
+
+          <div className={card}>
+            <h2 className="text-2xl font-extrabold tracking-tight">Güzergâh</h2>
+
+            <div className="mt-6 flex gap-4">
+              <div className="flex flex-col items-center pt-1.5">
+                <span className="h-3.5 w-3.5 rounded-full bg-violet" />
+                <span className="my-1.5 w-px flex-1 border-l-2 border-dashed border-violet/40" />
+                <span className="h-3.5 w-3.5 rounded-full bg-mint" />
+              </div>
+              <div className="flex flex-1 flex-col gap-8">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted">
+                    Buluşma noktası
+                  </p>
+                  <p className="mt-1 text-lg font-extrabold">
+                    {ride.meetingPoint}
+                  </p>
+                  <p className="mt-1 flex items-center gap-2 text-sm text-muted">
+                    <Icon name="clock" className="h-4 w-4" />
+                    Kalkış {ride.departureTime} · Başlangıç: {ride.origin}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted">
+                    Varış noktası
+                  </p>
+                  <p className="mt-1 text-lg font-extrabold">
+                    {ride.destination}
+                  </p>
+                  <p className="mt-1 flex items-center gap-2 text-sm text-muted">
+                    <Icon name="clock" className="h-4 w-4" />
+                    Tahmini varış {arrival} · yaklaşık {ride.durationMinutes}{" "}
+                    dakika
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <RouteSummary
+            origin={ride.origin}
+            meetingPoint={ride.meetingPoint}
+            destination={ride.destination}
+            durationMinutes={ride.durationMinutes}
           />
-        </div>
 
-        <div className="rounded-2xl bg-lilac p-4 text-sm">
-          <p className="font-bold text-ink">Tahmini kişi başı masraf</p>
-          <p className="mt-1 text-2xl font-extrabold tracking-tight text-violet">
-            {previewShare === null ? "—" : `${previewShare} TL`}
-          </p>
-          <p className="mt-1 text-muted">
-            Masraf, sürücü dahil herkese eşit bölünür. Bu yalnızca bir
-            tahmindir, ödeme alınmaz.
-          </p>
-        </div>
-      </Section>
+          <div className={card}>
+            <h2 className="text-2xl font-extrabold tracking-tight">
+              Masraf paylaşımı
+            </h2>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-full bg-violet px-6 py-3.5 text-base font-bold text-white shadow-soft transition-colors hover:bg-sky disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {pending ? "Kaydediliyor…" : "Yolculuğu oluştur"}
-      </button>
-    </form>
+            <dl className="mt-6 grid gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl bg-surface p-5">
+                <dt className="text-xs font-bold uppercase tracking-wider text-muted">
+                  Toplam yol masrafı
+                </dt>
+                <dd className="mt-1 text-2xl font-extrabold">
+                  {ride.totalCost} TL
+                </dd>
+              </div>
+              <div className="rounded-2xl bg-lilac p-5">
+                <dt className="text-xs font-bold uppercase tracking-wider text-muted">
+                  Şu an kişi başı
+                </dt>
+                <dd className="mt-1 text-2xl font-extrabold text-violet">
+                  {shareNow} TL
+                </dd>
+                <p className="mt-1 text-xs text-muted">
+                  {peopleNow} kişi (sürücü dahil)
+                </p>
+              </div>
+              <div className="rounded-2xl bg-sea p-5">
+                <dt className="text-xs font-bold uppercase tracking-wider text-muted">
+                  Yolculuk dolunca
+                </dt>
+                <dd className="mt-1 text-2xl font-extrabold text-mint-ink">
+                  {shareFull} TL
+                </dd>
+                <p className="mt-1 text-xs text-muted">
+                  {ride.seats + 1} kişi (sürücü dahil)
+                </p>
+              </div>
+            </dl>
+
+            <p className="mt-4 text-sm text-muted">
+              Yol masrafı sürücü dahil herkese eşit bölünür. Kişi başı tutar,
+              yolculuğa katılan kişi sayısı arttıkça düşer. Bu yalnızca bir
+              tahmindir, Eventra ödeme almaz.
+            </p>
+          </div>
+
+          <div className={card}>
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-2xl font-extrabold tracking-tight">
+                Koltuklar ve yolcular
+              </h2>
+              <p className="text-sm font-bold text-ink">
+                {left} / {ride.seats} koltuk boş
+              </p>
+            </div>
+
+            <div className="mt-5">
+              <SeatDots seats={ride.seats} taken={ride.passengerCount} />
+            </div>
+
+            <div className="mt-6">
+              {ride.passengers === null ? (
+                <p className="rounded-2xl bg-surface p-4 text-sm text-muted">
+                  {ride.passengerCount} yolcu katıldı. Yolcu adları gizlilik
+                  için yalnızca sürücüye ve yolculuğa katılanlara gösterilir.
+                </p>
+              ) : ride.passengers.length === 0 ? (
+                <p className="rounded-2xl bg-surface p-4 text-sm text-muted">
+                  Henüz yolcu katılmadı. İlk katılan sen olabilirsin, biri
+                  katıldığında adı burada görünecek.
+                </p>
+              ) : (
+                <ul className="space-y-3">
+                  {ride.passengers.map((passenger, index) => (
+                    <li
+                      key={`${passenger.name}-${index}`}
+                      className="flex items-center gap-3"
+                    >
+                      <span className="grid h-10 w-10 place-items-center rounded-full bg-lilac font-bold text-violet">
+                        {passenger.name
+                          .trim()
+                          .charAt(0)
+                          .toLocaleUpperCase("tr-TR")}
+                      </span>
+                      <span className="flex flex-wrap items-center gap-2 font-bold">
+                        {passenger.name}
+                        {passenger.verified && <VerifiedBadge />}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="mt-6 border-t border-line pt-6">
+              <ActionArea ride={ride} user={user} />
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }

@@ -8,6 +8,7 @@ import {
   countByCategory,
   listCities,
   listEvents,
+  parseWhen,
   realEventsEnabled,
   type SourceFilter,
 } from "@/lib/events";
@@ -44,6 +45,7 @@ export default async function EventsPage({ searchParams }: Props) {
     realEnabled && (sourceRaw === "real" || sourceRaw === "demo")
       ? sourceRaw
       : "all";
+  const when = parseWhen(first(params.tarih));
   const pageRaw = Number.parseInt(first(params.sayfa), 10);
   const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
 
@@ -52,6 +54,7 @@ export default async function EventsPage({ searchParams }: Props) {
     cityKey: cityKey || undefined,
     query: query || undefined,
     source,
+    when,
   };
 
   const [result, cities, counts] = await Promise.all([
@@ -74,6 +77,9 @@ export default async function EventsPage({ searchParams }: Props) {
     }
     if (source !== "all") {
       search.set("kaynak", source);
+    }
+    if (when !== "all") {
+      search.set("tarih", when);
     }
     if (target > 1) {
       search.set("sayfa", String(target));
@@ -102,6 +108,7 @@ export default async function EventsPage({ searchParams }: Props) {
           cities={cities}
           category={category}
           source={source}
+          when={when}
           showSource={realEnabled}
         />
 
@@ -113,6 +120,7 @@ export default async function EventsPage({ searchParams }: Props) {
               sehir: cityKey || undefined,
               q: query || undefined,
               kaynak: source !== "all" ? source : undefined,
+              tarih: when !== "all" ? when : undefined,
             }}
           />
         </div>

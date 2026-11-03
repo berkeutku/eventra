@@ -14,7 +14,7 @@ const LEGACY = ALL.filter(
 type Props = {
   active?: EventCategory;
   counts?: Partial<Record<EventCategory, number>>;
-  params?: { sehir?: string; q?: string; kaynak?: string };
+  params?: { sehir?: string; q?: string; kaynak?: string; tarih?: string };
 };
 
 function hrefFor(category: EventCategory | undefined, params: Props["params"]) {
@@ -31,6 +31,9 @@ function hrefFor(category: EventCategory | undefined, params: Props["params"]) {
   }
   if (params?.kaynak) {
     search.set("kaynak", params.kaynak);
+  }
+  if (params?.tarih) {
+    search.set("tarih", params.tarih);
   }
 
   const text = search.toString();

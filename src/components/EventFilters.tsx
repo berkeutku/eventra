@@ -1,8 +1,16 @@
 import Link from "next/link";
-import type { CityOption, SourceFilter } from "@/lib/events";
+import type { CityOption, SourceFilter, WhenFilter } from "@/lib/events";
 
 const fieldClass =
   "mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-base text-ink placeholder:text-muted/60";
+
+const whenOptions: { value: WhenFilter; label: string }[] = [
+  { value: "all", label: "Tüm tarihler" },
+  { value: "today", label: "Bugün" },
+  { value: "week", label: "Önümüzdeki 7 gün" },
+  { value: "weekend", label: "Bu hafta sonu" },
+  { value: "month", label: "Önümüzdeki 30 gün" },
+];
 
 export default function EventFilters({
   query,
@@ -10,6 +18,7 @@ export default function EventFilters({
   cities,
   category,
   source,
+  when,
   showSource,
 }: {
   query: string;
@@ -17,6 +26,7 @@ export default function EventFilters({
   cities: CityOption[];
   category?: string;
   source: SourceFilter;
+  when: WhenFilter;
   showSource: boolean;
 }) {
   // Şehir ya da tür seçiliyse ek filtreler açık gelir.
@@ -52,6 +62,24 @@ export default function EventFilters({
         >
           Ara
         </button>
+      </div>
+
+      <div className="mt-3">
+        <label htmlFor="event-when" className="text-sm font-bold text-ink">
+          Ne zaman?
+        </label>
+        <select
+          id="event-when"
+          name="tarih"
+          defaultValue={when}
+          className={fieldClass}
+        >
+          {whenOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       <details className="mt-3" open={advancedOpen}>

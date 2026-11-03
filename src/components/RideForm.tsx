@@ -1,16 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition, useActionState, useState } from "react";
+import {
+  startTransition,
+  useActionState,
+  useState,
+  type ReactNode,
+} from "react";
 import { useAuthUser } from "@/components/AuthProvider";
+import MeetingPointSuggestions from "@/components/MeetingPointSuggestions";
+import RideTemplatePicker from "@/components/RideTemplatePicker";
 import {
   createRideAction,
   type CreateRideField,
   type CreateRideState,
 } from "@/lib/ride-actions";
 import { calcSharePerPerson } from "@/lib/ride-utils";
-import MeetingPointSuggestions from "@/components/MeetingPointSuggestions";
-import RideTemplatePicker from "@/components/RideTemplatePicker";
 import { roleLabels } from "@/lib/roles";
 
 type Props = {
@@ -107,6 +112,33 @@ function TextInput({
   );
 }
 
+function Section({
+  step,
+  title,
+  children,
+}: {
+  step: number;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl bg-surface p-5 sm:p-6">
+      <h2 className="flex items-center gap-3 text-base font-extrabold text-ink">
+        <span
+          aria-hidden="true"
+          className="grid h-7 w-7 place-items-center rounded-full bg-violet text-xs font-extrabold text-white"
+        >
+          {step}
+        </span>
+        {title}
+      </h2>
+      <div className="mt-4 space-y-6">{children}</div>
+    </section>
+  );
+}
+
+const shell = "rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-8";
+
 export default function RideForm({ eventId }: Props) {
   const user = useAuthUser();
   const [state, formAction, pending] = useActionState(
@@ -132,7 +164,7 @@ export default function RideForm({ eventId }: Props) {
 
   if (user === null) {
     return (
-      <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
+      <div className={shell}>
         <h2 className="text-2xl font-extrabold tracking-tight">
           Önce giriş yapmalısın
         </h2>
@@ -160,14 +192,21 @@ export default function RideForm({ eventId }: Props) {
 
   if (user.role !== "driver") {
     return (
-      <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
+      <div className={shell}>
         <h2 className="text-2xl font-extrabold tracking-tight">
           Bu sayfa sürücüler içindir
         </h2>
         <p className="mt-2 text-muted">
           {user.name} olarak {roleLabels[user.role]} rolüyle giriş yaptın.
-          Yolculuk oluşturmak için Sürücü rolüyle kayıtlı bir hesap gerekir.
+          Yolculuk oluşturmak için profilindeki anahtardan Sürücü rolüne
+          geçebilirsin.
         </p>
+        <Link
+          href="/panel"
+          className="mt-5 inline-flex rounded-full bg-violet px-6 py-3 text-sm font-bold text-white hover:bg-sky"
+        >
+          Profile git
+        </Link>
       </div>
     );
   }
@@ -179,11 +218,7 @@ export default function RideForm({ eventId }: Props) {
       : null;
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      noValidate
-      className="space-y-6 rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5"
-    >
+    <form onSubmit={handleSubmit} noValidate className={`space-y-6 ${shell}`}>
       <input type="hidden" name="eventId" value={eventId} />
 
       <RideTemplatePicker
@@ -203,113 +238,119 @@ export default function RideForm({ eventId }: Props) {
         </p>
       )}
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <TextInput
-          id="origin"
-          label="Başlangıç noktası"
-          value={values.origin}
-          onChange={(value) => update("origin", value)}
-          error={errors.origin}
-          placeholder="Örn. Etkinlik alanı otoparkı"
-        />
-        <TextInput
-          id="destination"
-          label="Varış noktası"
-          value={values.destination}
-          onChange={(value) => update("destination", value)}
-          error={errors.destination}
-          placeholder="Örn. Kadıköy"
-        />
-      </div>
-
-      <TextInput
-        id="meetingPoint"
-        label="Buluşma noktası"
-        value={values.meetingPoint}
-        onChange={(value) => update("meetingPoint", value)}
-        error={errors.meetingPoint}
-        placeholder="Örn. Ana kapı çıkışı, mavi tabela önü"
-        hint="Kalabalıkta kolay bulunacak, herkese açık bir nokta seç."
-      />
-
-      {!eventId.startsWith("bgo-") && (
-        <MeetingPointSuggestions
-        value={values.meetingPoint}
-        onSelect={(name) => update("meetingPoint", name)}
-      />
-      )}
-
-      <div className="grid gap-6 sm:grid-cols-2">
-        <TextInput
-          id="departureTime"
-          label="Kalkış saati"
-          type="time"
-          value={values.departureTime}
-          onChange={(value) => update("departureTime", value)}
-          error={errors.departureTime}
-        />
-        <TextInput
-          id="duration"
-          label="Tahmini yolculuk süresi (dakika)"
-          inputMode="numeric"
-          value={values.duration}
-          onChange={(value) => update("duration", value)}
-          error={errors.duration}
-          placeholder="Örn. 45"
-        />
-      </div>
-
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div>
-          <label htmlFor="seats" className="block text-sm font-bold text-ink">
-            Boş koltuk sayısı
-          </label>
-          <select
-            id="seats"
-            name="seats"
-            value={values.seats}
-            onChange={(event) => update("seats", event.target.value)}
-            className={`${baseInput} ${errors.seats ? "border-coral" : "border-line"}`}
-          >
-            {[1, 2, 3, 4, 5, 6].map((count) => (
-              <option key={count} value={count}>
-                {count}
-              </option>
-            ))}
-          </select>
-          {errors.seats && (
-            <p role="alert" className="mt-2 text-sm font-medium text-coral-ink">
-              {errors.seats}
-            </p>
-          )}
+      <Section step={1} title="Nereden nereye?">
+        <div className="grid gap-6 sm:grid-cols-2">
+          <TextInput
+            id="origin"
+            label="Başlangıç noktası"
+            value={values.origin}
+            onChange={(value) => update("origin", value)}
+            error={errors.origin}
+            placeholder="Örn. Etkinlik alanı otoparkı"
+          />
+          <TextInput
+            id="destination"
+            label="Varış noktası"
+            value={values.destination}
+            onChange={(value) => update("destination", value)}
+            error={errors.destination}
+            placeholder="Örn. Kadıköy"
+          />
         </div>
-        <TextInput
-          id="cost"
-          label="Tahmini toplam yol masrafı (TL)"
-          inputMode="numeric"
-          value={values.cost}
-          onChange={(value) => update("cost", value)}
-          error={errors.cost}
-          placeholder="Örn. 600"
-          hint="Yakıt, otoyol gibi tahmini toplam masraf."
-        />
-      </div>
 
-      <div className="rounded-2xl bg-lilac p-4 text-sm">
-        <p className="font-bold text-ink">Tahmini kişi başı masraf</p>
-        <p className="mt-1 text-2xl font-extrabold tracking-tight text-violet">
-          {previewShare === null ? "—" : `${previewShare} TL`}
-        </p>
-        <p className="mt-1 text-muted">
-          Masraf, sürücü dahil herkese eşit bölünür. Bu yalnızca bir tahmindir,
-          ödeme alınmaz.
-        </p>
-      </div>
+        <TextInput
+          id="meetingPoint"
+          label="Buluşma noktası"
+          value={values.meetingPoint}
+          onChange={(value) => update("meetingPoint", value)}
+          error={errors.meetingPoint}
+          placeholder="Örn. Ana kapı çıkışı, mavi tabela önü"
+          hint="Kalabalıkta kolay bulunacak, herkese açık bir nokta seç."
+        />
+
+        {!eventId.startsWith("bgo-") && (
+          <MeetingPointSuggestions
+            value={values.meetingPoint}
+            onSelect={(name) => update("meetingPoint", name)}
+          />
+        )}
+      </Section>
+
+      <Section step={2} title="Ne zaman yola çıkıyorsun?">
+        <div className="grid gap-6 sm:grid-cols-2">
+          <TextInput
+            id="departureTime"
+            label="Kalkış saati"
+            type="time"
+            value={values.departureTime}
+            onChange={(value) => update("departureTime", value)}
+            error={errors.departureTime}
+          />
+          <TextInput
+            id="duration"
+            label="Tahmini yolculuk süresi (dakika)"
+            inputMode="numeric"
+            value={values.duration}
+            onChange={(value) => update("duration", value)}
+            error={errors.duration}
+            placeholder="Örn. 45"
+          />
+        </div>
+      </Section>
+
+      <Section step={3} title="Koltuk ve masraf">
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div>
+            <label htmlFor="seats" className="block text-sm font-bold text-ink">
+              Boş koltuk sayısı
+            </label>
+            <select
+              id="seats"
+              name="seats"
+              value={values.seats}
+              onChange={(event) => update("seats", event.target.value)}
+              className={`${baseInput} ${errors.seats ? "border-coral" : "border-line"}`}
+            >
+              {[1, 2, 3, 4, 5, 6].map((count) => (
+                <option key={count} value={count}>
+                  {count}
+                </option>
+              ))}
+            </select>
+            {errors.seats && (
+              <p role="alert" className="mt-2 text-sm font-medium text-coral-ink">
+                {errors.seats}
+              </p>
+            )}
+          </div>
+          <TextInput
+            id="cost"
+            label="Tahmini toplam yol masrafı (TL)"
+            inputMode="numeric"
+            value={values.cost}
+            onChange={(value) => update("cost", value)}
+            error={errors.cost}
+            placeholder="Örn. 600"
+            hint="Yakıt, otoyol gibi tahmini toplam masraf."
+          />
+        </div>
+
+        <div className="rounded-2xl bg-lilac p-4 text-sm">
+          <p className="font-bold text-ink">Tahmini kişi başı masraf</p>
+          <p className="mt-1 text-2xl font-extrabold tracking-tight text-violet">
+            {previewShare === null ? "—" : `${previewShare} TL`}
+          </p>
+          <p className="mt-1 text-muted">
+            Masraf, sürücü dahil herkese eşit bölünür. Bu yalnızca bir
+            tahmindir, ödeme alınmaz.
+          </p>
+        </div>
+      </Section>
 
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-violet px-6 py-3.5 text-base font-bold text-white transition-colors hover:bg-sky disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-full bg-violet px-6 py-3.5 text-base font-bold text-white shadow-soft transition-colors hover:bg-sky disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Kaydediliyor…" : "Yolculuğu oluştur"}
       </button>

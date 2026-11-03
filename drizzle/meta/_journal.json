@@ -78,6 +78,13 @@
       "when": 1793541483322,
       "tag": "0010_orange_quicksilver",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793743232315,
+      "tag": "0011_brave_proudstar",
+      "breakpoints": true
     }
   ]
 }

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import CalendarLink from "@/components/CalendarLink";
 import EventCover from "@/components/EventCover";
+import FavoriteButton from "@/components/FavoriteButton";
 import Icon, { categoryIcon, type IconName } from "@/components/Icons";
 import RideList from "@/components/RideList";
-import FavoriteButton from "@/components/FavoriteButton";
 import ShareButton from "@/components/ShareButton";
 import TicketVerificationCard from "@/components/TicketVerificationCard";
 import { pickEventImage } from "@/data/event-images";
@@ -13,13 +14,15 @@ import { getCurrentUser } from "@/lib/auth";
 import { safeBiletimgoUrl } from "@/lib/biletimgo/normalize";
 import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
-import { formatEventDate, formatEventTime } from "@/lib/format";
 import { isFavorite } from "@/lib/favorites";
+import { formatEventDate, formatEventTime } from "@/lib/format";
 import { getRidesForEvent } from "@/lib/ride-queries";
 import { calcSharePerPerson, remainingSeats } from "@/lib/ride-utils";
 import { isTicketVerified } from "@/lib/ticket-queries";
 
 export const dynamic = "force-dynamic";
+
+const TIME_ZONE = "Europe/Istanbul";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -43,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // Takvim günü farkı (Türkiye saatine göre). Bugün 0, yarın 1, geçmiş negatif.
 function daysUntil(iso: string): number {
   const toDay = (date: Date) =>
-    date.toLocaleDateString("en-CA", { timeZone: "Europe/Istanbul" });
+    date.toLocaleDateString("en-CA", { timeZone: TIME_ZONE });
   const toUtc = (day: string) => {
     const [year, month, date] = day.split("-").map(Number);
     return Date.UTC(year, month - 1, date);
@@ -66,6 +69,24 @@ function countdownLabel(days: number): string {
   }
   return `${days} gün sonra`;
 }
+
+function dateParts(iso: string) {
+  const date = new Date(iso);
+
+  return {
+    day: date.toLocaleDateString("tr-TR", { day: "numeric", timeZone: TIME_ZONE }),
+    month: date.toLocaleDateString("tr-TR", {
+      month: "long",
+      timeZone: TIME_ZONE,
+    }),
+    weekday: date.toLocaleDateString("tr-TR", {
+      weekday: "long",
+      timeZone: TIME_ZONE,
+    }),
+  };
+}
+
+const card = "rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-8";
 
 export default async function EventDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
@@ -112,6 +133,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
     },
   ];
 
+  const parts = dateParts(event.startsAt);
   const startDate = formatEventDate(event.startsAt);
   const endDate = event.endsAt ? formatEventDate(event.endsAt) : null;
   const dateValue =
@@ -148,14 +170,14 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
           aria-hidden="true"
           className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-black/10"
         />
-        <div className="relative mx-auto max-w-4xl px-6 pb-12 pt-8 sm:pb-16 sm:pt-12">
+        <div className="relative mx-auto max-w-4xl px-6 pb-10 pt-8 sm:pb-14 sm:pt-12">
           <Link
             href="/events"
             className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-bold backdrop-blur hover:bg-white/25"
           >
             &larr; Tüm etkinlikler
           </Link>
-          <div className="mt-16 sm:mt-24">
+          <div className="mt-14 sm:mt-24">
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-ink">
                 <span className={meta.accent}>
@@ -166,11 +188,11 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                 </span>
                 {meta.label}
               </span>
-              <span className="rounded-full bg-night/80 px-3 py-1.5 text-xs font-bold text-white">
+              <span className="-rotate-2 rounded-lg bg-sun px-3 py-1.5 text-xs font-bold text-[#412402]">
                 {isReal ? "biletimGO" : "Demo etkinlik"}
               </span>
             </div>
-            <h1 className="mt-4 text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl">
+            <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight sm:text-6xl">
               {event.title}
             </h1>
           </div>
@@ -192,47 +214,83 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
           )}
 
           {notListed && (
-            <div role="status" className="rounded-2xl bg-peach p-4 text-sm font-medium text-coral-ink">
-              Bu etkinlik artık biletimGO&apos;da listelenmiyor. Satış kapanmış, biletler tükenmiş ya da etkinlik sona ermiş olabilir. Mevcut yolculuklar aşağıda görünmeye devam eder.
+            <div
+              role="status"
+              className="rounded-2xl bg-peach p-4 text-sm font-medium text-coral-ink"
+            >
+              Bu etkinlik artık biletimGO&apos;da listelenmiyor. Satış
+              kapanmış, biletler tükenmiş ya da etkinlik sona ermiş olabilir.
+              Mevcut yolculuklar aşağıda görünmeye devam eder.
             </div>
           )}
 
           {ended && !notListed && (
-            <div role="status" className="rounded-2xl bg-lilac p-4 text-sm font-medium text-ink">
+            <div
+              role="status"
+              className="rounded-2xl bg-lilac p-4 text-sm font-medium text-ink"
+            >
               Bu etkinlik sona erdi.
             </div>
           )}
 
-          <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
-            <dl className="grid gap-6 sm:grid-cols-3">
-              {details.map((item) => (
-                <div key={item.label} className="flex items-start gap-3">
-                  <span
-                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${meta.soft} ${meta.accent}`}
-                  >
-                    <Icon name={item.icon} className="h-5 w-5" />
-                  </span>
-                  <div className="min-w-0">
-                    <dt className="text-xs font-bold uppercase tracking-wider text-muted">
-                      {item.label}
-                    </dt>
-                    <dd className="mt-0.5 break-words font-bold text-ink">
-                      {item.value}
-                    </dd>
+          <div className="relative overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5 sm:flex">
+            <div
+              className={`flex items-center gap-4 p-6 text-white sm:w-44 sm:shrink-0 sm:flex-col sm:justify-center sm:gap-1 sm:text-center ${meta.gradient}`}
+            >
+              <span className="text-5xl font-extrabold leading-none">
+                {parts.day}
+              </span>
+              <span className="text-lg font-bold">{parts.month}</span>
+              <span className="text-sm text-white/85">{parts.weekday}</span>
+            </div>
+
+            <div className="relative flex-1 border-t-2 border-dashed border-violet/25 p-6 sm:border-l-2 sm:border-t-0 sm:p-8">
+              <span
+                aria-hidden="true"
+                className="absolute -left-3 -top-3 h-6 w-6 rounded-full bg-surface"
+              />
+              <span
+                aria-hidden="true"
+                className="absolute -right-3 -top-3 h-6 w-6 rounded-full bg-surface sm:-bottom-3 sm:-left-3 sm:right-auto sm:top-auto"
+              />
+
+              <dl className="grid gap-5 sm:grid-cols-2">
+                {details.map((item) => (
+                  <div key={item.label} className="flex items-start gap-3">
+                    <span
+                      className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${meta.soft} ${meta.accent}`}
+                    >
+                      <Icon name={item.icon} className="h-5 w-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <dt className="text-xs font-bold uppercase tracking-wider text-muted">
+                        {item.label}
+                      </dt>
+                      <dd className="mt-0.5 break-words font-bold text-ink">
+                        {item.value}
+                      </dd>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </dl>
-            <p className="mt-8 whitespace-pre-line leading-relaxed text-muted">
-              {event.description}
-            </p>
-            <div className="mt-6">
-              <div className="flex flex-wrap items-center gap-3"><ShareButton title={event.title} /><FavoriteButton eventId={event.id} initial={favorite} loggedIn={Boolean(user)} /></div>
+                ))}
+              </dl>
+
+              <p className="mt-6 whitespace-pre-line leading-relaxed text-muted">
+                {event.description}
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <ShareButton title={event.title} />
+                <CalendarLink eventId={event.id} />
+                <FavoriteButton
+                  eventId={event.id}
+                  initial={favorite}
+                  loggedIn={Boolean(user)}
+                />
+              </div>
             </div>
           </div>
 
           {isReal && (
-            <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
+            <div className={card}>
               <h2 className="text-2xl font-extrabold tracking-tight">Bilet</h2>
               {event.priceText && (
                 <p className="mt-3 text-ink">
@@ -260,12 +318,15 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                 )}
               </div>
               <p className="mt-4 text-xs leading-relaxed text-muted">
-                Eventra bilet satmaz, satış biletimGO üzerinden yapılır. Bu bağlantı Eventra&apos;nın biletimGO iş ortaklığına ait takip bilgisi içerir. Etkinlik bilgileri biletimGO&apos;dan alınır, fiyat ve bilet durumu değişebilir.
+                Eventra bilet satmaz, satış biletimGO üzerinden yapılır. Bu
+                bağlantı Eventra&apos;nın biletimGO iş ortaklığına ait takip
+                bilgisi içerir. Etkinlik bilgileri biletimGO&apos;dan alınır,
+                fiyat ve bilet durumu değişebilir.
               </p>
             </div>
           )}
 
-          <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/5">
+          <div className={card}>
             <div className="flex flex-wrap items-center justify-between gap-4">
               <h2 className="text-2xl font-extrabold tracking-tight">
                 Ortak yolculuklar
@@ -276,7 +337,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                   className="inline-flex items-center gap-2 rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky"
                 >
                   <Icon name="car" className="h-4 w-4" />
-                  Yolculuk Oluştur
+                  Yolculuk oluştur
                 </Link>
               )}
             </div>
