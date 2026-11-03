@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useAuthUser } from "@/components/AuthProvider";
+import JoinCelebration from "@/components/JoinCelebration";
 import JoinRideButton from "@/components/JoinRideButton";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { scoreRides, type ScoredRide } from "@/lib/matching";
@@ -47,6 +48,46 @@ function scoreTone(score: number): string {
     return "bg-lilac text-violet";
   }
   return "bg-surface text-muted";
+}
+
+function SeatDots({ seats, taken }: { seats: number; taken: number }) {
+  return (
+    <span className="flex flex-wrap items-center gap-1.5" aria-hidden="true">
+      {Array.from({ length: seats }, (_, index) => (
+        <span
+          key={index}
+          className={`h-3.5 w-3.5 rounded-full ${
+            index < taken
+              ? "bg-violet"
+              : "border-2 border-dashed border-violet/40"
+          }`}
+        />
+      ))}
+    </span>
+  );
+}
+
+function TicketArt() {
+  return (
+    <svg viewBox="0 0 120 80" aria-hidden="true" className="mx-auto h-20 w-28">
+      <path
+        d="M14 14h92a6 6 0 0 1 6 6v10a8 8 0 0 0 0 16v14a6 6 0 0 1-6 6H14a6 6 0 0 1-6-6V46a8 8 0 0 0 0-16V20a6 6 0 0 1 6-6z"
+        fill="#efebff"
+        stroke="#c9bbff"
+        strokeWidth="2"
+      />
+      <path
+        d="M44 18v44"
+        stroke="#6c4dff"
+        strokeOpacity="0.35"
+        strokeWidth="2"
+        strokeDasharray="4 5"
+      />
+      <circle cx="26" cy="40" r="7" fill="#ff6b6b" />
+      <rect x="56" y="30" width="38" height="8" rx="4" fill="#6c4dff" fillOpacity="0.25" />
+      <rect x="56" y="44" width="26" height="8" rx="4" fill="#00d5a0" fillOpacity="0.45" />
+    </svg>
+  );
 }
 
 function RideAction({ ride }: { ride: RideItem }) {
@@ -97,7 +138,7 @@ function RideAction({ ride }: { ride: RideItem }) {
       <p className="text-sm text-muted">
         Yolculuğa katılmak için Yolcu rolünde olmalısın.{" "}
         <Link href="/panel" className="font-bold text-violet hover:underline">
-          Panele git &rarr;
+          Profile git &rarr;
         </Link>
       </p>
     );
@@ -130,14 +171,16 @@ function RideCard({
 
   return (
     <li
-      className={`rounded-2xl border bg-white p-5 sm:p-6 ${
-        best ? "border-violet ring-2 ring-violet/20" : "border-line"
+      className={`rounded-3xl bg-white p-5 shadow-sm sm:p-6 ${
+        best ? "ring-2 ring-violet/50" : "ring-1 ring-black/5"
       }`}
     >
+      <JoinCelebration joined={Boolean(ride.joined)} />
+
       {(best || showBadge) && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {best && (
-            <span className="rounded-full bg-violet px-3 py-1 text-xs font-bold text-white">
+            <span className="-rotate-2 rounded-full bg-violet px-3 py-1 text-xs font-bold text-white">
               En uygun
             </span>
           )}
@@ -169,7 +212,7 @@ function RideCard({
         </div>
       </div>
 
-      <dl className="mt-5 grid gap-4 rounded-xl bg-surface p-4 sm:grid-cols-3">
+      <dl className="mt-5 grid gap-4 rounded-2xl bg-surface p-4 sm:grid-cols-3">
         <div>
           <dt className="text-xs font-bold uppercase tracking-wider text-muted">
             Buluşma noktası
@@ -187,16 +230,19 @@ function RideCard({
         </div>
         <div>
           <dt className="text-xs font-bold uppercase tracking-wider text-muted">
-            Boş koltuk
+            Koltuklar
           </dt>
-          <dd className="mt-1 text-sm font-bold">
-            {left} / {ride.seats}
+          <dd className="mt-1.5 flex flex-wrap items-center gap-2 text-sm font-bold">
+            <SeatDots seats={ride.seats} taken={ride.seats - left} />
+            <span>
+              {left} / {ride.seats} boş
+            </span>
           </dd>
         </div>
       </dl>
 
       {showScore && (
-        <details className="mt-4 rounded-xl border border-line p-3 text-sm">
+        <details className="mt-4 rounded-2xl border border-line p-3 text-sm">
           <summary className="cursor-pointer font-bold text-ink">
             Neden bu puan?
           </summary>
@@ -241,9 +287,10 @@ function EmptyRides({ eventId }: { eventId: string }) {
   const user = useAuthUser();
 
   return (
-    <div className="mt-8 rounded-2xl bg-surface p-6 text-center sm:p-8">
-      <p className="text-lg font-extrabold text-ink">
-        Bu etkinlik için henüz yolculuk oluşturulmamış
+    <div className="mt-8 rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5 sm:p-8">
+      <TicketArt />
+      <p className="mt-3 text-lg font-extrabold text-ink">
+        Bu etkinlik için henüz yolculuk yok
       </p>
 
       {!user && (
@@ -266,8 +313,8 @@ function EmptyRides({ eventId }: { eventId: string }) {
       {user?.role === "driver" && (
         <>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted">
-            İlk yolculuğu sen oluştur, aynı etkinliğe gidenler seni burada
-            bulsun.
+            İlk adım senden gelsin: yolculuğu oluştur, aynı etkinliğe gidenler
+            seni burada bulsun.
           </p>
           <div className="mt-5 flex justify-center">
             <Link
@@ -284,11 +331,11 @@ function EmptyRides({ eventId }: { eventId: string }) {
         <>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted">
             Bir sürücü yolculuk açtığında burada görünecek. Sen de yolculuk
-            oluşturmak istersen panelinden Sürücü rolüne geçebilirsin.
+            oluşturmak istersen profilinden Sürücü rolüne geçebilirsin.
           </p>
           <div className="mt-5 flex justify-center">
             <Link href="/panel" className={secondaryLink}>
-              Panele git
+              Profile git
             </Link>
           </div>
         </>
@@ -362,7 +409,7 @@ export default function RideList({
 
   return (
     <div className="mt-8">
-      <div className="rounded-2xl bg-lilac/60 p-4 sm:p-5">
+      <div className="rounded-3xl bg-lilac/60 p-4 sm:p-5">
         <p className="text-sm font-extrabold">Sana uygun yolculuğu bul</p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
           <div>
@@ -461,7 +508,7 @@ export default function RideList({
       </p>
 
       {visibleRides.length === 0 ? (
-        <div className="mt-4 rounded-2xl bg-surface p-6 text-center">
+        <div className="mt-4 rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-black/5">
           <p className="font-bold text-ink">Sonuç bulunamadı</p>
           <p className="mt-1 text-sm text-muted">
             Aramayı veya koltuk filtresini değiştirmeyi dene.

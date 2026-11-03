@@ -62,8 +62,13 @@ export default async function NotificationsPage() {
   const unread = items.filter((item) => !item.read).length;
 
   return (
-    <main className="px-6 py-10 sm:py-20">
-      <div className="mx-auto max-w-3xl">
+    <main className="relative overflow-hidden px-6 py-10 sm:py-20">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-16 -top-10 h-60 w-60 rounded-full bg-violet/15 blur-3xl"
+      />
+
+      <div className="relative mx-auto max-w-3xl">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
@@ -72,7 +77,7 @@ export default async function NotificationsPage() {
             <p className="mt-3 text-lg text-muted">
               {unread > 0
                 ? `${unread} okunmamış bildirimin var.`
-                : "Tüm bildirimlerin okundu."}
+                : "Her şey okundu, harika."}
             </p>
           </div>
 
@@ -80,7 +85,7 @@ export default async function NotificationsPage() {
             <form action={markAllReadAction}>
               <button
                 type="submit"
-                className="rounded-full border border-line px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-lilac"
+                className="rounded-full border border-line bg-white px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-lilac"
               >
                 Tümünü okundu işaretle
               </button>
@@ -90,8 +95,11 @@ export default async function NotificationsPage() {
 
         {items.length === 0 ? (
           <div className="mt-10 rounded-3xl bg-white p-10 text-center shadow-sm ring-1 ring-black/5">
-            <p className="text-lg font-extrabold text-ink">
-              Henüz bildirimin yok
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-lilac text-violet">
+              <Icon name="bell" className="h-8 w-8" />
+            </span>
+            <p className="mt-5 text-lg font-extrabold text-ink">
+              Şimdilik sessiz
             </p>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted">
               Yolculuğuna biri katıldığında ya da ayrıldığında, katıldığın bir
@@ -115,10 +123,10 @@ export default async function NotificationsPage() {
                     <input type="hidden" name="id" value={item.id} />
                     <button
                       type="submit"
-                      className={`flex w-full items-start gap-4 rounded-2xl border p-4 text-left transition-colors hover:bg-lilac sm:p-5 ${
+                      className={`flex w-full items-start gap-4 rounded-3xl p-4 text-left transition-colors hover:bg-lilac sm:p-5 ${
                         item.read
-                          ? "border-line bg-white"
-                          : "border-violet/30 bg-lilac/60"
+                          ? "bg-white ring-1 ring-black/5"
+                          : "bg-white shadow-sm ring-2 ring-violet/30"
                       }`}
                     >
                       <span
@@ -159,8 +167,11 @@ export default async function NotificationsPage() {
         )}
 
         <p className="mt-8 text-xs text-muted">
-          En son 30 bildirim gösterilir. Bildirimler burada saklanır.
-          Telefona bildirim almak için panelinden bildirimleri açabilirsin.
+          En son 30 bildirim gösterilir. Telefona bildirim almak için{" "}
+          <Link href="/panel/ayarlar" className="font-bold text-violet hover:underline">
+            profilindeki Ayarlar
+          </Link>{" "}
+          sayfasından bildirimleri açabilirsin.
         </p>
       </div>
     </main>
