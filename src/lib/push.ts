@@ -2,6 +2,7 @@ import { and, eq, gt, inArray, sql } from "drizzle-orm";
 import * as webpush from "web-push";
 import { db } from "../db";
 import {
+  notificationPreferences,
   notifications,
   pushDeliveries,
   pushSubscriptions,
@@ -84,6 +85,7 @@ async function deliver(
 }
 
 // Henüz push için alınmamış, yeni ve aboneliği olan kullanıcılara ait bildirimleri gönderir.
+// Kullanıcının tercihlerinde kapattığı bildirim türleri gönderilmez (uygulama içinde yine görünür).
 // Hata fırlatmaz: gönderim başarısız olsa bile ana işlem etkilenmez.
 export async function sendPendingPush(
   sender?: PushSender,
@@ -115,6 +117,7 @@ export async function sendPendingPush(
             : undefined,
           sql`exists (select 1 from ${pushSubscriptions} where ${pushSubscriptions.userId} = ${notifications.userId})`,
           sql`not exists (select 1 from ${pushDeliveries} where ${pushDeliveries.notificationId} = ${notifications.id})`,
+          sql`not exists (select 1 from ${notificationPreferences} where ${notificationPreferences.userId} = ${notifications.userId} and ${notifications.type}::text = any(${notificationPreferences.mutedPushTypes}))`,
         ),
       )
       .limit(MAX_BATCH);

@@ -92,6 +92,13 @@
       "when": 1793745021525,
       "tag": "0012_real_spencer_smythe",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793745866409,
+      "tag": "0013_graceful_scalphunter",
+      "breakpoints": true
     }
   ]
 }

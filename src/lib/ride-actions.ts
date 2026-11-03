@@ -8,12 +8,13 @@ import { rides } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
+import { sendPendingPush } from "@/lib/push";
+import { takeRateSlot } from "@/lib/rate-limit";
 import {
   MAX_RIDES_PER_DAY,
   MAX_RIDES_PER_HOUR,
   countRecentRides,
 } from "@/lib/ride-edit";
-import { sendPendingPush } from "@/lib/push";
 import { joinRide, type JoinOutcome } from "@/lib/ride-join";
 import { deleteRide, leaveRide } from "@/lib/ride-manage";
 
@@ -35,6 +36,9 @@ const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 const WHOLE_NUMBER = /^\d+$/;
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Bir kullanıcının saatte en fazla kaç yolculuğa katılma denemesi yapabileceği.
+const MAX_JOIN_ATTEMPTS_PER_HOUR = 20;
 
 function readText(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
@@ -72,7 +76,7 @@ export async function createRideAction(
   if (user.role !== "driver") {
     return {
       message:
-        "Yolculuk oluşturmak için panelinden Sürücü rolüne geçmelisin.",
+        "Yolculuk oluşturmak için profilinden Sürücü rolüne geçmelisin.",
     };
   }
 
@@ -205,7 +209,7 @@ export async function joinRideAction(
   if (user.role !== "passenger") {
     return {
       message:
-        "Yolculuğa katılmak için panelinden Yolcu rolüne geçmelisin.",
+        "Yolculuğa katılmak için profilinden Yolcu rolüne geçmelisin.",
     };
   }
 
@@ -213,6 +217,22 @@ export async function joinRideAction(
 
   if (!UUID_PATTERN.test(rideId)) {
     return { message: "Yolculuk bulunamadı." };
+  }
+
+  // Katıl-ayrıl döngüsüyle sürücüye art arda bildirim gitmesini önleyen sıklık sınırı.
+  // Ayrılma işlemi bilerek sınırlanmaz: kimse bir yolculuktan çıkmaktan alıkonulmamalı.
+  const allowed = await takeRateSlot(
+    user.id,
+    "ride_join",
+    MAX_JOIN_ATTEMPTS_PER_HOUR,
+    3_600_000,
+  );
+
+  if (!allowed) {
+    return {
+      message:
+        "Kısa sürede çok fazla katılma denemesi yaptın. Biraz sonra tekrar dene.",
+    };
   }
 
   let outcome: JoinOutcome;
@@ -238,7 +258,7 @@ export async function joinRideAction(
     case "other_ride":
       return {
         message:
-          "Bu etkinlik için başka bir yolculuğa zaten katıldın. Önce panelinden ondan ayrılmalısın.",
+          "Bu etkinlik için başka bir yolculuğa zaten katıldın. Önce profilinden ondan ayrılmalısın.",
       };
     case "own_ride":
       return {

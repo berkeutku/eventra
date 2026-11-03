@@ -368,3 +368,40 @@ export const userReports = pgTable(
     check("user_reports_not_self_check", sql`${table.reporterId} <> ${table.reportedId}`),
   ],
 );
+
+// Bildirim tercihleri: hangi bildirim türlerinin telefona GÖNDERİLMEYECEĞİ. Uygulama içi bildirimler her zaman kaydedilir.
+export const notificationPreferences = pgTable("notification_preferences", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  mutedPushTypes: text("muted_push_types")
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// Sıklık sınırları için kısa ömürlü işlem günlüğü (örn. yolculuğa katılma denemeleri).
+export const actionLog = pgTable(
+  "action_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("action_log_user_kind_time_idx").on(
+      table.userId,
+      table.kind,
+      table.createdAt,
+    ),
+    index("action_log_created_idx").on(table.createdAt),
+  ],
+);

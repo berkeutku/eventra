@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import DeleteAccountCard from "@/components/DeleteAccountCard";
+import NotificationPrefs from "@/components/NotificationPrefs";
 import PanelGate from "@/components/PanelGate";
 import PanelShell from "@/components/PanelShell";
 import PushToggle from "@/components/PushToggle";
-import { getCurrentUser } from "@/lib/auth";
+import SecurityCard from "@/components/SecurityCard";
+import { countActiveSessions, getCurrentUser } from "@/lib/auth";
+import { getMutedTypes } from "@/lib/notification-prefs";
 import { roleLabels } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +19,11 @@ export default async function SettingsPage() {
   if (!user) {
     return <PanelGate next="/panel/ayarlar" />;
   }
+
+  const [muted, sessionCount] = await Promise.all([
+    getMutedTypes(user.id),
+    countActiveSessions(user.id),
+  ]);
 
   return (
     <PanelShell title="Ayarlar">
@@ -48,9 +56,14 @@ export default async function SettingsPage() {
         </section>
 
         <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-8">
-          <h2 className="text-xl font-extrabold tracking-tight">Bildirim ayarları</h2>
+          <h2 className="text-xl font-extrabold tracking-tight">
+            Bildirim ayarları
+          </h2>
           <PushToggle />
+          <NotificationPrefs muted={muted} />
         </section>
+
+        <SecurityCard sessionCount={sessionCount} />
 
         <DeleteAccountCard />
       </div>

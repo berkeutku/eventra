@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, gt, lt } from "drizzle-orm";
+import { and, eq, gt, lt, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { sessions, users } from "@/db/schema";
 
@@ -86,4 +86,33 @@ export async function destroySession(): Promise<void> {
   }
 
   cookieStore.delete(SESSION_COOKIE);
+}
+
+// Kullanıcının süresi dolmamış açık oturum sayısı (bu cihaz dahil).
+export async function countActiveSessions(userId: string): Promise<number> {
+  const [row] = await db
+    .select({ total: sql<number>`count(*)::int` })
+    .from(sessions)
+    .where(and(eq(sessions.userId, userId), gt(sessions.expiresAt, new Date())));
+
+  return row.total;
+}
+
+// Bu cihazdaki oturum hariç kullanıcının tüm oturumlarını kapatır. Kapatılan sayıyı döner.
+export async function destroyOtherSessions(userId: string): Promise<number> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+
+  if (!token) {
+    return 0;
+  }
+
+  const removed = await db
+    .delete(sessions)
+    .where(
+      and(eq(sessions.userId, userId), ne(sessions.id, hashToken(token))),
+    )
+    .returning({ id: sessions.id });
+
+  return removed.length;
 }
