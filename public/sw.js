@@ -2,7 +2,7 @@
 // Çevrimdışı yedek sayfasını, ikonları ve değişmez statik dosyaları önbelleğe alır.
 // Giriş yapmış kullanıcıya ait sayfalar ve veritabanı verileri ASLA önbelleğe alınmaz.
 // Ayrıca sunucudan gelen push bildirimlerini gösterir.
-const CACHE_NAME = "eventra-offline-v2";
+const CACHE_NAME = "eventra-offline-v3";
 const OFFLINE_URL = "/offline";
 const STATIC_PREFIX = "/_next/static/";
 const ICONS = ["/icons/icon-192.png", "/icons/icon-512.png"];

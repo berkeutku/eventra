@@ -8,6 +8,11 @@ import { rides } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
+import {
+  MAX_RIDES_PER_DAY,
+  MAX_RIDES_PER_HOUR,
+  countRecentRides,
+} from "@/lib/ride-edit";
 import { sendPendingPush } from "@/lib/push";
 import { joinRide, type JoinOutcome } from "@/lib/ride-join";
 import { deleteRide, leaveRide } from "@/lib/ride-manage";
@@ -75,6 +80,15 @@ export async function createRideAction(
 
   if (!event) {
     return { message: "Etkinlik bulunamadı." };
+  }
+
+  const recent = await countRecentRides(user.id);
+
+  if (recent.hour >= MAX_RIDES_PER_HOUR || recent.day >= MAX_RIDES_PER_DAY) {
+    return {
+      message:
+        "Kısa sürede çok fazla yolculuk oluşturdun. Biraz sonra tekrar dene.",
+    };
   }
 
   const blocked = rideCreationBlockReason(event);

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Icon, { type IconName } from "@/components/Icons";
 import { getCurrentUser } from "@/lib/auth";
-import { listNotifications, type NotificationType } from "@/lib/notifications";
+import { listNotifications } from "@/lib/notifications";
 import {
   markAllReadAction,
   openNotificationAction,
@@ -16,11 +16,16 @@ export const metadata: Metadata = {
   description: "Yolculuklarınla ilgili bildirimler.",
 };
 
-const typeMeta: Record<NotificationType, { icon: IconName; tint: string }> = {
+type Meta = { icon: IconName; tint: string };
+
+const typeMeta: Record<string, Meta> = {
   ride_joined: { icon: "users", tint: "bg-sea text-mint-ink" },
   ride_left: { icon: "user", tint: "bg-lilac text-violet" },
   ride_cancelled: { icon: "car", tint: "bg-peach text-coral-ink" },
+  ride_updated: { icon: "clock", tint: "bg-lilac text-violet" },
 };
+
+const defaultMeta: Meta = { icon: "users", tint: "bg-lilac text-violet" };
 
 function relativeTime(iso: string): string {
   const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
@@ -103,7 +108,8 @@ export default async function NotificationsPage() {
             </p>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted">
               Yolculuğuna biri katıldığında ya da ayrıldığında, katıldığın bir
-              yolculuk iptal edildiğinde burada göreceksin.
+              yolculuk güncellendiğinde ya da iptal edildiğinde burada
+              göreceksin.
             </p>
             <Link
               href="/events"
@@ -115,7 +121,7 @@ export default async function NotificationsPage() {
         ) : (
           <ul className="mt-8 space-y-3">
             {items.map((item) => {
-              const meta = typeMeta[item.type];
+              const meta = typeMeta[item.type] ?? defaultMeta;
 
               return (
                 <li key={item.id}>
@@ -168,7 +174,10 @@ export default async function NotificationsPage() {
 
         <p className="mt-8 text-xs text-muted">
           En son 30 bildirim gösterilir. Telefona bildirim almak için{" "}
-          <Link href="/panel/ayarlar" className="font-bold text-violet hover:underline">
+          <Link
+            href="/panel/ayarlar"
+            className="font-bold text-violet hover:underline"
+          >
             profilindeki Ayarlar
           </Link>{" "}
           sayfasından bildirimleri açabilirsin.

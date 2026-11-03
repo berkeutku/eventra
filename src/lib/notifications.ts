@@ -5,7 +5,8 @@ import { notifications } from "../db/schema";
 // Bu dosya hem uygulamadan hem test betiğinden çağrıldığı için göreli
 // (../db) import yollarını kullanıyor.
 
-export type NotificationType = "ride_joined" | "ride_left" | "ride_cancelled";
+export type NotificationType = "ride_joined" | "ride_left" | "ride_cancelled"
+  | "ride_updated";
 
 export type NotificationItem = {
   id: string;
