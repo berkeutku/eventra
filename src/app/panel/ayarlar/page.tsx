@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ChangePasswordCard from "@/components/ChangePasswordCard";
 import DeleteAccountCard from "@/components/DeleteAccountCard";
 import NotificationPrefs from "@/components/NotificationPrefs";
 import PanelGate from "@/components/PanelGate";
@@ -62,6 +63,8 @@ export default async function SettingsPage() {
           <PushToggle />
           <NotificationPrefs muted={muted} />
         </section>
+
+        <ChangePasswordCard />
 
         <SecurityCard sessionCount={sessionCount} />
 
