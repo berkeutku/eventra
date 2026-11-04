@@ -6,12 +6,15 @@ import { after } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
+import { parseRideGeoInput, toMicro, type Pt } from "@/lib/geo-rules";
+import { getRoute } from "@/lib/geo-service";
 import { sendPendingPush } from "@/lib/push";
 import {
   parseRideFields,
   updateRide,
   type RideFieldKey,
 } from "@/lib/ride-edit";
+import { getRideGeo, saveRideGeo } from "@/lib/ride-geo";
 import { getRideDetail } from "@/lib/ride-queries";
 
 export type EditRideState = {
@@ -24,6 +27,10 @@ const UUID_PATTERN =
 
 function read(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
+}
+
+function samePoint(a: Pt, b: Pt): boolean {
+  return toMicro(a.lat) === toMicro(b.lat) && toMicro(a.lng) === toMicro(b.lng);
 }
 
 export async function updateRideAction(
@@ -74,6 +81,35 @@ export async function updateRideAction(
     return { errors: parsed.errors };
   }
 
+  // Harita noktaları isteğe bağlıdır. Form hiç harita alanı göndermediyse mevcut harita bilgisi korunur.
+  const geoInput = parseRideGeoInput((key) => read(formData, key));
+
+  if (geoInput.status === "invalid") {
+    return {
+      message:
+        "Harita noktaları geçersiz. Noktaları yeniden seç ya da haritayı kullanma.",
+    };
+  }
+
+  let geoChanged = false;
+
+  if (geoInput.status === "ok") {
+    try {
+      const existing = await getRideGeo(rideId);
+      geoChanged =
+        !existing ||
+        !samePoint(existing.origin, geoInput.origin) ||
+        !samePoint(existing.meeting, geoInput.meeting) ||
+        !samePoint(existing.dest, geoInput.dest);
+    } catch (error) {
+      console.error(
+        "Harita bilgisi okunamadı:",
+        error instanceof Error ? error.message : "bilinmeyen hata",
+      );
+      geoChanged = true;
+    }
+  }
+
   let status: Awaited<ReturnType<typeof updateRide>>;
 
   try {
@@ -81,6 +117,7 @@ export async function updateRideAction(
       userId: user.id,
       rideId,
       fields: parsed.value,
+      geoChanged,
     });
   } catch (error) {
     console.error("Yolculuk güncellenemedi:", error);
@@ -91,6 +128,30 @@ export async function updateRideAction(
 
   switch (status) {
     case "updated":
+      if (geoInput.status === "ok" && geoChanged) {
+        try {
+          const routed = await getRoute([
+            geoInput.origin,
+            geoInput.meeting,
+            geoInput.dest,
+          ]);
+          await saveRideGeo(
+            rideId,
+            {
+              origin: geoInput.origin,
+              meeting: geoInput.meeting,
+              dest: geoInput.dest,
+            },
+            routed.status === "ok" ? routed.route : null,
+          );
+        } catch (error) {
+          console.error(
+            "Harita bilgisi kaydedilemedi:",
+            error instanceof Error ? error.message : "bilinmeyen hata",
+          );
+        }
+      }
+
       revalidatePath("/", "layout");
       after(() => sendPendingPush());
       redirect(`/events/${detail.eventId}/yolculuk/${rideId}`);

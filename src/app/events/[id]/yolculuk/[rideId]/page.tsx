@@ -303,7 +303,7 @@ export default async function RideDetailPage({ params }: Props) {
             </div>
           </div>
 
-          <RideRouteCard rideId={ride.id} origin={ride.origin} meetingPoint={ride.meetingPoint} destination={ride.destination} durationMinutes={ride.durationMinutes} />
+          <RideRouteCard rideId={ride.id} origin={ride.origin} meetingPoint={ride.meetingPoint} destination={ride.destination} durationMinutes={ride.durationMinutes} passengerCount={ride.passengerCount} />
 
           <div className={card}>
             <h2 className="text-2xl font-extrabold tracking-tight">

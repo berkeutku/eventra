@@ -2,6 +2,7 @@ import LazyMap from "@/components/LazyMap";
 import RouteSummary from "@/components/RouteSummary";
 import { distanceKm } from "@/lib/geo-rules";
 import { getRideGeo } from "@/lib/ride-geo";
+import { CO2_GRAMS_PER_KM, co2SavedKg } from "@/lib/trip-estimates";
 
 type Props = {
   rideId: string;
@@ -9,6 +10,7 @@ type Props = {
   meetingPoint: string;
   destination: string;
   durationMinutes: number;
+  passengerCount: number;
 };
 
 // Koordinatlı yolculuklarda gerçek harita, diğerlerinde eski şematik gösterim.
@@ -63,6 +65,14 @@ export default async function RideRouteCard(props: Props) {
     distanceKm(geo.origin, geo.meeting) + distanceKm(geo.meeting, geo.dest),
   );
 
+  const co2 = co2SavedKg({
+    passengers: props.passengerCount,
+    routeMeters: geo.distanceMeters,
+    origin: geo.origin,
+    meeting: geo.meeting,
+    dest: geo.dest,
+  });
+
   return (
     <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-8">
       <h2 className="text-2xl font-extrabold tracking-tight">Harita ve rota</h2>
@@ -99,6 +109,27 @@ export default async function RideRouteCard(props: Props) {
           {props.destination} (haritada yaklaşık)
         </li>
       </ul>
+
+      {geo.distanceMeters ? (
+        <div className="mt-5 rounded-2xl bg-sea p-4">
+          {co2 !== null ? (
+            <p className="text-sm font-bold text-mint-ink">
+              Bu yolculukla yaklaşık {co2.toLocaleString("tr-TR")} kg CO₂
+              salımı önleniyor (tahmini).
+            </p>
+          ) : (
+            <p className="text-sm font-bold text-mint-ink">
+              Yolcular katıldıkça tahmini CO₂ tasarrufu burada görünür.
+            </p>
+          )}
+          <p className="mt-1 text-xs text-muted">
+            Hesap: her yolcunun aynı yolu tek başına arabayla gideceği
+            varsayılır (buluşmadan varışa kadar olan kısım), araç başına
+            yaklaşık {CO2_GRAMS_PER_KM} g CO₂/km. Toplu taşıma kullanacak
+            olsaydı gerçek tasarruf daha az olur.
+          </p>
+        </div>
+      ) : null}
 
       <p className="mt-3 text-xs text-muted">
         Başlangıç ve varış noktaları yaklaşık 1 km hassasiyetle gösterilir.

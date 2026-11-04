@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { startTransition, useActionState, useState } from "react";
+import CostHelper from "@/components/CostHelper";
+import RoutePicker from "@/components/RoutePicker";
+import type { Pt } from "@/lib/geo-rules";
 import { updateRideAction, type EditRideState } from "@/lib/ride-edit-actions";
 import { calcSharePerPerson } from "@/lib/ride-utils";
 
@@ -13,6 +16,15 @@ export type EditValues = {
   duration: string;
   seats: string;
   cost: string;
+};
+
+export type EditGeo = {
+  origin: Pt;
+  meeting: Pt;
+  dest: Pt;
+  distanceMeters: number | null;
+  durationSeconds: number | null;
+  path: [number, number][] | null;
 };
 
 type FieldKey = keyof EditValues;
@@ -75,11 +87,13 @@ export default function RideEditForm({
   rideId,
   eventId,
   initial,
+  initialGeo,
   passengerCount,
 }: {
   rideId: string;
   eventId: string;
   initial: EditValues;
+  initialGeo: EditGeo | null;
   passengerCount: number;
 }) {
   const [state, formAction, pending] = useActionState(
@@ -87,6 +101,9 @@ export default function RideEditForm({
     {} as EditRideState,
   );
   const [values, setValues] = useState<EditValues>(initial);
+  const [distance, setDistance] = useState<number | null>(
+    initialGeo?.distanceMeters ?? null,
+  );
   const errors = state.errors ?? {};
   const minSeats = Math.max(1, passengerCount);
 
@@ -111,6 +128,26 @@ export default function RideEditForm({
       ? calcSharePerPerson(costNumber, Number(values.seats))
       : null;
 
+  const pickerInitial = initialGeo
+    ? {
+        points: {
+          origin: initialGeo.origin,
+          meeting: initialGeo.meeting,
+          dest: initialGeo.dest,
+        },
+        route:
+          initialGeo.path &&
+          initialGeo.distanceMeters !== null &&
+          initialGeo.durationSeconds !== null
+            ? {
+                distanceMeters: initialGeo.distanceMeters,
+                durationSeconds: initialGeo.durationSeconds,
+                path: initialGeo.path,
+              }
+            : null,
+      }
+    : undefined;
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -121,8 +158,9 @@ export default function RideEditForm({
 
       {passengerCount > 0 && (
         <p className="rounded-2xl bg-lilac p-4 text-sm text-ink">
-          Bu yolculuğa {passengerCount} yolcu katılmış. Güzergâh, saat ya da
-          masrafı değiştirirsen yolcular bildirimle haberdar edilir.
+          Bu yolculuğa {passengerCount} yolcu katılmış. Güzergâh, harita
+          noktaları, saat ya da masrafı değiştirirsen yolcular bildirimle
+          haberdar edilir.
         </p>
       )}
 
@@ -158,6 +196,12 @@ export default function RideEditForm({
         value={values.meetingPoint}
         onChange={(value) => update("meetingPoint", value)}
         error={errors.meetingPoint}
+      />
+
+      <RoutePicker
+        initial={pickerInitial}
+        onDuration={(minutes) => update("duration", String(minutes))}
+        onRoute={(route) => setDistance(route ? route.distanceMeters : null)}
       />
 
       <div className="grid gap-6 sm:grid-cols-2">
@@ -214,6 +258,11 @@ export default function RideEditForm({
           error={errors.cost}
         />
       </div>
+
+      <CostHelper
+        distanceMeters={distance}
+        onApply={(cost) => update("cost", String(cost))}
+      />
 
       <div className="rounded-2xl bg-lilac p-4 text-sm">
         <p className="font-bold text-ink">Tahmini kişi başı masraf</p>

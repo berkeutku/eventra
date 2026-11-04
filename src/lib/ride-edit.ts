@@ -136,12 +136,14 @@ export type UpdateStatus =
   | "not_owner"
   | "too_few_seats";
 
-// Yalnızca yolculuğun sürücüsü düzenleyebilir. Güzergâh, saat ya da masraf değişirse
-// yolculuktaki yolculara bildirim gider (aynı yolculuk için dakikada en fazla bir).
+// Yalnızca yolculuğun sürücüsü düzenleyebilir. Güzergâh, saat, masraf ya da harita noktaları
+// değişirse yolculuktaki yolculara bildirim gider (aynı yolculuk için dakikada en fazla bir).
+// geoChanged: harita noktaları değiştiyse çağıran taraf true verir (harita bilgisi ayrı tabloda tutulur).
 export async function updateRide(input: {
   userId: string;
   rideId: string;
   fields: RideFields;
+  geoChanged?: boolean;
   now?: Date;
 }): Promise<UpdateStatus> {
   if (!UUID_PATTERN.test(input.rideId)) {
@@ -150,6 +152,7 @@ export async function updateRide(input: {
 
   const now = input.now ?? new Date();
   const f = input.fields;
+  const geoChanged = input.geoChanged === true;
 
   return db.transaction(async (tx) => {
     const [ride] = await tx
@@ -190,25 +193,27 @@ export async function updateRide(input: {
       (key) => before[key] !== f[key],
     );
 
-    if (changed.length === 0) {
+    if (changed.length === 0 && !geoChanged) {
       return "unchanged";
     }
 
-    await tx
-      .update(rides)
-      .set({
-        origin: f.origin,
-        destination: f.destination,
-        meetingPoint: f.meetingPoint,
-        departureTime: f.departureTime,
-        durationMinutes: f.durationMinutes,
-        seats: f.seats,
-        totalCost: f.totalCost,
-      })
-      .where(eq(rides.id, ride.id));
+    if (changed.length > 0) {
+      await tx
+        .update(rides)
+        .set({
+          origin: f.origin,
+          destination: f.destination,
+          meetingPoint: f.meetingPoint,
+          departureTime: f.departureTime,
+          durationMinutes: f.durationMinutes,
+          seats: f.seats,
+          totalCost: f.totalCost,
+        })
+        .where(eq(rides.id, ride.id));
+    }
 
     // Yalnızca koltuk sayısı değiştiyse yolculara bildirim gitmez.
-    const important = changed.some((key) => key !== "seats");
+    const important = geoChanged || changed.some((key) => key !== "seats");
 
     if (important && passengers.length > 0) {
       const minute = Math.floor(now.getTime() / 60_000);

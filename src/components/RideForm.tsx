@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useAuthUser } from "@/components/AuthProvider";
+import CostHelper from "@/components/CostHelper";
 import MeetingPointSuggestions from "@/components/MeetingPointSuggestions";
 import RideTemplatePicker from "@/components/RideTemplatePicker";
 import RoutePicker from "@/components/RoutePicker";
@@ -147,6 +148,7 @@ export default function RideForm({ eventId }: Props) {
     initialState,
   );
   const [values, setValues] = useState<FormValues>(emptyForm);
+  const [distance, setDistance] = useState<number | null>(null);
 
   const errors = state.errors ?? {};
 
@@ -278,6 +280,7 @@ export default function RideForm({ eventId }: Props) {
 
         <RoutePicker
           onDuration={(minutes) => update("duration", String(minutes))}
+          onRoute={(route) => setDistance(route ? route.distanceMeters : null)}
         />
       </Section>
 
@@ -339,6 +342,11 @@ export default function RideForm({ eventId }: Props) {
             hint="Yakıt, otoyol gibi tahmini toplam masraf."
           />
         </div>
+
+        <CostHelper
+          distanceMeters={distance}
+          onApply={(cost) => update("cost", String(cost))}
+        />
 
         <div className="rounded-2xl bg-lilac p-4 text-sm">
           <p className="font-bold text-ink">Tahmini kişi başı masraf</p>

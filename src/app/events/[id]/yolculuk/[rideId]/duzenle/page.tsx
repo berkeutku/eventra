@@ -5,6 +5,7 @@ import RideEditForm from "@/components/RideEditForm";
 import { getCurrentUser } from "@/lib/auth";
 import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
+import { getRideGeo } from "@/lib/ride-geo";
 import { getRideDetail } from "@/lib/ride-queries";
 
 export const dynamic = "force-dynamic";
@@ -61,6 +62,17 @@ export default async function EditRidePage({ params }: Props) {
     notFound();
   }
 
+  let geo: Awaited<ReturnType<typeof getRideGeo>> = null;
+
+  try {
+    geo = await getRideGeo(ride.id);
+  } catch (error) {
+    console.error(
+      "Harita bilgisi okunamadı:",
+      error instanceof Error ? error.message : "bilinmeyen hata",
+    );
+  }
+
   const backHref = `/events/${event.id}/yolculuk/${ride.id}`;
   const blocked = rideCreationBlockReason(event);
 
@@ -96,6 +108,7 @@ export default async function EditRidePage({ params }: Props) {
               rideId={ride.id}
               eventId={event.id}
               passengerCount={ride.passengerCount}
+              initialGeo={geo}
               initial={{
                 origin: ride.origin,
                 destination: ride.destination,

@@ -19,19 +19,33 @@ type RouteState = {
   path: [number, number][];
 } | null;
 
+export type RoutePickerInitial = {
+  points: Record<Slot, Pt>;
+  route: RouteState;
+};
+
 const inputClass =
   "mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-base text-ink placeholder:text-muted/60";
 
 // Yolculuk formunun içinde kullanılır: nokta seçildikçe gizli alanlar forma eklenir.
+// initial verilirse (düzenleme ekranı) harita açık ve kayıtlı noktalarla başlar.
 export default function RoutePicker({
   onDuration,
+  onRoute,
+  initial,
 }: {
   onDuration: (minutes: number) => void;
+  onRoute?: (
+    route: { distanceMeters: number; durationSeconds: number } | null,
+  ) => void;
+  initial?: RoutePickerInitial;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(Boolean(initial));
   const [active, setActive] = useState<Slot>("origin");
-  const [points, setPoints] = useState<Partial<Record<Slot, Pt>>>({});
-  const [route, setRoute] = useState<RouteState>(null);
+  const [points, setPoints] = useState<Partial<Record<Slot, Pt>>>(
+    initial ? { ...initial.points } : {},
+  );
+  const [route, setRoute] = useState<RouteState>(initial?.route ?? null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Place[]>([]);
   const [note, setNote] = useState<string | null>(null);
@@ -45,6 +59,7 @@ export default function RoutePicker({
 
     setPoints((current) => ({ ...current, [slot]: snapped }));
     setRoute(null);
+    onRoute?.(null);
     setNote(null);
 
     if (nextSlot) {
@@ -55,6 +70,7 @@ export default function RoutePicker({
   function clearAll() {
     setPoints({});
     setRoute(null);
+    onRoute?.(null);
     setResults([]);
     setNote(null);
     setActive("origin");
@@ -139,6 +155,10 @@ export default function RoutePicker({
       };
 
       setRoute(data);
+      onRoute?.({
+        distanceMeters: data.distanceMeters,
+        durationSeconds: data.durationSeconds,
+      });
       onDuration(
         Math.min(600, Math.max(5, Math.round(data.durationSeconds / 60))),
       );
