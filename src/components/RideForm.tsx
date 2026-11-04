@@ -10,6 +10,7 @@ import {
 import { useAuthUser } from "@/components/AuthProvider";
 import MeetingPointSuggestions from "@/components/MeetingPointSuggestions";
 import RideTemplatePicker from "@/components/RideTemplatePicker";
+import RoutePicker from "@/components/RoutePicker";
 import {
   createRideAction,
   type CreateRideField,
@@ -274,6 +275,10 @@ export default function RideForm({ eventId }: Props) {
             onSelect={(name) => update("meetingPoint", name)}
           />
         )}
+
+        <RoutePicker
+          onDuration={(minutes) => update("duration", String(minutes))}
+        />
       </Section>
 
       <Section step={2} title="Ne zaman yola çıkıyorsun?">

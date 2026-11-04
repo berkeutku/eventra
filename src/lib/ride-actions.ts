@@ -9,6 +9,8 @@ import { events, rides } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
+import { parseRideGeoInput } from "@/lib/geo-rules";
+import { getRoute } from "@/lib/geo-service";
 import { sendPendingPush } from "@/lib/push";
 import { takeRateSlot } from "@/lib/rate-limit";
 import {
@@ -16,6 +18,7 @@ import {
   MAX_RIDES_PER_HOUR,
   countRecentRides,
 } from "@/lib/ride-edit";
+import { saveRideGeo } from "@/lib/ride-geo";
 import { joinRide, type JoinOutcome } from "@/lib/ride-join";
 import { deleteRide, leaveRide } from "@/lib/ride-manage";
 import { checkTicketGate } from "@/lib/ticket-gate";
@@ -155,23 +158,57 @@ export async function createRideAction(
     return { errors };
   }
 
+  // Harita noktaları isteğe bağlıdır: hiç yoksa yolculuk haritasız oluşur.
+  const geo = parseRideGeoInput((key) => readText(formData, key));
+
+  if (geo.status === "invalid") {
+    return {
+      message:
+        "Harita noktaları geçersiz. Noktaları yeniden seç ya da haritayı kullanma.",
+    };
+  }
+
+  let rideId: string;
+
   try {
-    await db.insert(rides).values({
-      eventId: event.id,
-      driverId: user.id,
-      origin,
-      destination,
-      meetingPoint,
-      departureTime,
-      durationMinutes: duration,
-      seats,
-      totalCost: cost,
-    });
+    const [created] = await db
+      .insert(rides)
+      .values({
+        eventId: event.id,
+        driverId: user.id,
+        origin,
+        destination,
+        meetingPoint,
+        departureTime,
+        durationMinutes: duration,
+        seats,
+        totalCost: cost,
+      })
+      .returning({ id: rides.id });
+
+    rideId = created.id;
   } catch (error) {
     console.error("Yolculuk kaydedilemedi:", error);
     return {
       message: "Yolculuk kaydedilemedi. Lütfen biraz sonra tekrar dene.",
     };
+  }
+
+  if (geo.status === "ok") {
+    try {
+      // Rota sunucuda yeniden hesaplanır (aynı noktalar önbellekte olduğundan genellikle ek istek gitmez).
+      const routed = await getRoute([geo.origin, geo.meeting, geo.dest]);
+      await saveRideGeo(
+        rideId,
+        { origin: geo.origin, meeting: geo.meeting, dest: geo.dest },
+        routed.status === "ok" ? routed.route : null,
+      );
+    } catch (error) {
+      console.error(
+        "Harita bilgisi kaydedilemedi:",
+        error instanceof Error ? error.message : "bilinmeyen hata",
+      );
+    }
   }
 
   redirect(`/events/${event.id}?yolculuk=olusturuldu`);

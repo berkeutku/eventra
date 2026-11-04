@@ -8,7 +8,7 @@ import Icon, { categoryIcon } from "@/components/Icons";
 import JoinCelebration from "@/components/JoinCelebration";
 import JoinRideButton from "@/components/JoinRideButton";
 import RideFeedback from "@/components/RideFeedback";
-import RouteSummary from "@/components/RouteSummary";
+import RideRouteCard from "@/components/RideRouteCard";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { pickEventImage } from "@/data/event-images";
 import { categoryMeta } from "@/data/events";
@@ -303,12 +303,7 @@ export default async function RideDetailPage({ params }: Props) {
             </div>
           </div>
 
-          <RouteSummary
-            origin={ride.origin}
-            meetingPoint={ride.meetingPoint}
-            destination={ride.destination}
-            durationMinutes={ride.durationMinutes}
-          />
+          <RideRouteCard rideId={ride.id} origin={ride.origin} meetingPoint={ride.meetingPoint} destination={ride.destination} durationMinutes={ride.durationMinutes} />
 
           <div className={card}>
             <h2 className="text-2xl font-extrabold tracking-tight">

@@ -405,3 +405,42 @@ export const actionLog = pgTable(
     index("action_log_created_idx").on(table.createdAt),
   ],
 );
+
+// Yolculuğun harita bilgisi. Koordinatlar 1.000.000 ile çarpılmış tam sayıdır (mikro derece).
+// Başlangıç ve varış yaklaşık (~1 km) saklanır, buluşma noktası tamdır.
+export const rideGeo = pgTable("ride_geo", {
+  rideId: uuid("ride_id")
+    .primaryKey()
+    .references(() => rides.id, { onDelete: "cascade" }),
+  originLat: integer("origin_lat").notNull(),
+  originLng: integer("origin_lng").notNull(),
+  meetingLat: integer("meeting_lat").notNull(),
+  meetingLng: integer("meeting_lng").notNull(),
+  destLat: integer("dest_lat").notNull(),
+  destLng: integer("dest_lng").notNull(),
+  distanceMeters: integer("distance_meters"),
+  durationSeconds: integer("duration_seconds"),
+  routePath: text("route_path"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// Adres arama ve rota sonuçlarının önbelleği (dış hizmetlere az istek göndermek için).
+export const geoCache = pgTable(
+  "geo_cache",
+  {
+    key: text("key").primaryKey(),
+    payload: text("payload").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("geo_cache_created_idx").on(table.createdAt)],
+);
+
+// Dış hizmetlere (Nominatim, OSRM...) giden isteklerin ortak hız sınırı.
+export const apiThrottle = pgTable("api_throttle", {
+  provider: text("provider").primaryKey(),
+  lastAt: timestamp("last_at", { withTimezone: true }).notNull().defaultNow(),
+});
