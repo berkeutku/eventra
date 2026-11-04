@@ -22,6 +22,12 @@ import {
   calcSharePerPerson,
   remainingSeats,
 } from "@/lib/ride-utils";
+import { hasVerifiedTicket } from "@/lib/ticket-gate";
+import {
+  gateFor,
+  gateMessages,
+  type TicketGate,
+} from "@/lib/ticket-gate-rules";
 
 export const dynamic = "force-dynamic";
 
@@ -69,9 +75,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 function ActionArea({
   ride,
   user,
+  gate,
 }: {
   ride: RideDetail;
   user: AuthUser | null;
+  gate: TicketGate;
 }) {
   if (!user) {
     return (
@@ -132,6 +140,22 @@ function ActionArea({
     );
   }
 
+  if (gate !== "ok") {
+    return (
+      <p className="text-sm text-muted">
+        {gateMessages.join[gate]}{" "}
+        {gate === "verify_required" && (
+          <Link
+            href={`/events/${ride.eventId}#bilet`}
+            className="font-bold text-violet hover:underline"
+          >
+            Bileti doğrula &rarr;
+          </Link>
+        )}
+      </p>
+    );
+  }
+
   return <JoinRideButton rideId={ride.id} />;
 }
 
@@ -173,6 +197,12 @@ export default async function RideDetailPage({ params }: Props) {
   const meta = categoryMeta[event.category];
   const imageSrc =
     event.imageUrl ?? pickEventImage(event.category, event.id)?.src;
+
+  const verified =
+    user && event.source !== "biletimgo"
+      ? await hasVerifiedTicket(user.id, event.id)
+      : false;
+  const gate = gateFor(event, verified);
 
   const left = remainingSeats(ride);
   const peopleNow = ride.passengerCount + 1;
@@ -374,7 +404,7 @@ export default async function RideDetailPage({ params }: Props) {
             </div>
 
             <div className="mt-6 border-t border-line pt-6">
-              <ActionArea ride={ride} user={user} />
+              <ActionArea ride={ride} user={user} gate={gate} />
             </div>
           </div>
         </div>

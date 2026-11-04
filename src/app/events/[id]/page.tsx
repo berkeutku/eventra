@@ -18,6 +18,7 @@ import { isFavorite } from "@/lib/favorites";
 import { formatEventDate, formatEventTime } from "@/lib/format";
 import { getRidesForEvent } from "@/lib/ride-queries";
 import { calcSharePerPerson, remainingSeats } from "@/lib/ride-utils";
+import { gateFor, gateMessages } from "@/lib/ticket-gate-rules";
 import { isTicketVerified } from "@/lib/ticket-queries";
 
 export const dynamic = "force-dynamic";
@@ -114,6 +115,8 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
     event.priceText?.trim().toLocaleLowerCase("tr-TR") === "aktif bilet yok";
   const verified =
     !isReal && user ? await isTicketVerified(user.id, event.id) : false;
+  const gate = gateFor(event, verified);
+  const showCreate = !blocked && (!user || gate === "ok");
   const imageSrc =
     event.imageUrl ?? pickEventImage(event.category, event.id)?.src;
 
@@ -331,7 +334,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
               <h2 className="text-2xl font-extrabold tracking-tight">
                 Ortak yolculuklar
               </h2>
-              {blocked ? null : (
+              {showCreate ? (
                 <Link
                   href={`/events/${event.id}/yolculuk-olustur`}
                   className="inline-flex items-center gap-2 rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky"
@@ -339,14 +342,25 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                   <Icon name="car" className="h-4 w-4" />
                   Yolculuk oluştur
                 </Link>
-              )}
+              ) : null}
             </div>
             <p className="mt-2 text-muted">
-              Bu etkinliğe giden sürücülerin paylaştığı yolculuklar.
+              Bu etkinliğe giden sürücülerin paylaştığı yolculuklar. Yolculuk
+              oluşturmak ve katılmak için etkinliğin biletini doğrulamış
+              olmalısın.
             </p>
             {blocked ? (
               <p className="mt-4 rounded-2xl bg-surface p-4 text-sm text-muted">
                 {rideBlockMessages[blocked]}
+              </p>
+            ) : user && gate !== "ok" ? (
+              <p className="mt-4 rounded-2xl bg-lilac p-4 text-sm text-ink">
+                {gateMessages.create[gate]}{" "}
+                {gate === "verify_required" && (
+                  <a href="#bilet" className="font-bold text-violet hover:underline">
+                    Bileti doğrula &darr;
+                  </a>
+                )}
               </p>
             ) : null}
 
@@ -364,9 +378,11 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
             </dl>
 
             {!isReal && (
-              <TicketVerificationCard eventId={event.id} verified={verified} />
+              <div id="bilet">
+                <TicketVerificationCard eventId={event.id} verified={verified} />
+              </div>
             )}
-            <RideList rides={rides} eventId={event.id} />
+            <RideList rides={rides} eventId={event.id} gate={gate} />
           </div>
         </div>
       </section>

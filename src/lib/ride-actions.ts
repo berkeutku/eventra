@@ -1,10 +1,11 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { db } from "@/db";
-import { rides } from "@/db/schema";
+import { events, rides } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
@@ -17,6 +18,8 @@ import {
 } from "@/lib/ride-edit";
 import { joinRide, type JoinOutcome } from "@/lib/ride-join";
 import { deleteRide, leaveRide } from "@/lib/ride-manage";
+import { checkTicketGate } from "@/lib/ticket-gate";
+import { gateMessages } from "@/lib/ticket-gate-rules";
 
 export type CreateRideField =
   | "origin"
@@ -84,6 +87,13 @@ export async function createRideAction(
 
   if (!event) {
     return { message: "Etkinlik bulunamadı." };
+  }
+
+  // Yolculuk ilanı vermek için bu etkinliğin biletinin doğrulanmış olması gerekir.
+  const gate = await checkTicketGate(user.id, event);
+
+  if (gate !== "ok") {
+    return { message: gateMessages.create[gate] };
   }
 
   const recent = await countRecentRides(user.id);
@@ -217,6 +227,36 @@ export async function joinRideAction(
 
   if (!UUID_PATTERN.test(rideId)) {
     return { message: "Yolculuk bulunamadı." };
+  }
+
+  // Yolculuğa katılmak için yolculuğun etkinliğine ait biletin doğrulanmış olması gerekir.
+  let target: { eventId: string; source: string } | undefined;
+
+  try {
+    [target] = await db
+      .select({ eventId: rides.eventId, source: events.source })
+      .from(rides)
+      .innerJoin(events, eq(rides.eventId, events.id))
+      .where(eq(rides.id, rideId))
+      .limit(1);
+  } catch (error) {
+    console.error("Yolculuk okunamadı:", error);
+    return {
+      message: "Katılma işlemi tamamlanamadı. Lütfen biraz sonra tekrar dene.",
+    };
+  }
+
+  if (!target) {
+    return { message: "Bu yolculuk artık mevcut değil." };
+  }
+
+  const gate = await checkTicketGate(user.id, {
+    id: target.eventId,
+    source: target.source === "biletimgo" ? "biletimgo" : "demo",
+  });
+
+  if (gate !== "ok") {
+    return { message: gateMessages.join[gate] };
   }
 
   // Katıl-ayrıl döngüsüyle sürücüye art arda bildirim gitmesini önleyen sıklık sınırı.

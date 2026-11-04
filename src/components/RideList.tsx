@@ -16,6 +16,7 @@ import {
   remainingSeats,
   type RideItem,
 } from "@/lib/ride-utils";
+import { gateMessages, type TicketGate } from "@/lib/ticket-gate-rules";
 
 type SortKey = "match" | "time" | "cost";
 
@@ -91,7 +92,7 @@ function TicketArt() {
   );
 }
 
-function RideAction({ ride }: { ride: RideItem }) {
+function RideAction({ ride, gate }: { ride: RideItem; gate: TicketGate }) {
   const user = useAuthUser();
   const left = remainingSeats(ride);
 
@@ -153,6 +154,22 @@ function RideAction({ ride }: { ride: RideItem }) {
     );
   }
 
+  if (gate !== "ok") {
+    return (
+      <p className="text-sm text-muted">
+        {gateMessages.join[gate]}{" "}
+        {gate === "verify_required" && (
+          <Link
+            href={`/events/${ride.eventId}#bilet`}
+            className="font-bold text-violet hover:underline"
+          >
+            Bileti doğrula &rarr;
+          </Link>
+        )}
+      </p>
+    );
+  }
+
   return <JoinRideButton rideId={ride.id} />;
 }
 
@@ -160,10 +177,12 @@ function RideCard({
   item,
   showScore,
   best,
+  gate,
 }: {
   item: ScoredRide;
   showScore: boolean;
   best: boolean;
+  gate: TicketGate;
 }) {
   const ride = item.ride;
   const share = calcSharePerPerson(ride.totalCost, ride.seats);
@@ -276,7 +295,7 @@ function RideCard({
       )}
 
       <div className="mt-5 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
-        <RideAction ride={ride} />
+        <RideAction ride={ride} gate={gate} />
         <Link
           href={`/events/${ride.eventId}/yolculuk/${ride.id}`}
           className="inline-flex items-center justify-center rounded-full border border-line px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-lilac"
@@ -288,7 +307,13 @@ function RideCard({
   );
 }
 
-function EmptyRides({ eventId }: { eventId: string }) {
+function EmptyRides({
+  eventId,
+  gate,
+}: {
+  eventId: string;
+  gate: TicketGate;
+}) {
   const user = useAuthUser();
 
   return (
@@ -301,8 +326,8 @@ function EmptyRides({ eventId }: { eventId: string }) {
       {!user && (
         <>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted">
-            Hesap oluştur, Sürücü rolüne geçip ilk yolculuğu sen aç ya da
-            başkası bir yolculuk açtığında katıl.
+            Hesap oluştur, biletini doğrula, Sürücü rolüne geçip ilk yolculuğu
+            sen aç ya da başkası bir yolculuk açtığında katıl.
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             <Link href="/kayit" className={primaryLink}>
@@ -315,22 +340,36 @@ function EmptyRides({ eventId }: { eventId: string }) {
         </>
       )}
 
-      {user?.role === "driver" && (
-        <>
-          <p className="mx-auto mt-2 max-w-md text-sm text-muted">
-            İlk adım senden gelsin: yolculuğu oluştur, aynı etkinliğe gidenler
-            seni burada bulsun.
-          </p>
-          <div className="mt-5 flex justify-center">
-            <Link
-              href={`/events/${eventId}/yolculuk-olustur`}
-              className={primaryLink}
-            >
-              Yolculuk oluştur
-            </Link>
-          </div>
-        </>
-      )}
+      {user?.role === "driver" &&
+        (gate === "ok" ? (
+          <>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+              İlk adım senden gelsin: yolculuğu oluştur, aynı etkinliğe
+              gidenler seni burada bulsun.
+            </p>
+            <div className="mt-5 flex justify-center">
+              <Link
+                href={`/events/${eventId}/yolculuk-olustur`}
+                className={primaryLink}
+              >
+                Yolculuk oluştur
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted">
+              {gateMessages.create[gate]}
+            </p>
+            {gate === "verify_required" && (
+              <div className="mt-5 flex justify-center">
+                <Link href={`/events/${eventId}#bilet`} className={primaryLink}>
+                  Bileti doğrula
+                </Link>
+              </div>
+            )}
+          </>
+        ))}
 
       {user?.role === "passenger" && (
         <>
@@ -352,9 +391,11 @@ function EmptyRides({ eventId }: { eventId: string }) {
 export default function RideList({
   rides,
   eventId,
+  gate,
 }: {
   rides: RideItem[];
   eventId: string;
+  gate: TicketGate;
 }) {
   const [query, setQuery] = useState("");
   const [minSeats, setMinSeats] = useState("0");
@@ -368,7 +409,7 @@ export default function RideList({
   );
 
   if (rides.length === 0) {
-    return <EmptyRides eventId={eventId} />;
+    return <EmptyRides eventId={eventId} gate={gate} />;
   }
 
   const hasPreference = destination.trim() !== "" || preferredTime !== "";
@@ -537,6 +578,7 @@ export default function RideList({
               item={item}
               showScore={showScore}
               best={item.ride.id === bestId}
+              gate={gate}
             />
           ))}
         </ul>
