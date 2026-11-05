@@ -444,3 +444,35 @@ export const apiThrottle = pgTable("api_throttle", {
   provider: text("provider").primaryKey(),
   lastAt: timestamp("last_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// Yolcu talepleri: "şu etkinlikten şuraya gitmek istiyorum" ilanı. Kişi başına etkinlik başına tek talep.
+export const rideRequests = pgTable(
+  "ride_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: text("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "restrict" }),
+    passengerId: uuid("passenger_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    destination: text("destination").notNull(),
+    preferredTime: time("preferred_time"),
+    seats: integer("seats").notNull().default(1),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique("ride_requests_user_event_unique").on(
+      table.passengerId,
+      table.eventId,
+    ),
+    index("ride_requests_event_idx").on(table.eventId, table.createdAt),
+    check("ride_requests_seats_check", sql`${table.seats} between 1 and 4`),
+  ],
+);

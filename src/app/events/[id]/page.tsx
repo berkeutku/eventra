@@ -6,6 +6,7 @@ import EventCover from "@/components/EventCover";
 import FavoriteButton from "@/components/FavoriteButton";
 import Icon, { categoryIcon, type IconName } from "@/components/Icons";
 import RideList from "@/components/RideList";
+import RideRequestsSection from "@/components/RideRequestsSection";
 import ShareButton from "@/components/ShareButton";
 import TicketVerificationCard from "@/components/TicketVerificationCard";
 import { pickEventImage } from "@/data/event-images";
@@ -383,6 +384,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
               </div>
             )}
             <RideList rides={rides} eventId={event.id} gate={gate} />
+            <RideRequestsSection eventId={event.id} user={user} gate={gate} blocked={Boolean(blocked)} />
           </div>
         </div>
       </section>

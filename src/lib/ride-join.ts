@@ -1,6 +1,12 @@
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../db";
-import { notifications, ridePassengers, rides, users } from "../db/schema";
+import {
+  notifications,
+  ridePassengers,
+  rideRequests,
+  rides,
+  users,
+} from "../db/schema";
 
 export type JoinOutcome =
   | { status: "joined"; eventId: string }
@@ -78,6 +84,16 @@ export async function joinRide(
     }
 
     await tx.insert(ridePassengers).values({ rideId: ride.id, userId });
+
+    // Yolculuğa katılan kişinin bu etkinlik için açık yolcu talebi artık gereksiz: silinir.
+    await tx
+      .delete(rideRequests)
+      .where(
+        and(
+          eq(rideRequests.passengerId, userId),
+          eq(rideRequests.eventId, ride.eventId),
+        ),
+      );
 
     // Sürücüye bildirim: katılımla aynı işlemde yazılır, katılım geri alınırsa bildirim de olmaz.
     const [passenger] = await tx
