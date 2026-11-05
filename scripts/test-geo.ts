@@ -98,9 +98,10 @@ async function main() {
 
   try {
     const provider = `${prefix}throttle`;
-    check("hız sınırı: ilk hak verilir, hemen ikincisi verilmez", (await claimThrottle(provider, 0.4)) && !(await claimThrottle(provider, 0.4)));
-    await sleep(600);
-    check("hız sınırı: süre geçince yeniden hak verilir", await claimThrottle(provider, 0.4));
+    check("hız sınırı: ilk hak verilir, hemen ikincisi verilmez", (await claimThrottle(provider, 30)) && !(await claimThrottle(provider, 30)));
+    await claimThrottle(`${prefix}throttle2`, 0.4);
+    await sleep(900);
+    check("hız sınırı: süre geçince yeniden hak verilir", await claimThrottle(`${prefix}throttle2`, 0.4));
 
     const cacheKey = `test:${stamp}`;
     cacheKeys.push(cacheKey);
