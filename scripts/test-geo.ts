@@ -116,6 +116,8 @@ async function main() {
     const second = await searchPlaces(query, { fetcher: search.fetcher, prefix });
     check("arama sonucu döner ve ikinci arama önbellekten gelir (tek dış istek)", first.status === "ok" && first.places.length === 1 && second.status === "ok" && search.count() === 1);
     const failing = fakeFetch({}, 500);
+    await sleep(1200);
+    await sleep(1200);
     check("dış arama hatası 'failed' döner", (await searchPlaces(`hatali-${stamp}`, { fetcher: failing.fetcher, prefix })).status === "failed");
 
     delete process.env.ORS_API_KEY;
