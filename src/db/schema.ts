@@ -181,6 +181,7 @@ export const notificationType = pgEnum("notification_type", [
   "ride_left",
   "ride_cancelled",
   "ride_updated",
+  "ride_message",
 ]);
 
 // Uygulama içi bildirimler. Her bildirimin tek bir alıcısı vardır.
@@ -474,5 +475,32 @@ export const rideRequests = pgTable(
     ),
     index("ride_requests_event_idx").on(table.eventId, table.createdAt),
     check("ride_requests_seats_check", sql`${table.seats} between 1 and 4`),
+  ],
+);
+
+// Yolculuk sohbeti: yalnızca yolculuğun sürücüsü ve katılan yolcular okur ve yazar.
+// Yolculuk ya da gönderen hesap silinince mesajlar da silinir.
+export const rideMessages = pgTable(
+  "ride_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    rideId: uuid("ride_id")
+      .notNull()
+      .references(() => rides.id, { onDelete: "cascade" }),
+    senderId: uuid("sender_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("ride_messages_ride_time_idx").on(table.rideId, table.createdAt),
+    index("ride_messages_created_idx").on(table.createdAt),
+    check(
+      "ride_messages_body_check",
+      sql`char_length(${table.body}) between 1 and 500`,
+    ),
   ],
 );

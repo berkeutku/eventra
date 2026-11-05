@@ -7,6 +7,7 @@ import EventCover from "@/components/EventCover";
 import Icon, { categoryIcon } from "@/components/Icons";
 import JoinCelebration from "@/components/JoinCelebration";
 import JoinRideButton from "@/components/JoinRideButton";
+import RideChatSection from "@/components/RideChatSection";
 import RideFeedback from "@/components/RideFeedback";
 import RideRouteCard from "@/components/RideRouteCard";
 import VerifiedBadge from "@/components/VerifiedBadge";
@@ -262,6 +263,7 @@ export default async function RideDetailPage({ params }: Props) {
 
       <section className="px-6 py-10 sm:py-14">
         <div className="mx-auto max-w-4xl space-y-6">
+          <RideChatSection rideId={ride.id} />
           <RideFeedback rideId={ride.id} />
 
           <div className={card}>

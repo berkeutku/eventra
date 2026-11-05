@@ -20,6 +20,10 @@ const sections: { title: string; text: string }[] = [
     text: "Yolculuk oluştururken ya da düzenlerken haritadan nokta seçersen, seçtiğin noktaların koordinatları ve hesaplanan rota (mesafe, süre, çizgi) yolculukla birlikte saklanır. Başlangıç ve varış noktaları yaklaşık 1 km hassasiyetle kaydedilir ve gösterilir, ev adresin tam olarak görünmez. Buluşma noktası tam konumla saklanır ve yolculuk sayfasını gören herkese gösterilir, bu yüzden herkese açık bir yer seç. Cihazının konumuna erişmeyiz.",
   },
   {
+    title: "Yolculuk sohbeti",
+    text: "Bir yolculuğun sürücüsü ve o yolculuğa katılan yolcular, yolculuğa özel bir grup sohbetinde yazışabilir. Mesajlarını yalnızca bu kişiler görür ve yalnızca ilk adlar gösterilir. Mesajlarda bağlantı paylaşılamaz. Telefon numarası gibi bilgileri paylaşmak sana kalmıştır, gerekmedikçe paylaşma. Mesajlar, yolculuk silinince, gönderenin hesabı silinince ya da gönderildikten 60 gün sonra silinir, kendi mesajını istediğin zaman silebilirsin. Yolculuktan ayrılan kişi sohbeti göremez ve yazamaz, eski mesajları diğerlerinde kalır. Etkinlik bittikten 24 saat sonra sohbet yalnızca okunabilir. Yeni mesaj bildirimi, mesajın içeriğini taşımaz. Şikâyetler şu an proje sahibi tarafından elle incelenir ve sohbet içeriği otomatik taranmaz.",
+  },
+  {
     title: "Yolcu talepleri",
     text: "Yolcu talebi verirsen varış yerin, tercih ettiğin saat, kişi sayın ve notun saklanır. Talep yalnızca bileti doğrulanmış, giriş yapmış kullanıcılara ve yalnızca ilk adınla gösterilir. Başkalarına yalnızca talep sayısı görünür. Talebe telefon, e-posta ya da bağlantı yazılamaz. Talebini istediğin zaman silebilirsin, bir yolculuğa katılınca da kendiliğinden silinir.",
   },
@@ -33,7 +37,7 @@ const sections: { title: string; text: string }[] = [
   },
   {
     title: "Güvenlik için tuttuklarımız",
-    text: "Hatalı giriş denemeleri (e-posta adresi ve zaman) kısa süre tutulur ve temizlenir. Sahte kayıtları sınırlamak için kayıt sırasında ağ adresinin kendisi değil tek yönlü özeti kısa süre saklanır. Yolculuğa katılma, talep verme, adres arama ve rota hesabı gibi işlemlerde kötüye kullanımı sınırlamak için hangi kullanıcının hangi işlemi ne zaman yaptığı en fazla bir gün tutulur.",
+    text: "Hatalı giriş denemeleri (e-posta adresi ve zaman) kısa süre tutulur ve temizlenir. Sahte kayıtları sınırlamak için kayıt sırasında ağ adresinin kendisi değil tek yönlü özeti kısa süre saklanır. Yolculuğa katılma, talep verme, mesaj gönderme, adres arama ve rota hesabı gibi işlemlerde kötüye kullanımı sınırlamak için hangi kullanıcının hangi işlemi ne zaman yaptığı en fazla bir gün tutulur.",
   },
   {
     title: "Telefon bildirimi",
@@ -45,7 +49,7 @@ const sections: { title: string; text: string }[] = [
   },
   {
     title: "Hesabını silme",
-    text: "Profil, Ayarlar sayfasından parolanla hesabını silebilirsin. Hesabın, yolculukların ve harita bilgileri, katılımların, yolcu talepların, favorilerin, bildirimlerin, bildirim tercihlerin, verdiğin ve hakkındaki puanlar ile şikâyetler ve bildirim abonelikleri birlikte silinir. Yolculuğuna katılmış kişilere iptal bildirimi gider.",
+    text: "Profil, Ayarlar sayfasından parolanla hesabını silebilirsin. Hesabın, yolculukların ve harita bilgileri, katılımların, sohbet mesajların, yolcu talepların, favorilerin, bildirimlerin, bildirim tercihlerin, verdiğin ve hakkındaki puanlar ile şikâyetler ve bildirim abonelikleri birlikte silinir. Yolculuğuna katılmış kişilere iptal bildirimi gider.",
   },
   {
     title: "Bu bir demo",

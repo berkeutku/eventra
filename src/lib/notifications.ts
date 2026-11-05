@@ -6,7 +6,8 @@ import { notifications } from "../db/schema";
 // (../db) import yollarını kullanıyor.
 
 export type NotificationType = "ride_joined" | "ride_left" | "ride_cancelled"
-  | "ride_updated";
+  | "ride_updated"
+  | "ride_message";
 
 export type NotificationItem = {
   id: string;
