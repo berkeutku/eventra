@@ -7,6 +7,7 @@ export const PREF_TYPES = [
   "ride_updated",
   "ride_message",
   "ride_request_match",
+  "ride_status",
 ] as const;
 
 export type PrefType = (typeof PREF_TYPES)[number];
@@ -35,5 +36,9 @@ export const prefLabels: Record<PrefType, { title: string; text: string }> = {
   ride_request_match: {
     title: "Talebine uyan yolculuk",
     text: "Yolcu talebi verdiğin etkinlikte, varış yerine uyan yeni bir yolculuk açıldığında.",
+  },
+  ride_status: {
+    title: "Yolculuk yola çıktı / tamamlandı",
+    text: "Katıldığın yolculukta sürücü yola çıktığını ya da vardığını işaretlediğinde.",
   },
 };

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { extraSections } from "@/lib/privacy-extra";
 
 export const metadata: Metadata = {
   title: "Gizlilik ve veri notu | Eventra",
@@ -69,7 +70,7 @@ export default function PrivacyPage() {
         </p>
 
         <div className="mt-8 space-y-4">
-          {sections.map((section) => (
+          {[...sections.slice(0, -1), ...extraSections, ...sections.slice(-1)].map((section) => (
             <section
               key={section.title}
               className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5"

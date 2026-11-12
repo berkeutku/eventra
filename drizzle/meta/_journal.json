@@ -127,6 +127,13 @@
       "when": 1794508958902,
       "tag": "0017_regular_inertia",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794512293881,
+      "tag": "0018_eminent_stellaris",
+      "breakpoints": true
     }
   ]
 }

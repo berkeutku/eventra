@@ -87,6 +87,10 @@ export const rides = pgTable(
     durationMinutes: integer("duration_minutes").notNull(),
     seats: integer("seats").notNull(),
     totalCost: integer("total_cost").notNull(),
+    vehicle: text("vehicle"),
+    status: text("status").notNull().default("planned"),
+    departedAt: timestamp("departed_at", { withTimezone: true }),
+    arrivedAt: timestamp("arrived_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -100,6 +104,7 @@ export const rides = pgTable(
       sql`${table.durationMinutes} between 5 and 600`,
     ),
     check("rides_cost_check", sql`${table.totalCost} between 0 and 5000`),
+    check("rides_status_check", sql`${table.status} in ('planned', 'departed', 'arrived')`),
   ],
 );
 
@@ -183,6 +188,7 @@ export const notificationType = pgEnum("notification_type", [
   "ride_updated",
   "ride_message",
   "ride_request_match",
+  "ride_status",
 ]);
 
 // Uygulama içi bildirimler. Her bildirimin tek bir alıcısı vardır.
@@ -503,5 +509,27 @@ export const rideMessages = pgTable(
       "ride_messages_body_check",
       sql`char_length(${table.body}) between 1 and 500`,
     ),
+  ],
+);
+// Safe share links for a ride. Only the hash of the token is stored.
+export const rideShares = pgTable(
+  "ride_shares",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    rideId: uuid("ride_id")
+      .notNull()
+      .references(() => rides.id, { onDelete: "cascade" }),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("ride_shares_ride_idx").on(table.rideId),
+    index("ride_shares_expires_idx").on(table.expiresAt),
   ],
 );

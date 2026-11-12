@@ -8,6 +8,7 @@ import Icon, { categoryIcon } from "@/components/Icons";
 import JoinCelebration from "@/components/JoinCelebration";
 import JoinRideButton from "@/components/JoinRideButton";
 import RideChatSection from "@/components/RideChatSection";
+import RideDayPanel from "@/components/RideDayPanel";
 import RideFeedback from "@/components/RideFeedback";
 import RideRouteCard from "@/components/RideRouteCard";
 import VerifiedBadge from "@/components/VerifiedBadge";
@@ -17,6 +18,7 @@ import { getCurrentUser, type AuthUser } from "@/lib/auth";
 import { getEventById } from "@/lib/events";
 import { formatEventDate, formatEventTime } from "@/lib/format";
 import { leaveRideAction } from "@/lib/ride-actions";
+import { getRideDayState } from "@/lib/ride-day";
 import { getRideDetail, type RideDetail } from "@/lib/ride-queries";
 import {
   calcArrival,
@@ -205,6 +207,9 @@ export default async function RideDetailPage({ params }: Props) {
       : false;
   const gate = gateFor(event, verified);
 
+  const dayState =
+    user && (ride.isOwn || ride.joined) ? await getRideDayState(ride.id) : null;
+
   const left = remainingSeats(ride);
   const peopleNow = ride.passengerCount + 1;
   const shareNow = calcSharePerPerson(ride.totalCost, ride.passengerCount);
@@ -264,6 +269,9 @@ export default async function RideDetailPage({ params }: Props) {
       <section className="px-6 py-10 sm:py-14">
         <div className="mx-auto max-w-4xl space-y-6">
           <RideChatSection rideId={ride.id} />
+          {dayState && (
+            <RideDayPanel rideId={ride.id} isDriver={ride.isOwn} status={dayState.status} vehicle={dayState.vehicle} windowOpen={dayState.windowOpen} />
+          )}
           <RideFeedback rideId={ride.id} />
 
           <div className={card}>
