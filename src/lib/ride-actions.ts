@@ -19,6 +19,7 @@ import {
   countRecentRides,
 } from "@/lib/ride-edit";
 import { saveRideGeo } from "@/lib/ride-geo";
+import { notifyMatchingRequests } from "@/lib/request-matching";
 import { joinRide, type JoinOutcome } from "@/lib/ride-join";
 import { deleteRide, leaveRide } from "@/lib/ride-manage";
 import { checkTicketGate } from "@/lib/ticket-gate";
@@ -209,6 +210,17 @@ export async function createRideAction(
         error instanceof Error ? error.message : "bilinmeyen hata",
       );
     }
+  }
+
+  // Bu etkinlikte güzergâhına uyan bekleyen yolcu taleplerine bildirim gönder.
+  try {
+    await notifyMatchingRequests(rideId);
+    schedulePush();
+  } catch (error) {
+    console.error(
+      "Talep eşleşme bildirimi gönderilemedi:",
+      error instanceof Error ? error.message : "bilinmeyen hata",
+    );
   }
 
   redirect(`/events/${event.id}?yolculuk=olusturuldu`);

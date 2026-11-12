@@ -182,6 +182,7 @@ export const notificationType = pgEnum("notification_type", [
   "ride_cancelled",
   "ride_updated",
   "ride_message",
+  "ride_request_match",
 ]);
 
 // Uygulama içi bildirimler. Her bildirimin tek bir alıcısı vardır.

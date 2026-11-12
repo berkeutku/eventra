@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
+import { countMatchingRides } from "@/lib/request-matching";
 import {
   parseRequestInput,
   requestGateMessages,
@@ -85,13 +86,28 @@ export async function saveRequestAction(
   }
 
   switch (status) {
-    case "saved":
+    case "saved": {
+      // Şu an zaten uyan açık yolculuk var mı? Hata olursa talep yine de kaydedilmiş sayılır.
+      let matches = 0;
+
+      try {
+        matches = await countMatchingRides(event.id, parsed.value, user.id);
+      } catch (error) {
+        console.error(
+          "Uyan yolculuklar sayılamadı:",
+          error instanceof Error ? error.message : "bilinmeyen hata",
+        );
+      }
+
       revalidatePath("/", "layout");
       return {
         ok: true,
         message:
-          "Talebin kaydedildi. Bu etkinliğe giden sürücüler talebini görebilir.",
+          matches > 0
+            ? `Talebin kaydedildi. Şu an varış yerine uyan ${matches} yolculuk var, etkinlik sayfasındaki yolculuk listesine bak.`
+            : "Talebin kaydedildi. Uyan bir yolculuk açıldığında bildirim alacaksın. Telefona bildirim için profilindeki Ayarlar sayfasını kullanabilirsin.",
       };
+    }
     case "has_ride":
       return {
         message:

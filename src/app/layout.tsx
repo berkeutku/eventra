@@ -33,6 +33,7 @@ export const metadata: Metadata = {
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   icons: {
+    icon: [{ url: "/icon.png?v=2", type: "image/png", sizes: "512x512" }],
     apple: "/icons/apple-touch-icon.png",
   },
   appleWebApp: {

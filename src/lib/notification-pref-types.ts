@@ -6,6 +6,7 @@ export const PREF_TYPES = [
   "ride_cancelled",
   "ride_updated",
   "ride_message",
+  "ride_request_match",
 ] as const;
 
 export type PrefType = (typeof PREF_TYPES)[number];
@@ -30,5 +31,9 @@ export const prefLabels: Record<PrefType, { title: string; text: string }> = {
   ride_message: {
     title: "Yeni sohbet mesajı",
     text: "Yolculuk sohbetine yeni mesaj yazıldığında (mesajın içeriği bildirimde görünmez).",
+  },
+  ride_request_match: {
+    title: "Talebine uyan yolculuk",
+    text: "Yolcu talebi verdiğin etkinlikte, varış yerine uyan yeni bir yolculuk açıldığında.",
   },
 };
