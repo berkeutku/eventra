@@ -185,6 +185,75 @@ function SeatDots({ seats, taken }: { seats: number; taken: number }) {
   );
 }
 
+function StickyJoinBar({
+  ride,
+  user,
+  gate,
+}: {
+  ride: RideDetail;
+  user: AuthUser | null;
+  gate: TicketGate;
+}) {
+  const shell =
+    "fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 border-t border-line bg-white/95 px-4 py-3 shadow-[0_-8px_24px_rgba(108,77,255,0.12)] backdrop-blur sm:hidden";
+  const wide =
+    "block rounded-full bg-violet px-6 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-sky";
+
+  if (!user) {
+    return (
+      <div className={shell}>
+        <Link
+          href={"/giris?next=/events/" + ride.eventId + "/yolculuk/" + ride.id}
+          className={wide}
+        >
+          Katılmak için giriş yap
+        </Link>
+      </div>
+    );
+  }
+
+  if (
+    ride.isOwn ||
+    ride.joined ||
+    user.role !== "passenger" ||
+    remainingSeats(ride) === 0
+  ) {
+    return null;
+  }
+
+  if (gate === "verify_required") {
+    return (
+      <div className={shell}>
+        <Link href={"/events/" + ride.eventId + "#bilet"} className={wide}>
+          Katılmak için bileti doğrula
+        </Link>
+      </div>
+    );
+  }
+
+  if (gate !== "ok") {
+    return null;
+  }
+
+  const shareAfter = calcSharePerPerson(ride.totalCost, ride.passengerCount + 1);
+
+  return (
+    <div className={shell}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-lg font-extrabold leading-tight text-violet">
+            ~{shareAfter} TL
+          </p>
+          <p className="text-xs text-muted">
+            katılınca kişi başı · {remainingSeats(ride)} boş koltuk
+          </p>
+        </div>
+        <JoinRideButton rideId={ride.id} />
+      </div>
+    </div>
+  );
+}
+
 const card =
   "rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-8";
 
@@ -216,6 +285,23 @@ export default async function RideDetailPage({ params }: Props) {
   const shareFull = calcSharePerPerson(ride.totalCost, ride.seats);
   const arrival = calcArrival(ride.departureTime, ride.durationMinutes);
 
+  const participant = Boolean(user && (ride.isOwn || ride.joined));
+  const extras = (
+    <>
+      <RideChatSection rideId={ride.id} />
+      {dayState && (
+        <RideDayPanel
+          rideId={ride.id}
+          isDriver={ride.isOwn}
+          status={dayState.status}
+          vehicle={dayState.vehicle}
+          windowOpen={dayState.windowOpen}
+        />
+      )}
+      <RideFeedback rideId={ride.id} />
+    </>
+  );
+
   return (
     <main>
       <JoinCelebration joined={Boolean(ride.joined)} />
@@ -239,7 +325,7 @@ export default async function RideDetailPage({ params }: Props) {
           >
             &larr; {event.title}
           </Link>
-          <div className="mt-12 sm:mt-16">
+          <div className="mt-8 sm:mt-16">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-ink">
               <span className={meta.accent}>
                 <Icon
@@ -266,13 +352,9 @@ export default async function RideDetailPage({ params }: Props) {
         </div>
       </section>
 
-      <section className="px-6 py-10 sm:py-14">
+      <section className="px-6 pb-28 pt-10 sm:py-14">
         <div className="mx-auto max-w-4xl space-y-6">
-          <RideChatSection rideId={ride.id} />
-          {dayState && (
-            <RideDayPanel rideId={ride.id} isDriver={ride.isOwn} status={dayState.status} vehicle={dayState.vehicle} windowOpen={dayState.windowOpen} />
-          )}
-          <RideFeedback rideId={ride.id} />
+          {participant && extras}
 
           <div className={card}>
             <h2 className="text-2xl font-extrabold tracking-tight">Güzergâh</h2>
@@ -412,8 +494,12 @@ export default async function RideDetailPage({ params }: Props) {
               <ActionArea ride={ride} user={user} gate={gate} />
             </div>
           </div>
+
+          {!participant && extras}
         </div>
       </section>
+
+      <StickyJoinBar ride={ride} user={user} gate={gate} />
     </main>
   );
 }
