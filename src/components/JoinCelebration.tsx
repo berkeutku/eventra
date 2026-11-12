@@ -64,9 +64,6 @@ export default function JoinCelebration({ joined }: { joined: boolean }) {
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-[90]"
       >
-        <div className="absolute left-1/2 top-24 -translate-x-1/2 rounded-full bg-violet px-5 py-2.5 text-sm font-bold text-white shadow-soft">
-          Yolculuğa katıldın!
-        </div>
         <div className="absolute left-1/2 top-1/2 h-0 w-0">
           {PIECES.map((piece, index) => (
             <span

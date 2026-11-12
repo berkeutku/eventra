@@ -104,7 +104,7 @@ export default function Header() {
 
           <div className="sm:hidden">
             {user ? (
-              <LogoutForm buttonClassName="inline-flex min-h-11 items-center rounded-full bg-lilac px-4 text-sm font-bold text-violet" />
+              <LogoutForm buttonClassName="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-bold text-muted hover:bg-lilac" />
             ) : (
               <div className="flex items-center gap-1">
                 <Link
