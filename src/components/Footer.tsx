@@ -37,6 +37,7 @@ export default function Footer() {
           >
             Gizlilik ve veri notu
           </Link>
+          <Link href="/kullanim-kosullari" className="font-bold text-white underline-offset-4 hover:underline">Kullan&#305;m ko&#351;ullar&#305;</Link>
           <span className="text-white/60">
             {real
               ? "Demo etkinlik etiketli etkinlikler ve görselleri kurgusaldır. Ziyaret istatistikleri çerez kullanılmadan toplanır."
