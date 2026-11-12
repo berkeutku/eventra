@@ -8,6 +8,7 @@ import {
   ridePassengers,
   rideMessages,
   rides,
+  ticketVerifications,
   users,
 } from "../src/db/schema";
 import {
@@ -16,7 +17,12 @@ import {
   containsLink,
   prepareMessage,
 } from "../src/lib/chat-rules";
-import { deleteMessage, loadChat, sendMessage } from "../src/lib/ride-chat";
+import {
+  deleteMessage,
+  getChatStatus,
+  loadChat,
+  sendMessage,
+} from "../src/lib/ride-chat";
 
 let passed = 0;
 let failed = 0;
@@ -58,10 +64,11 @@ async function main() {
   }
 
   const stamp = Date.now();
+  const realId = `bgotestchat${stamp}-real`;
   const created = await db
     .insert(users)
     .values(
-      ["D", "P1", "P2", "O"].map((name, index) => ({
+      ["D", "P1", "P2", "O", "U"].map((name, index) => ({
         name: `Chat ${name} Soyad`,
         email: `chat-${index}-${stamp}@chat-test.invalid`,
         passwordHash: "test",
@@ -75,18 +82,22 @@ async function main() {
   const p1 = find("P1");
   const p2 = find("P2");
   const o = find("O");
+  const u = find("U");
 
-  if (!d || !p1 || !p2 || !o) {
+  if (!d || !p1 || !p2 || !o || !u) {
     throw new Error("Test kullanıcıları oluşturulamadı.");
   }
 
   try {
+    // Sürücü ve iki yolcunun bileti doğrulanmış, U (doğrulamamış) ve O (katılmamış) değil.
+    await db.insert(ticketVerifications).values([d, p1, p2].map((user, index) => ({ userId: user.id, eventId: demo.id, codeHash: `chat-${stamp}-${index}` })));
+
     const [ride] = await db
       .insert(rides)
-      .values({ eventId: demo.id, driverId: d.id, origin: "T", destination: "T", meetingPoint: "T", departureTime: "23:30", durationMinutes: 30, seats: 3, totalCost: 100 })
+      .values({ eventId: demo.id, driverId: d.id, origin: "T", destination: "T", meetingPoint: "T", departureTime: "23:30", durationMinutes: 30, seats: 4, totalCost: 100 })
       .returning({ id: rides.id });
     const rideId = ride.id;
-    await db.insert(ridePassengers).values([{ rideId, userId: p1.id }, { rideId, userId: p2.id }]);
+    await db.insert(ridePassengers).values([{ rideId, userId: p1.id }, { rideId, userId: p2.id }, { rideId, userId: u.id }]);
 
     const t0 = new Date(Math.floor(Date.now() / 300_000) * 300_000 + 1000);
     const at = (seconds: number) => new Date(t0.getTime() + seconds * 1000);
@@ -100,7 +111,14 @@ async function main() {
       return chat?.items.length === 1 && chat.items[0].name === "Chat" && !JSON.stringify(chat.items).includes("Soyad") && chat.items[0].mine === false && chat.access.phase === "open";
     })());
     check("gönderen kendi mesajını 'mine' görür", (await loadChat(rideId, d.id, t0))?.items[0].mine === true);
-    check("ilk mesajda iki yolcuya birer bildirim gitti, gönderene gitmedi", (await notes(p1.id)) === 1 && (await notes(p2.id)) === 1 && (await notes(d.id)) === 0);
+    check("ilk mesajda iki doğrulanmış yolcuya birer bildirim gitti, gönderene gitmedi", (await notes(p1.id)) === 1 && (await notes(p2.id)) === 1 && (await notes(d.id)) === 0);
+
+    // Bilet doğrulama şartı
+    check("bileti doğrulamamış katılımcı sohbeti okuyamaz", (await loadChat(rideId, u.id, t0)) === null);
+    check("bileti doğrulamamış katılımcı yazamaz", (await send(u.id, "Selam")) === "not_participant" && (await countBy(u.id)) === 0);
+    check("doğrulamamış katılımcının durumu 'verify_required'", (await getChatStatus(rideId, u.id, t0)).status === "verify_required");
+    check("doğrulamamış katılımcıya bildirim gitmez", (await notes(u.id)) === 0);
+    check("doğrulanmış katılımcının durumu 'ok', katılmamış olanınki 'none'", (await getChatStatus(rideId, p1.id, t0)).status === "ok" && (await getChatStatus(rideId, o.id, t0)).status === "none");
 
     check("yolcu mesaj gönderir", (await send(p1.id, "Ben geldim", at(60))) === "sent");
     check("sürücüye bildirim gitti, aynı 5 dakikada yolcuya tekrar gitmedi", (await notes(d.id)) === 1 && (await notes(p2.id)) === 1);
@@ -133,6 +151,10 @@ async function main() {
     check("yolculuktan ayrılan okuyamaz ve yazamaz", (await loadChat(rideId, p2.id, at(420))) === null && (await send(p2.id, "Ayrıldım", at(420))) === "not_participant");
     check("ayrılanın eski mesajları diğerlerinde kalır", (await loadChat(rideId, d.id, at(420)))?.items.some((item) => item.body === "Tamam") === true);
 
+    // Bileti sonradan doğrulayan erişir
+    await db.insert(ticketVerifications).values({ userId: u.id, eventId: demo.id, codeHash: `chat-${stamp}-u` });
+    check("bileti sonradan doğrulayan katılımcı sohbete erişir", (await getChatStatus(rideId, u.id, at(430))).status === "ok" && (await loadChat(rideId, u.id, at(430))) !== null);
+
     // 60 günden eski mesajlar temizlenir
     await db.insert(rideMessages).values({ rideId, senderId: d.id, body: "eski mesaj", createdAt: new Date(t0.getTime() - 61 * DAY) });
     check("gönderimde 60 günden eski mesajlar silinir", (await send(d.id, "Yeni mesaj", at(500))) === "sent" && (await db.select({ id: rideMessages.id }).from(rideMessages).where(eq(rideMessages.body, "eski mesaj"))).length === 0);
@@ -151,8 +173,18 @@ async function main() {
     // Yolculuk silinince sohbet silinir
     await db.delete(rides).where(eq(rides.id, rideId));
     check("yolculuk silinince mesajlar da silinir", (await db.select({ id: rideMessages.id }).from(rideMessages).where(eq(rideMessages.rideId, rideId))).length === 0);
+
+    // Gerçek (biletimGO) etkinliklerde sohbet kapalı
+    await db.insert(events).values({ id: realId, externalId: `c${stamp}r`, title: "Gerçek test", category: "other", city: "Test", venue: "Test", description: "Test", source: "biletimgo", isActive: true, startsAt: new Date(Date.now() + 3 * DAY) });
+    const [realRide] = await db
+      .insert(rides)
+      .values({ eventId: realId, driverId: d.id, origin: "T", destination: "T", meetingPoint: "T", departureTime: "23:30", durationMinutes: 30, seats: 2, totalCost: 100 })
+      .returning({ id: rides.id });
+    check("gerçek etkinlik yolculuğunda sohbet kapalı ('unavailable')", (await getChatStatus(realRide.id, d.id)).status === "unavailable");
+    check("gerçek etkinlik yolculuğunda mesaj yazılamaz", (await sendMessage({ rideId: realRide.id, userId: d.id, text: "x" })) === "not_participant");
   } finally {
     await db.delete(rides).where(eq(rides.driverId, d.id));
+    await db.delete(events).where(eq(events.id, realId));
     await db.delete(users).where(inArray(users.id, created.map((user) => user.id)));
   }
 

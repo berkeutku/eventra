@@ -1,4 +1,4 @@
-import { and, desc, eq, lt, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import { db } from "../db";
 import {
   events,
@@ -6,6 +6,7 @@ import {
   ridePassengers,
   rideMessages,
   rides,
+  ticketVerifications,
   users,
 } from "../db/schema";
 import {
@@ -30,24 +31,33 @@ const UUID_PATTERN =
 export type ChatAccess = {
   rideId: string;
   eventId: string;
+  // Yalnızca bu etkinlik için bileti doğrulanmış katılımcılar.
   participantIds: string[];
   phase: ChatPhase;
 };
 
-// Yalnızca yolculuğun sürücüsü ve o an katılmış yolcular için sonuç döner, diğer herkes için null.
-export async function getChatAccess(
+export type ChatStatus =
+  | { status: "ok"; access: ChatAccess }
+  | { status: "verify_required"; eventId: string }
+  | { status: "unavailable" }
+  | { status: "none" };
+
+// Sohbet için iki şart gerekir: kişi yolculuğun sürücüsü ya da o an katılmış bir yolcusu olmalı
+// VE bu etkinliğin biletini doğrulamış olmalı. Gerçek (biletimGO) etkinliklerde sohbet kapalıdır.
+export async function getChatStatus(
   rideId: string,
   userId: string,
   now: Date = new Date(),
-): Promise<ChatAccess | null> {
+): Promise<ChatStatus> {
   if (!UUID_PATTERN.test(rideId)) {
-    return null;
+    return { status: "none" };
   }
 
   const [row] = await db
     .select({
       eventId: rides.eventId,
       driverId: rides.driverId,
+      source: events.source,
       startsAt: events.startsAt,
       endsAt: events.endsAt,
     })
@@ -57,7 +67,7 @@ export async function getChatAccess(
     .limit(1);
 
   if (!row) {
-    return null;
+    return { status: "none" };
   }
 
   const passengers = await db
@@ -65,24 +75,56 @@ export async function getChatAccess(
     .from(ridePassengers)
     .where(eq(ridePassengers.rideId, rideId));
 
-  const participantIds = [row.driverId, ...passengers.map((p) => p.userId)];
+  const everyone = [row.driverId, ...passengers.map((p) => p.userId)];
 
-  if (!participantIds.includes(userId)) {
-    return null;
+  if (!everyone.includes(userId)) {
+    return { status: "none" };
+  }
+
+  if (row.source === "biletimgo") {
+    return { status: "unavailable" };
+  }
+
+  const verifiedRows = await db
+    .select({ userId: ticketVerifications.userId })
+    .from(ticketVerifications)
+    .where(
+      and(
+        eq(ticketVerifications.eventId, row.eventId),
+        inArray(ticketVerifications.userId, everyone),
+      ),
+    );
+
+  const verified = new Set(verifiedRows.map((item) => item.userId));
+
+  if (!verified.has(userId)) {
+    return { status: "verify_required", eventId: row.eventId };
   }
 
   return {
-    rideId,
-    eventId: row.eventId,
-    participantIds,
-    phase: chatPhase(
-      {
-        startsAt: row.startsAt.toISOString(),
-        endsAt: row.endsAt ? row.endsAt.toISOString() : null,
-      },
-      now,
-    ),
+    status: "ok",
+    access: {
+      rideId,
+      eventId: row.eventId,
+      participantIds: everyone.filter((id) => verified.has(id)),
+      phase: chatPhase(
+        {
+          startsAt: row.startsAt.toISOString(),
+          endsAt: row.endsAt ? row.endsAt.toISOString() : null,
+        },
+        now,
+      ),
+    },
   };
+}
+
+export async function getChatAccess(
+  rideId: string,
+  userId: string,
+  now: Date = new Date(),
+): Promise<ChatAccess | null> {
+  const result = await getChatStatus(rideId, userId, now);
+  return result.status === "ok" ? result.access : null;
 }
 
 // Çağıran taraf erişimi önceden doğrulamış olmalı. Son 60 mesaj, eskiden yeniye.
@@ -189,7 +231,7 @@ export async function sendMessage(input: {
     createdAt: now,
   });
 
-  // Diğer katılımcılara bildirim: mesaj içeriği bildirimde yazmaz, aynı yolculuk için 5 dakikada bir.
+  // Diğer (doğrulanmış) katılımcılara bildirim: mesaj içeriği bildirimde yazmaz, aynı yolculuk için 5 dakikada bir.
   try {
     const recipients = access.participantIds.filter((id) => id !== input.userId);
 
