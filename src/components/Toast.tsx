@@ -20,8 +20,15 @@ type ToastItem = {
   tone: Tone;
 };
 
+type TickState = {
+  id: number;
+  phase: "enter" | "in" | "out";
+};
+
 type ToastApi = {
   show: (message: string, tone?: Tone) => void;
+  // Ekranın ortasında kısa süre beliren yeşil onay işareti.
+  tick: () => void;
 };
 
 const ToastContext = createContext<ToastApi | null>(null);
@@ -38,8 +45,10 @@ export function useToast(): ToastApi {
 
 export default function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([]);
+  const [tickState, setTickState] = useState<TickState | null>(null);
   const nextId = useRef(1);
   const timers = useRef(new Map<number, ReturnType<typeof setTimeout>>());
+  const tickTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const dismiss = useCallback((id: number) => {
     clearTimeout(timers.current.get(id));
@@ -62,20 +71,71 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
     [dismiss],
   );
 
+  const tick = useCallback(() => {
+    const list = tickTimers.current;
+    list.forEach((timer) => clearTimeout(timer));
+    list.length = 0;
+
+    const id = nextId.current;
+    nextId.current += 1;
+
+    setTickState({ id, phase: "enter" });
+    list.push(
+      setTimeout(() => setTickState({ id, phase: "in" }), 30),
+      setTimeout(() => setTickState({ id, phase: "out" }), 1300),
+      setTimeout(() => setTickState(null), 1700),
+    );
+  }, []);
+
   useEffect(() => {
     const activeTimers = timers.current;
+    const activeTickTimers = tickTimers.current;
 
     return () => {
       activeTimers.forEach((timer) => clearTimeout(timer));
       activeTimers.clear();
+      activeTickTimers.forEach((timer) => clearTimeout(timer));
+      activeTickTimers.length = 0;
     };
   }, []);
 
-  const api = useMemo(() => ({ show }), [show]);
+  const api = useMemo(() => ({ show, tick }), [show, tick]);
+
+  const tickClass =
+    tickState?.phase === "in"
+      ? "scale-100 opacity-100"
+      : tickState?.phase === "enter"
+        ? "scale-50 opacity-0"
+        : "scale-110 opacity-0";
 
   return (
     <ToastContext.Provider value={api}>
       {children}
+
+      {tickState && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="pointer-events-none fixed inset-0 z-[60] grid place-items-center"
+        >
+          <span className="sr-only">Onaylandı</span>
+          <span
+            aria-hidden="true"
+            className={
+              "grid h-28 w-28 place-items-center rounded-full bg-mint text-night shadow-2xl shadow-mint/40 ring-8 ring-mint/25 transition-all duration-300 motion-reduce:transition-none " +
+              tickClass
+            }
+            style={
+              tickState.phase === "in"
+                ? { transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)" }
+                : undefined
+            }
+          >
+            <Icon name="check" className="h-14 w-14" />
+          </span>
+        </div>
+      )}
+
       <div
         role="status"
         aria-live="polite"

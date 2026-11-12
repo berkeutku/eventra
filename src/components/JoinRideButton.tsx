@@ -16,6 +16,7 @@ export default function JoinRideButton({ rideId }: { rideId: string }) {
       // Onay yalnızca sunucu katılımı gerçekten kaydettiğinde gösterilir.
       if (result.success) {
         toast.show(result.success);
+        toast.tick();
       }
 
       return result;

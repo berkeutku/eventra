@@ -36,7 +36,7 @@ const beats = [
 const TAPS: Record<1 | 2 | 3, { x: number; y: number }> = {
   1: { x: 150, y: 300 },
   2: { x: 242, y: 388 },
-  3: { x: 150, y: 602 },
+  3: { x: 150, y: 538 },
 };
 
 const PEOPLE = [
@@ -129,6 +129,39 @@ function Cover({
   );
 }
 
+function TabBar() {
+  const tabs = [
+    { icon: "home" as const, label: "Ana Sayfa", active: false },
+    { icon: "ticket" as const, label: "Etkinlikler", active: true },
+    { icon: "bell" as const, label: "Bildirimler", active: false },
+    { icon: "user" as const, label: "Profil", active: false },
+  ];
+
+  return (
+    <div className="absolute inset-x-0 bottom-0 z-30 flex h-16 items-start justify-around border-t border-black/5 bg-white/95 pt-1.5">
+      {tabs.map((tab) => (
+        <span
+          key={tab.label}
+          className={
+            "flex flex-col items-center gap-0.5 text-[10px] font-bold " +
+            (tab.active ? "text-violet" : "text-muted")
+          }
+        >
+          <span
+            className={
+              "grid h-7 w-12 place-items-center rounded-full " +
+              (tab.active ? "bg-lilac" : "")
+            }
+          >
+            <Icon name={tab.icon} className="h-5 w-5" />
+          </span>
+          {tab.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function ScreenList({
   stage,
   cover1,
@@ -138,12 +171,6 @@ function ScreenList({
   cover1?: string;
   cover2?: string;
 }) {
-  const tabs = [
-    { icon: "home" as const, label: "Ana sayfa", active: false },
-    { icon: "ticket" as const, label: "Etkinlikler", active: true },
-    { icon: "user" as const, label: "Profil", active: false },
-  ];
-
   return (
     <div
       className={`absolute inset-0 bg-surface transition-all duration-500 motion-reduce:transition-none ${
@@ -152,12 +179,9 @@ function ScreenList({
     >
       <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between bg-surface px-4 pb-2 pt-12">
         <div className="flex items-center gap-2">
-          <span className="grid h-7 w-7 place-items-center rounded-lg bg-violet text-sm font-extrabold text-white">
-            e
-          </span>
-          <span className="text-base font-extrabold tracking-tight text-ink">
-            eventra
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-mark.png" alt="" className="h-7 w-auto" />
+          <span className="text-lg font-extrabold tracking-tight text-ink">eventra</span>
         </div>
         <span className="grid h-8 w-8 place-items-center rounded-full bg-lilac text-xs font-extrabold text-violet">
           B
@@ -229,19 +253,6 @@ function ScreenList({
         </div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 flex h-16 items-start justify-around border-t border-black/5 bg-white/95 pt-2.5">
-        {tabs.map((tab) => (
-          <span
-            key={tab.label}
-            className={`flex flex-col items-center gap-0.5 text-[11px] font-bold ${
-              tab.active ? "text-violet" : "text-muted"
-            }`}
-          >
-            <Icon name={tab.icon} className="h-5 w-5" />
-            {tab.label}
-          </span>
-        ))}
-      </div>
     </div>
   );
 }
@@ -446,7 +457,7 @@ function ScreenJoined({
       </div>
 
       <div
-        className={`absolute inset-x-4 bottom-4 flex h-11 items-center justify-center rounded-full text-sm font-bold text-white transition-all duration-200 ${
+        className={`absolute inset-x-4 bottom-20 flex h-11 items-center justify-center rounded-full text-sm font-bold text-white transition-all duration-200 ${
           tap === 3 ? "scale-95 bg-sky" : "scale-100 bg-violet"
         }`}
       >
@@ -818,6 +829,7 @@ export default function HeroScroller() {
                     <ScreenDetail stage={stage} tap={tap} cover1={cover1} />
                     <ScreenJoined stage={stage} tap={tap} fill={fill} />
                     <ScreenArrived stage={stage} />
+                    <TabBar />
                     <Tapper show={tap === 1} x={TAPS[1].x} y={TAPS[1].y} />
                     <Tapper show={tap === 2} x={TAPS[2].x} y={TAPS[2].y} />
                     <Tapper show={tap === 3} x={TAPS[3].x} y={TAPS[3].y} />

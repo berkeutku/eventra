@@ -1,8 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition, useActionState, useState, useTransition } from "react";
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { useAuthUser } from "@/components/AuthProvider";
+import { useToast } from "@/components/Toast";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import {
   generateDemoCodeAction,
@@ -20,6 +28,18 @@ export default function TicketVerificationCard({
   verified: boolean;
 }) {
   const user = useAuthUser();
+  const toast = useToast();
+  const wasVerified = useRef(verified);
+
+  // Doğrulama bu ekranda yeni tamamlandığında (sayfa zaten doğrulanmış açılmadığında) tik göster.
+  useEffect(() => {
+    if (verified && !wasVerified.current) {
+      toast.tick();
+    }
+
+    wasVerified.current = verified;
+  }, [verified, toast]);
+
   const [state, formAction, pending] = useActionState(
     verifyTicketAction,
     initialState,
