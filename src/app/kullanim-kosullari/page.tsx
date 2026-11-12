@@ -39,7 +39,7 @@ const sections: { title: string; paragraphs: string[] }[] = [
     ],
   },
   {
-    title: "3. Masraf paylaşımı",
+    title: "5. Masraf paylaşımı",
     paragraphs: [
       "Eventra'da gösterilen tutarlar yol masrafının eşit bölüşülmesine dair tahminlerdir. Eventra para toplamaz, ödeme aracılığı yapmaz ve emanet sistemi sunmaz.",
       "Masraf paylaşımı kâr amacı gütmemelidir. Sürücü bu hizmeti ticari yolcu taşımacılığı olarak sunamaz, yalnızca yol masrafına ortak olunmasını isteyebilir. Ödemenin nasıl ve ne zaman yapılacağı kullanıcıların kendi aralarındaki konudur.",
