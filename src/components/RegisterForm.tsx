@@ -107,6 +107,43 @@ export default function RegisterForm() {
         )}
       </div>
 
+      <div>
+        <label
+          htmlFor="terms"
+          className="flex cursor-pointer items-start gap-3 text-sm text-ink"
+        >
+          <input
+            id="terms"
+            name="terms"
+            type="checkbox"
+            aria-invalid={errors.terms ? true : undefined}
+            aria-describedby={errors.terms ? "terms-error" : undefined}
+            className="mt-0.5 h-5 w-5 shrink-0 rounded border-line accent-violet"
+          />
+          <span>
+            <Link
+              href="/kullanim-kosullari"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-violet hover:underline"
+            >
+              Kullanım koşullarını
+            </Link>{" "}
+            ve{" "}
+            <Link
+              href="/gizlilik"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-violet hover:underline"
+            >
+              gizlilik notunu
+            </Link>{" "}
+            okudum, kabul ediyorum. 18 yaşını doldurdum.
+          </span>
+        </label>
+        <FieldError id="terms-error" message={errors.terms} />
+      </div>
+
       <button
         type="submit"
         disabled={pending}

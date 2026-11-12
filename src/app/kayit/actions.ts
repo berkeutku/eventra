@@ -9,7 +9,7 @@ import { hashPassword } from "@/lib/password";
 import { checkSignupAllowed, recordSignup } from "@/lib/signup-throttle";
 
 export type RegisterState = {
-  errors?: Partial<Record<"name" | "email" | "password", string>>;
+  errors?: Partial<Record<"name" | "email" | "password" | "terms", string>>;
   message?: string;
   values?: { name: string; email: string };
 };
@@ -42,6 +42,7 @@ export async function registerAction(
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+  const accepted = formData.get("terms") === "on";
   const values = { name, email };
 
   const errors: NonNullable<RegisterState["errors"]> = {};
@@ -58,6 +59,11 @@ export async function registerAction(
     errors.password = "Parola en az 8 karakter olmalı.";
   } else if (password.length > 128) {
     errors.password = "Parola en fazla 128 karakter olabilir.";
+  }
+
+  if (!accepted) {
+    errors.terms =
+      "Devam etmek için kullanım koşullarını kabul etmelisin.";
   }
 
   if (Object.keys(errors).length > 0) {
