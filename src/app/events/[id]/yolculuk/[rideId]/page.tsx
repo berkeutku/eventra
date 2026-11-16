@@ -11,6 +11,8 @@ import RideChatSection from "@/components/RideChatSection";
 import RideDayPanel from "@/components/RideDayPanel";
 import RideFeedback from "@/components/RideFeedback";
 import RideRouteCard from "@/components/RideRouteCard";
+import { LinkButton } from "@/components/ui/Button";
+import { cardClass } from "@/components/ui/Card";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { pickEventImage } from "@/data/event-images";
 import { categoryMeta } from "@/data/events";
@@ -86,12 +88,11 @@ function ActionArea({
 }) {
   if (!user) {
     return (
-      <Link
+      <LinkButton
         href={`/giris?next=/events/${ride.eventId}/yolculuk/${ride.id}`}
-        className="inline-block rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky"
       >
         Katılmak için giriş yap
-      </Link>
+      </LinkButton>
     );
   }
 
@@ -196,18 +197,16 @@ function StickyJoinBar({
 }) {
   const shell =
     "fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 border-t border-line bg-white/95 px-4 py-3 shadow-[0_-8px_24px_rgba(108,77,255,0.12)] backdrop-blur sm:hidden";
-  const wide =
-    "block rounded-full bg-violet px-6 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-sky";
 
   if (!user) {
     return (
       <div className={shell}>
-        <Link
+        <LinkButton
           href={"/giris?next=/events/" + ride.eventId + "/yolculuk/" + ride.id}
-          className={wide}
+          className="w-full"
         >
           Katılmak için giriş yap
-        </Link>
+        </LinkButton>
       </div>
     );
   }
@@ -224,9 +223,12 @@ function StickyJoinBar({
   if (gate === "verify_required") {
     return (
       <div className={shell}>
-        <Link href={"/events/" + ride.eventId + "#bilet"} className={wide}>
+        <LinkButton
+          href={"/events/" + ride.eventId + "#bilet"}
+          className="w-full"
+        >
           Katılmak için bileti doğrula
-        </Link>
+        </LinkButton>
       </div>
     );
   }
@@ -254,8 +256,7 @@ function StickyJoinBar({
   );
 }
 
-const card =
-  "rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-8";
+const card = cardClass;
 
 export default async function RideDetailPage({ params }: Props) {
   const { id, rideId } = await params;

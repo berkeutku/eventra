@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { useToast } from "@/components/Toast";
+import { Button } from "@/components/ui/Button";
 import { joinRideAction, type JoinRideState } from "@/lib/ride-actions";
 
 const initialState: JoinRideState = {};
@@ -27,13 +28,9 @@ export default function JoinRideButton({ rideId }: { rideId: string }) {
   return (
     <form action={formAction}>
       <input type="hidden" name="rideId" value={rideId} />
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky disabled:cursor-not-allowed disabled:opacity-60"
-      >
+      <Button type="submit" disabled={pending}>
         {pending ? "Katılınıyor…" : "Yolculuğa katıl"}
-      </button>
+      </Button>
       {state.message && (
         <p role="alert" className="mt-3 text-sm font-medium text-coral-ink">
           {state.message}
