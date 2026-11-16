@@ -49,12 +49,16 @@ const sections: { title: string; text: string }[] = [
     text: "Site Vercel üzerinde barındırılır, veriler Neon veritabanında tutulur; bu sağlayıcılar kendi sistem kayıtlarını tutabilir. Harita görüntüsü OpenFreeMap'ten, harita verisi OpenStreetMap katkıcılarından gelir: haritayı açtığında tarayıcın doğrudan bu hizmete bağlanır ve ağ adresin onlara ulaşır. Yer araması için yazdığın metin sunucumuz üzerinden OpenStreetMap'in Nominatim hizmetine, rota hesabı için seçtiğin noktalar OSRM (ya da yapılandırılmışsa OpenRouteService) hizmetine gönderilir, kim olduğun gönderilmez. Arama sonuçları ve rotalar, kullanıcıyla ilişkilendirilmeden bir süre önbellekte tutulur. Telefon bildirimleri tarayıcı üreticilerinin bildirim servisleri üzerinden iletilir. Gerçek etkinlikler gösterildiğinde etkinlik bilgileri biletimGO'dan alınır ve bilet bağlantısına tıkladığında biletimGO'nun kendi koşulları geçerli olur.",
   },
   {
+    title: "Verilerini indirme",
+    text: "Ayarlar sayfasındaki \"Verilerimi indir\" düğmesiyle sana ait verilerin bir kopyasını JSON dosyası olarak indirebilirsin: profilin, yolculukların, katılımların, bilet doğrulamaların, favorilerin, taleplerin, verdiğin ve hakkındaki puanlar, mesajların ve bildirimlerin. Parola özeti, bilet kodu özeti, cihaz bildirim anahtarları ve diğer kullanıcıların kimlik bilgileri dosyaya konmaz. Saatte en fazla 3 kez indirebilirsin.",
+  },
+  {
     title: "Hesabını silme",
     text: "Profil, Ayarlar sayfasından parolanla hesabını silebilirsin. Hesabın, yolculukların ve harita bilgileri, katılımların, sohbet mesajların, yolcu talepların, favorilerin, bildirimlerin, bildirim tercihlerin, verdiğin ve hakkındaki puanlar ile şikâyetler ve bildirim abonelikleri birlikte silinir. Yolculuğuna katılmış kişilere iptal bildirimi gider.",
   },
   {
     title: "Bu bir demo",
-    text: "Eventra bir demo projesidir. Gerçek e-posta adresi ve gerçek parola kullanma. E-posta doğrulama ve unutulan parolayı sıfırlama yoktur. Bu sayfa kısa bir bilgilendirmedir, resmi bir gizlilik politikası ya da aydınlatma metni yerine geçmez.",
+    text: "Eventra şu an demo sürümündedir. Gerçek e-posta adresi ve gerçek parola kullanma. E-posta doğrulama ve unutulan parolayı sıfırlama yoktur. Bu sayfa kısa bir bilgilendirmedir, resmi bir gizlilik politikası ya da aydınlatma metni yerine geçmez.",
   },
 ];
 

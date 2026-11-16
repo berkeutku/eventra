@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ChangePasswordCard from "@/components/ChangePasswordCard";
+import DataExportCard from "@/components/DataExportCard";
 import DeleteAccountCard from "@/components/DeleteAccountCard";
 import NotificationPrefs from "@/components/NotificationPrefs";
 import PanelGate from "@/components/PanelGate";
@@ -67,6 +68,8 @@ export default async function SettingsPage() {
         <ChangePasswordCard />
 
         <SecurityCard sessionCount={sessionCount} />
+
+        <DataExportCard />
 
         <DeleteAccountCard />
       </div>
