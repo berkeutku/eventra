@@ -4,6 +4,21 @@
 const ENDPOINT = "https://www.biletimgo.com/api/v1/etkinlik-listesi";
 const MAX_BYTES = 8_000_000;
 const TIMEOUT_MS = 30_000;
+const USER_AGENT =
+  "Eventra-Sync/1.0 (+https://eventra-one-azure.vercel.app; student demo project)";
+
+// 403 teşhisinde yalnızca bu güvenli başlıklar günlüğe yazılır.
+const SAFE_HEADERS = [
+  "server",
+  "via",
+  "cf-ray",
+  "cf-cache-status",
+  "x-sucuri-id",
+  "x-amz-cf-id",
+  "x-akamai-request-id",
+  "retry-after",
+  "content-type",
+];
 
 export type FetchLike = typeof fetch;
 
@@ -28,6 +43,33 @@ export class BiletimgoError extends Error {
   }
 }
 
+// Engellenen yanıtı özetler: durum, güvenli başlıklar ve HTML sayfasının başlığı.
+// İstek adresi, token ve yanıt gövdesinin geri kalanı hiçbir zaman yazılmaz.
+async function describeBlock(response: Response): Promise<string> {
+  const parts: string[] = [`status=${response.status}`];
+
+  for (const name of SAFE_HEADERS) {
+    const value = response.headers.get(name);
+
+    if (value) {
+      parts.push(`${name}=${value.slice(0, 80)}`);
+    }
+  }
+
+  try {
+    const html = (await response.text()).slice(0, 4000);
+    const title = html.match(/<title[^>]*>([^<]{1,120})/i)?.[1];
+
+    if (title) {
+      parts.push(`title=${title.replace(/\s+/g, " ").trim().slice(0, 100)}`);
+    }
+  } catch {
+    // Gövde okunamazsa başlıklar yine de yazılır.
+  }
+
+  return parts.join(" | ");
+}
+
 export async function fetchBiletimgoEvents(
   token: string,
   fetchImpl: FetchLike = fetch,
@@ -42,7 +84,7 @@ export async function fetchBiletimgoEvents(
     response = await fetchImpl(
       `${ENDPOINT}?access_token=${encodeURIComponent(token)}`,
       {
-        headers: { Accept: "application/json" },
+        headers: { Accept: "application/json", "User-Agent": USER_AGENT },
         redirect: "error",
         cache: "no-store",
         signal: AbortSignal.timeout(TIMEOUT_MS),
@@ -62,6 +104,7 @@ export async function fetchBiletimgoEvents(
   if (response.status === 403) {
     // Yanıt JSON değil HTML ise genellikle bir güvenlik katmanı (WAF/CDN) isteği engellemiştir.
     const contentType = response.headers.get("content-type") ?? "";
+    console.error("biletimgo_403", await describeBlock(response));
     throw new BiletimgoError(
       contentType.includes("html") ? "forbidden_html" : "forbidden",
     );
