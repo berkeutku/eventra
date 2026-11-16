@@ -380,7 +380,13 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
 
             {!isReal && (
               <div id="bilet">
-                <TicketVerificationCard eventId={event.id} verified={verified} />
+                <TicketVerificationCard
+                  eventId={event.id}
+                  verified={verified}
+                  createHref={
+                    showCreate ? `/events/${event.id}/yolculuk-olustur` : null
+                  }
+                />
               </div>
             )}
             <RideList rides={rides} eventId={event.id} gate={gate} />
