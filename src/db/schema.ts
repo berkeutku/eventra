@@ -533,3 +533,13 @@ export const rideShares = pgTable(
     index("ride_shares_expires_idx").on(table.expiresAt),
   ],
 );
+
+// Yönetici panelinden değiştirilebilen basit anahtar-değer ayarları (örn. gerçek etkinlikleri gösterme).
+export const appSettings = pgTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedBy: text("updated_by"),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});

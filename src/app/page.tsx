@@ -7,7 +7,7 @@ import Icon, { type IconName } from "@/components/Icons";
 import type { EventItem } from "@/data/events";
 import { getCurrentUser } from "@/lib/auth";
 import { getEvents } from "@/lib/events";
-import { realEventsEnabled } from "@/lib/flags";
+import { getShowRealEvents } from "@/lib/app-settings";
 
 export const dynamic = "force-dynamic";
 
@@ -158,7 +158,8 @@ const passengerPerks = [
   "Buluşma noktası ve varış saati önceden belli olsun.",
 ];
 
-const faqs = [
+function buildFaqs(showReal: boolean) {
+  return [
   {
     q: "Eventra nedir?",
     a: "Aynı etkinliğe katılan kişileri etkinlik sonrası ortak yolculuklarda buluşturmayı hedefleyen bir yolculuk paylaşım platformu. Şu an bir demo olarak geliştiriliyor.",
@@ -177,11 +178,12 @@ const faqs = [
   },
   {
     q: "Hangi etkinlikler listeleniyor?",
-    a: realEventsEnabled()
+    a: showReal
       ? "Etkinlik bilgileri iş ortağımız biletimGO'dan alınır ve değişebilir; biletleri Eventra değil biletimGO satar. Demo etkinlik etiketli etkinlikler ise kurgusaldır ve yolculuk özelliklerini denemek için vardır."
       : "Listelenen etkinlikler, mekanlar ve takımlar tamamen kurgusal demo verileridir.",
   },
-];
+  ];
+}
 
 async function loadUpcomingEvents(): Promise<EventItem[]> {
   try {
@@ -239,6 +241,7 @@ function FeatureCard({ feature }: { feature: Feature }) {
 }
 
 export default async function HomePage() {
+  const faqs = buildFaqs(await getShowRealEvents());
   const upcoming = await loadUpcomingEvents();
   const user = await getCurrentUser().catch(() => null);
 

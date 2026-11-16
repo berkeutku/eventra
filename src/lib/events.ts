@@ -2,6 +2,7 @@ import { cache } from "react";
 import { and, asc, eq, ilike, lt, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { events } from "@/db/schema";
+import { getShowRealEvents } from "@/lib/app-settings";
 import type { EventCategory, EventItem } from "@/data/events";
 
 type EventRow = typeof events.$inferSelect;
@@ -28,12 +29,6 @@ function toEventItem(row: EventRow): EventItem {
 }
 
 export const PAGE_SIZE = 24;
-
-// Gerçek (biletimGO) etkinlikler yalnızca SHOW_REAL_EVENTS=1 ise görünür ve açılabilir.
-// Değişken yoksa site yalnızca demo etkinlikleri gösterir (güvenli varsayılan).
-export function realEventsEnabled(): boolean {
-  return process.env.SHOW_REAL_EVENTS === "1";
-}
 
 export type SourceFilter = "all" | "real" | "demo";
 export type WhenFilter = "all" | "today" | "week" | "weekend" | "month";
@@ -105,10 +100,10 @@ function escapeLike(text: string): string {
   return text.replace(/[\\%_]/g, (char) => `\\${char}`);
 }
 
-function visibleSource(source: SourceFilter): SQL {
+function visibleSource(source: SourceFilter, showReal: boolean): SQL {
   const demo = eq(events.source, "demo");
 
-  if (!realEventsEnabled() || source === "demo") {
+  if (!showReal || source === "demo") {
     return demo;
   }
 
@@ -120,9 +115,13 @@ function visibleSource(source: SourceFilter): SQL {
   return source === "real" ? real : (or(demo, real) as SQL);
 }
 
-function conditions(filters: EventFilters, withCategory: boolean): SQL {
+function conditions(
+  filters: EventFilters,
+  withCategory: boolean,
+  showReal: boolean,
+): SQL {
   const parts: (SQL | undefined)[] = [
-    visibleSource(filters.source ?? "all"),
+    visibleSource(filters.source ?? "all", showReal),
     UPCOMING,
   ];
 
@@ -163,7 +162,7 @@ function conditions(filters: EventFilters, withCategory: boolean): SQL {
 export async function listEvents(
   filters: EventFilters & { page?: number },
 ): Promise<EventPage> {
-  const where = conditions(filters, true);
+  const where = conditions(filters, true, await getShowRealEvents());
 
   const [counted] = await db
     .select({ total: sql<number>`count(*)::int` })
@@ -196,7 +195,7 @@ export async function countByCategory(
       total: sql<number>`count(*)::int`,
     })
     .from(events)
-    .where(conditions(filters, false))
+    .where(conditions(filters, false, await getShowRealEvents()))
     .groupBy(events.category);
 
   const result: Partial<Record<EventCategory, number>> = {};
@@ -217,7 +216,9 @@ export async function listCities(filters: EventFilters): Promise<CityOption[]> {
       total: sql<number>`count(*)::int`,
     })
     .from(events)
-    .where(conditions({ ...filters, cityKey: undefined }, true))
+    .where(
+      conditions({ ...filters, cityKey: undefined }, true, await getShowRealEvents()),
+    )
     .groupBy(events.cityKey)
     .orderBy(sql`count(*) desc`, sql`min(${events.city})`);
 
@@ -231,7 +232,7 @@ export const getEvents = cache(async (): Promise<EventItem[]> => {
   const rows = await db
     .select()
     .from(events)
-    .where(conditions({}, true))
+    .where(conditions({}, true, await getShowRealEvents()))
     .orderBy(asc(events.startsAt), asc(events.id))
     .limit(12);
 
@@ -241,11 +242,12 @@ export const getEvents = cache(async (): Promise<EventItem[]> => {
 // Detay sayfası: pasif ve geçmiş etkinlikler de açılır (yolculuklar orada durur).
 export const getEventById = cache(
   async (id: string): Promise<EventItem | null> => {
+    const showReal = await getShowRealEvents();
     const rows = await db
       .select()
       .from(events)
       .where(
-        realEventsEnabled()
+        showReal
           ? eq(events.id, id)
           : and(eq(events.id, id), eq(events.source, "demo")),
       )
@@ -258,6 +260,7 @@ export const getEventById = cache(
 // Yalnızca demo etkinlikleri döndürür (bilet doğrulama simülasyonu için).
 export const getDemoEventById = cache(
   async (id: string): Promise<EventItem | null> => {
+    const showReal = await getShowRealEvents();
     const rows = await db
       .select()
       .from(events)

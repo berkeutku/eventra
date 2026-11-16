@@ -1,7 +1,7 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../db";
 import { eventFavorites, events } from "../db/schema";
-import { realEventsEnabled } from "./flags";
+import { getShowRealEvents } from "./app-settings";
 
 // Bu dosya hem uygulamadan hem test betiğinden çağrıldığı için göreli içe aktarımlar kullanıyor.
 
@@ -79,11 +79,11 @@ export async function setFavorite(
   return removed.length > 0 ? "removed" : "unchanged";
 }
 
-// Gerçek (biletimGO) etkinlikler yalnızca SHOW_REAL_EVENTS=1 ise listelenir.
+// Gerçek (biletimGO) etkinlikler yalnızca yönetici panelindeki anahtar açıksa listelenir.
 export async function listFavoriteEvents(
   userId: string,
 ): Promise<FavoriteEvent[]> {
-  const visible = realEventsEnabled() ? undefined : eq(events.source, "demo");
+  const visible = (await getShowRealEvents()) ? undefined : eq(events.source, "demo");
 
   const rows = await db
     .select({

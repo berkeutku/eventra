@@ -121,6 +121,12 @@ export default async function ReportsAdminPage({
         >
           Ölçümler &rarr;
         </Link>
+        <Link
+          href="/yonetim/ayarlar"
+          className="ml-4 mt-3 inline-flex min-h-11 items-center text-sm font-bold text-violet hover:underline"
+        >
+          Ayarlar &rarr;
+        </Link>
 
         <nav aria-label="Durum" className="mt-6 flex flex-wrap gap-2">
           {tabs.map((tab) => (

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
-import { realEventsEnabled } from "@/lib/flags";
+import { getShowRealEvents } from "@/lib/app-settings";
 
-export default function Footer() {
-  const real = realEventsEnabled();
+export default async function Footer() {
+  const real = await getShowRealEvents();
 
   return (
     <footer className="px-4 pb-6 pt-10">
