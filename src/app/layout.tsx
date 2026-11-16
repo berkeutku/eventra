@@ -16,7 +16,7 @@ import "./globals.css";
 const SITE_URL = "https://eventra-one-azure.vercel.app";
 const SITE_TITLE = "Eventra | Your Event. Your Route.";
 const SITE_DESCRIPTION =
-  "Aynı etkinliğe giden insanları etkinlik sonrası ortak yolculukta buluşturan bir demo projesi. Next.js, PostgreSQL ve PWA ile geliştirildi.";
+  "Aynı etkinliğe giden insanları etkinlik sonrası ortak yolculukta buluşturan platform. Yol masrafını paylaş, eve birlikte dön. Şu an demo sürümü.";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin", "latin-ext"],

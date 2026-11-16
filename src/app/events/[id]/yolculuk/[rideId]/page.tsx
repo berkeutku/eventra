@@ -11,6 +11,8 @@ import RideChatSection from "@/components/RideChatSection";
 import RideDayPanel from "@/components/RideDayPanel";
 import RideFeedback from "@/components/RideFeedback";
 import RideRouteCard from "@/components/RideRouteCard";
+import SafetyTips from "@/components/SafetyTips";
+import ShareButton from "@/components/ShareButton";
 import { LinkButton } from "@/components/ui/Button";
 import { cardClass } from "@/components/ui/Card";
 import VerifiedBadge from "@/components/VerifiedBadge";
@@ -72,8 +74,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Yolculuk bulunamadı | Eventra" };
   }
 
+  const { event, ride } = data;
+  const perPerson = calcSharePerPerson(ride.totalCost, ride.seats);
+  const title = `${ride.origin} → ${ride.destination} | Eventra`;
+  // Sürücü adı gibi kişisel bilgiler önizlemeye yazılmaz.
+  const description = `${event.title} etkinliğine ortak yolculuk: ${ride.origin} → ${ride.destination}, kalkış ${ride.departureTime}. Yolculuk dolunca kişi başı yaklaşık ${perPerson} TL.`;
+
   return {
-    title: `${data.ride.origin} → ${data.ride.destination} | Eventra`,
+    title,
+    description,
+    openGraph: {
+      type: "website",
+      siteName: "Eventra",
+      locale: "tr_TR",
+      title,
+      description,
+      images: ["/opengraph-image"],
+    },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
@@ -300,6 +318,7 @@ export default async function RideDetailPage({ params }: Props) {
         />
       )}
       <RideFeedback rideId={ride.id} />
+      <SafetyTips />
     </>
   );
 
@@ -493,6 +512,17 @@ export default async function RideDetailPage({ params }: Props) {
 
             <div className="mt-6 border-t border-line pt-6">
               <ActionArea ride={ride} user={user} gate={gate} />
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-line pt-6">
+              <ShareButton
+                title={`${ride.origin} → ${ride.destination} | Eventra`}
+                text={`${event.title} etkinliğine birlikte gidelim, yol masrafını paylaşırız.`}
+                label="Yolculuğu arkadaşına gönder"
+              />
+              <p className="text-sm text-muted">
+                Aynı etkinliğe giden birini bul, kişi başı masraf düşsün.
+              </p>
             </div>
           </div>
 

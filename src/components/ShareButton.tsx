@@ -2,7 +2,15 @@
 
 import { useToast } from "@/components/Toast";
 
-export default function ShareButton({ title }: { title: string }) {
+export default function ShareButton({
+  title,
+  text,
+  label = "Etkinliği paylaş",
+}: {
+  title: string;
+  text?: string;
+  label?: string;
+}) {
   const toast = useToast();
 
   async function handleShare() {
@@ -10,7 +18,7 @@ export default function ShareButton({ title }: { title: string }) {
 
     try {
       if (typeof navigator.share === "function") {
-        await navigator.share({ title, url });
+        await navigator.share(text ? { title, text, url } : { title, url });
         return;
       }
 
@@ -35,7 +43,7 @@ export default function ShareButton({ title }: { title: string }) {
       onClick={handleShare}
       className="inline-flex items-center justify-center rounded-full border border-line px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-lilac"
     >
-      Etkinliği paylaş
+      {label}
     </button>
   );
 }

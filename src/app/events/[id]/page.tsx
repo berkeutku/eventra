@@ -9,6 +9,8 @@ import RideList from "@/components/RideList";
 import RideRequestsSection from "@/components/RideRequestsSection";
 import ShareButton from "@/components/ShareButton";
 import TicketVerificationCard from "@/components/TicketVerificationCard";
+import { LinkButton } from "@/components/ui/Button";
+import { cardClass } from "@/components/ui/Card";
 import { pickEventImage } from "@/data/event-images";
 import { categoryMeta } from "@/data/events";
 import { getCurrentUser } from "@/lib/auth";
@@ -39,9 +41,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Etkinlik bulunamadı | Eventra" };
   }
 
+  const title = `${event.title} | Eventra`;
+  const description = `${event.title} etkinliğine giden insanlarla ortak yolculuk planla, yol masrafını paylaş. ${event.description}`.slice(
+    0,
+    200,
+  );
+
   return {
-    title: `${event.title} | Eventra`,
-    description: event.description.slice(0, 160),
+    title,
+    description,
+    openGraph: {
+      type: "website",
+      siteName: "Eventra",
+      locale: "tr_TR",
+      title,
+      description,
+      images: ["/opengraph-image"],
+    },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
@@ -88,7 +105,7 @@ function dateParts(iso: string) {
   };
 }
 
-const card = "rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-8";
+const card = cardClass;
 
 export default async function EventDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
@@ -336,13 +353,10 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                 Ortak yolculuklar
               </h2>
               {showCreate ? (
-                <Link
-                  href={`/events/${event.id}/yolculuk-olustur`}
-                  className="inline-flex items-center gap-2 rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky"
-                >
+                <LinkButton href={`/events/${event.id}/yolculuk-olustur`}>
                   <Icon name="car" className="h-4 w-4" />
                   Yolculuk oluştur
-                </Link>
+                </LinkButton>
               ) : null}
             </div>
             <p className="mt-2 text-muted">
