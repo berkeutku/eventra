@@ -115,6 +115,12 @@ export default async function ReportsAdminPage({
           Yalnızca yönetici hesabı görür. Kişisel verileri gereğinden fazla
           kopyalama ve paylaşma.
         </p>
+        <Link
+          href="/yonetim/olcumler"
+          className="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-violet hover:underline"
+        >
+          Ölçümler &rarr;
+        </Link>
 
         <nav aria-label="Durum" className="mt-6 flex flex-wrap gap-2">
           {tabs.map((tab) => (
