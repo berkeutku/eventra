@@ -11,7 +11,7 @@ const sections: { title: string; paragraphs: string[] }[] = [
   {
     title: "1. Eventra nedir?",
     paragraphs: [
-      "Eventra, aynı etkinliğe katılan kişilerin etkinlik sonrası ortak yolculuk planlamasına yardımcı olan bir demo ve pilot çalışmadır. Bir şirket ya da ticari bir ürün değildir, öğrenci projesi olarak geliştirilmektedir.",
+      "Eventra, aynı etkinliğe katılan kişilerin etkinlik sonrası ortak yolculuk planlamasına yardımcı olan, geliştirme aşamasındaki bir platformdur. Şu an demo ve pilot sürümü olarak sunulmaktadır.",
       "Eventra bir taşımacılık, taksi ya da araç kiralama hizmeti değildir. Bilet satmaz, kullanıcılardan ödeme almaz.",
     ],
   },
