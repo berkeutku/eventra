@@ -22,7 +22,7 @@ import { formatEventDate, formatEventTime } from "@/lib/format";
 import { getRidesForEvent } from "@/lib/ride-queries";
 import { calcSharePerPerson, remainingSeats } from "@/lib/ride-utils";
 import { gateFor, gateMessages } from "@/lib/ticket-gate-rules";
-import { isTicketVerified } from "@/lib/ticket-queries";
+import { countTicketVerifications, isTicketVerified } from "@/lib/ticket-queries";
 
 export const dynamic = "force-dynamic";
 
@@ -133,6 +133,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
     event.priceText?.trim().toLocaleLowerCase("tr-TR") === "aktif bilet yok";
   const verified =
     !isReal && user ? await isTicketVerified(user.id, event.id) : false;
+  const verifiedTotal = isReal ? 0 : await countTicketVerifications(event.id);
   const gate = gateFor(event, verified);
   const showCreate = !blocked && (!user || gate === "ok");
   const imageSrc =
@@ -397,6 +398,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                 <TicketVerificationCard
                   eventId={event.id}
                   verified={verified}
+                  verifiedTotal={verifiedTotal}
                   createHref={
                     showCreate ? `/events/${event.id}/yolculuk-olustur` : null
                   }

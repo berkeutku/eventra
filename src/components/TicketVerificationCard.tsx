@@ -96,10 +96,12 @@ function PendingSteps() {
 export default function TicketVerificationCard({
   eventId,
   verified,
+  verifiedTotal = 0,
   createHref = null,
 }: {
   eventId: string;
   verified: boolean;
+  verifiedTotal?: number;
   createHref?: string | null;
 }) {
   const user = useAuthUser();
@@ -186,7 +188,13 @@ export default function TicketVerificationCard({
         ))}
       </ol>
 
-      <p className="mt-4 text-sm text-muted">
+      <p className="mt-4 text-sm font-bold text-ink">
+        {verifiedTotal > 0
+          ? `${verifiedTotal} kişi bu etkinlik için bileti doğruladı.`
+          : "Bu etkinlik için ilk doğrulayan sen ol."}
+      </p>
+
+      <p className="mt-2 text-sm text-muted">
         Bu bir simülasyondur. Gerçek bir bilet sağlayıcısına ya da e-Devlet&apos;e
         bağlantı yoktur. Kod yalnızca biçim ve sağlama karakteri açısından
         kontrol edilir.
