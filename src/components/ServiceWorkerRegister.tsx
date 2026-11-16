@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
+import { startInstallCapture } from "@/lib/install-prompt";
 
 // Service worker yalnızca yayın (production) sürümünde kaydedilir.
 // Geliştirme modunda ise önceki denemelerden kalan service worker ve önbellekler
 // silinir, böylece eski dosyalar yeni kodla çakışmaz.
 export default function ServiceWorkerRegister() {
+  // "Ana ekrana ekle" olayı sayfa açılırken bir kez gelir, bu yüzden burada yakalanır.
+  useEffect(() => startInstallCapture(), []);
+
   useEffect(() => {
     if (!("serviceWorker" in navigator)) {
       return;

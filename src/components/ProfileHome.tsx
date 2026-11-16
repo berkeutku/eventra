@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Icon, { type IconName } from "@/components/Icons";
+import InstallPrompt from "@/components/InstallPrompt";
 import RoleToggle from "@/components/RoleToggle";
 import { LinkButton } from "@/components/ui/Button";
 import { UnreadBadge } from "@/components/UnreadProvider";
@@ -140,6 +141,8 @@ export default function ProfileHome({
           </p>
         </div>
       </section>
+
+      <InstallPrompt />
 
       {next ? (
         <section aria-label="Sıradaki yolculuk">
