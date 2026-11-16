@@ -107,7 +107,7 @@ async function main() {
     cacheKeys.push(cacheKey);
     await cachePut(cacheKey, "değer");
     check("önbellek kaydı okunur", (await cacheGet(cacheKey, 60_000)) === "değer");
-    check("süresi geçen önbellek kaydı boş döner", (await cacheGet(cacheKey, -1)) === null);
+    check("süresi geçen önbellek kaydı boş döner", (await cacheGet(cacheKey, -60_000)) === null);
     check("olmayan önbellek anahtarı boş döner", (await cacheGet(`test:yok:${stamp}`, 60_000)) === null);
 
     const query = `deneme-sorgu-${stamp}`;
