@@ -260,7 +260,6 @@ export const getEventById = cache(
 // Yalnızca demo etkinlikleri döndürür (bilet doğrulama simülasyonu için).
 export const getDemoEventById = cache(
   async (id: string): Promise<EventItem | null> => {
-    const showReal = await getShowRealEvents();
     const rows = await db
       .select()
       .from(events)
