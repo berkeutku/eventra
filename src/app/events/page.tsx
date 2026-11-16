@@ -9,9 +9,9 @@ import {
   listCities,
   listEvents,
   parseWhen,
-  realEventsEnabled,
   type SourceFilter,
 } from "@/lib/events";
+import { getShowRealEvents } from "@/lib/app-settings";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +32,7 @@ function first(value: Param): string {
 
 export default async function EventsPage({ searchParams }: Props) {
   const params = await searchParams;
-  const realEnabled = realEventsEnabled();
+  const realEnabled = await getShowRealEvents();
 
   const category = (Object.keys(categoryMeta) as EventCategory[]).find(
     (item) => item === first(params.kategori),
