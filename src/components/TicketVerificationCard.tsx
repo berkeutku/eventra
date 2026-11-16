@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   startTransition,
   useActionState,
@@ -12,6 +11,8 @@ import {
 import { useAuthUser } from "@/components/AuthProvider";
 import Icon from "@/components/Icons";
 import { useToast } from "@/components/Toast";
+import { Badge } from "@/components/ui/Badge";
+import { Button, LinkButton } from "@/components/ui/Button";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import {
   generateDemoCodeAction,
@@ -158,9 +159,7 @@ export default function TicketVerificationCard({
         <h3 className="text-lg font-extrabold tracking-tight">
           Bilet doğrulama
         </h3>
-        <span className="rounded-full bg-sun/30 px-2.5 py-0.5 text-xs font-extrabold uppercase tracking-wider text-ink">
-          Demo
-        </span>
+        <Badge tone="sun">Demo</Badge>
       </div>
 
       <ol className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -194,12 +193,13 @@ export default function TicketVerificationCard({
       </p>
 
       {!user ? (
-        <Link
+        <LinkButton
           href="/giris"
-          className="mt-4 inline-block text-sm font-bold text-violet hover:underline"
+          variant="ghost"
+          className="mt-4 text-sm"
         >
           Doğrulamak için giriş yap &rarr;
-        </Link>
+        </LinkButton>
       ) : verified ? (
         <div className="mt-4">
           <VerifiedBadge />
@@ -209,13 +209,10 @@ export default function TicketVerificationCard({
             yolculuklarda adının yanında görünür.
           </p>
           {createHref && (
-            <Link
-              href={createHref}
-              className="mt-4 inline-flex items-center gap-2 rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky"
-            >
+            <LinkButton href={createHref} className="mt-4">
               <Icon name="car" className="h-4 w-4" />
               Yolculuk oluştur
-            </Link>
+            </LinkButton>
           )}
         </div>
       ) : (
@@ -237,13 +234,9 @@ export default function TicketVerificationCard({
               aria-describedby="ticket-code-hint"
               className="min-w-0 flex-1 rounded-xl border border-line bg-white px-4 py-3 font-mono text-base uppercase text-ink placeholder:text-muted/60"
             />
-            <button
-              type="submit"
-              disabled={pending}
-              className="rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky disabled:cursor-not-allowed disabled:opacity-60"
-            >
+            <Button type="submit" disabled={pending}>
               {pending ? "Doğrulanıyor…" : "Doğrula"}
-            </button>
+            </Button>
           </div>
 
           <p id="ticket-code-hint" className="mt-2 text-sm text-muted">
