@@ -74,7 +74,9 @@ export async function fetchBiletimgoEvents(
   token: string,
   fetchImpl: FetchLike = fetch,
 ): Promise<unknown[]> {
-  if (!token) {
+  const cleanToken = token.trim().replace(/^["']+|["']+$/g, "");
+
+  if (!cleanToken) {
     throw new BiletimgoError("auth");
   }
 
@@ -82,7 +84,7 @@ export async function fetchBiletimgoEvents(
 
   try {
     response = await fetchImpl(
-      `${ENDPOINT}?access_token=${encodeURIComponent(token)}`,
+      `${ENDPOINT}?access_token=${encodeURIComponent(cleanToken)}`,
       {
         headers: { Accept: "application/json", "User-Agent": USER_AGENT },
         redirect: "error",
