@@ -1,9 +1,16 @@
 import Link from "next/link";
 import Icon, { type IconName } from "@/components/Icons";
 import RoleToggle from "@/components/RoleToggle";
+import { LinkButton } from "@/components/ui/Button";
 import { UnreadBadge } from "@/components/UnreadProvider";
 import type { AuthUser } from "@/lib/auth";
 import { formatEventDate, formatEventTime } from "@/lib/format";
+import {
+  onboardingAction,
+  onboardingSteps,
+  onboardingVisible,
+  type OnboardingInput,
+} from "@/lib/onboarding-rules";
 import { pickNextRide } from "@/lib/panel";
 import { SECTION_PATHS } from "@/lib/panel-tabs";
 import type { RideWithEvent } from "@/lib/ride-utils";
@@ -26,6 +33,9 @@ export default function ProfileHome({
   favoritesCount,
   earnedBadges,
   totalBadges,
+  verifiedCount,
+  latestVerified,
+  pushEnabled,
 }: {
   user: AuthUser;
   driverRides: RideWithEvent[];
@@ -33,6 +43,9 @@ export default function ProfileHome({
   favoritesCount: number;
   earnedBadges: number;
   totalBadges: number;
+  verifiedCount: number;
+  latestVerified: { id: string; title: string } | null;
+  pushEnabled: boolean;
 }) {
   const initial = user.name.trim().charAt(0).toLocaleUpperCase("tr-TR");
   const next = pickNextRide(driverRides, passengerRides);
@@ -81,14 +94,16 @@ export default function ProfileHome({
     },
   ];
 
-  const steps = [
-    { done: favoritesCount > 0 || totalRides > 0, text: "Bir etkinlik seç" },
-    {
-      done: totalRides > 0,
-      text: isDriver ? "Bir yolculuk oluştur" : "Bir yolculuğa katıl",
-    },
-    { done: false, text: "Telefon bildirimlerini aç (Ayarlar)" },
-  ];
+  const onboarding: OnboardingInput = {
+    hasFavorite: favoritesCount > 0,
+    verifiedCount,
+    totalRides,
+    pushEnabled,
+    isDriver,
+    latestVerified,
+  };
+  const steps = onboardingSteps(onboarding);
+  const action = onboardingAction(onboarding);
 
   return (
     <div className="space-y-6">
@@ -153,7 +168,7 @@ export default function ProfileHome({
         </section>
       ) : null}
 
-      {totalRides === 0 ? (
+      {onboardingVisible(onboarding) ? (
         <section
           aria-label="Başlarken"
           className="rounded-3xl bg-white p-6 ring-1 ring-black/5 sm:p-8"
@@ -161,7 +176,7 @@ export default function ProfileHome({
           <h2 className="text-xl font-extrabold tracking-tight">Başlarken</h2>
           <ol className="mt-4 space-y-3">
             {steps.map((step, index) => (
-              <li key={step.text} className="flex items-center gap-3">
+              <li key={step.key} className="flex items-center gap-3">
                 <span
                   aria-hidden="true"
                   className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-extrabold ${
@@ -178,12 +193,9 @@ export default function ProfileHome({
               </li>
             ))}
           </ol>
-          <Link
-            href="/events"
-            className="mt-5 inline-flex items-center justify-center rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky"
-          >
-            Etkinliklere göz at
-          </Link>
+          <LinkButton href={action.href} className="mt-5">
+            {action.label}
+          </LinkButton>
         </section>
       ) : null}
 

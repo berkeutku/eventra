@@ -4,6 +4,7 @@ import PanelGate from "@/components/PanelGate";
 import ProfileHome from "@/components/ProfileHome";
 import { getCurrentUser } from "@/lib/auth";
 import { listFavoriteEvents } from "@/lib/favorites";
+import { getOnboardingData } from "@/lib/onboarding";
 import { legacyTabPath } from "@/lib/panel-tabs";
 import { getRidesForDriver, getRidesForPassenger } from "@/lib/ride-queries";
 import { buildStats } from "@/lib/stats";
@@ -33,10 +34,11 @@ export default async function PanelPage({ searchParams }: Props) {
     return <PanelGate next="/panel" />;
   }
 
-  const [driverRides, passengerRides, favorites] = await Promise.all([
+  const [driverRides, passengerRides, favorites, onboarding] = await Promise.all([
     getRidesForDriver(user.id),
     getRidesForPassenger(user.id),
     listFavoriteEvents(user.id),
+    getOnboardingData(user.id),
   ]);
   const stats = buildStats(driverRides, passengerRides);
   const earned = stats.badges.filter((badge) => badge.earned).length;
@@ -51,6 +53,9 @@ export default async function PanelPage({ searchParams }: Props) {
           favoritesCount={favorites.length}
           earnedBadges={earned}
           totalBadges={stats.badges.length}
+          verifiedCount={onboarding.verifiedCount}
+          latestVerified={onboarding.latestVerified}
+          pushEnabled={onboarding.pushEnabled}
         />
       </div>
     </main>
