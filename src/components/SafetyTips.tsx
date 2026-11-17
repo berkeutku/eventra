@@ -5,6 +5,7 @@ const tips = [
   "Yolculuk günü kartındaki paylaşım bağlantısıyla güzergâhı güvendiğin birine gönder.",
   "Eventra ödeme almaz, masraf paylaşımı kendi aranızdadır. Önceden ödeme ya da farklı bir yere gitme isteklerine dikkat et.",
   "Telefon numarası ve tam plaka gibi kişisel bilgileri paylaşmadan önce iyi düşün.",
+  "Planın değişirse yolculuktan mümkün olduğunca erken ayrıl. Sürücüye bildirim gider ve koltuk başkasına açılır.",
   "Kendini rahat hissetmezsen yolculuktan ayrılabilirsin. Sorunu geri bildirim bölümünden bildir.",
   "Acil bir durumda hemen 112'yi ara.",
 ];

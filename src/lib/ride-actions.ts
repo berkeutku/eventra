@@ -10,6 +10,11 @@ import { getCurrentUser } from "@/lib/auth";
 import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
 import { parseRideGeoInput } from "@/lib/geo-rules";
+import {
+  DRIVER_DECLARATION_ERROR,
+  DRIVER_DECLARATION_FIELD,
+  isDriverDeclarationAccepted,
+} from "@/lib/driver-declaration-rules";
 import { getRoute } from "@/lib/geo-service";
 import { sendPendingPush } from "@/lib/push";
 import { takeRateSlot } from "@/lib/rate-limit";
@@ -32,7 +37,8 @@ export type CreateRideField =
   | "departureTime"
   | "duration"
   | "seats"
-  | "cost";
+  | "cost"
+  | "driverDeclaration";
 
 export type CreateRideState = {
   errors?: Partial<Record<CreateRideField, string>>;
@@ -148,6 +154,11 @@ export async function createRideAction(
 
   if (cost === null || cost > 5000) {
     errors.cost = "Masraf 0 ile 5000 TL arasında bir tam sayı olmalı.";
+  }
+
+  // Sürücü beyanı her yolculukta yeniden onaylanır; sunucu tarafında da zorunludur.
+  if (!isDriverDeclarationAccepted(formData.get(DRIVER_DECLARATION_FIELD))) {
+    errors.driverDeclaration = DRIVER_DECLARATION_ERROR;
   }
 
   if (

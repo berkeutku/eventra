@@ -34,50 +34,57 @@ const sections: { title: string; paragraphs: string[] }[] = [
     title: "4. Yolculuklar ve sorumluluk",
     paragraphs: [
       "Yolculuklar sürücü ile yolcular arasında kendi aralarında kurulan bir düzenlemedir. Eventra bu düzenlemenin tarafı değildir ve yolculuğun güvenliğini, zamanında gerçekleşmesini ya da kullanıcıların davranışlarını garanti etmez.",
-      "Sürücü, geçerli ehliyete, aracın ruhsat, muayene ve zorunlu sigortasına sahip olmaktan ve trafik kurallarına uymaktan sorumludur. Yolcular yolculuğa katılıp katılmamaya kendi kararlarıyla karar verir.",
+      "Sürücü, geçerli ehliyete, aracın ruhsat, muayene ve zorunlu sigortasına sahip olmaktan ve trafik kurallarına uymaktan sorumludur. Sürücü her yolculuk oluşturduğunda bunu ayrıca beyan eder; Eventra bu beyanı doğrulamaz. Yolcular yolculuğa katılıp katılmamaya kendi kararlarıyla karar verir.",
       "Kendini güvende hissetmediğin bir yolculuğa katılma, yolculuk sırasında rahatsız olursan yolculuğu sonlandır. Acil durumda 112'yi ara.",
     ],
   },
   {
-    title: "5. Masraf paylaşımı",
+    title: "5. Yolculuktan ayrılma ve iptal",
+    paragraphs: [
+      "Planın değişirse katıldığın yolculuktan ayrılabilirsin. Ayrıldığında sürücüye bildirim gider ve koltuk başka bir yolcuya açılır. Lütfen bunu mümkün olduğunca erken yap; son dakikada ayrılmak ya da hiç haber vermeden gelmemek sürücüyü ve diğer yolcuları mağdur eder.",
+      "Sürücü bir yolculuğu iptal ederse katılan yolculara bildirim gider. Tekrarlayan son dakika iptalleri ve habersiz gelmeme şikâyet konusu olabilir ve hesabın kısıtlanmasına yol açabilir. Eventra şu an iptal için ceza ya da ücret uygulamaz.",
+    ],
+  },
+  {
+    title: "6. Masraf paylaşımı",
     paragraphs: [
       "Eventra'da gösterilen tutarlar yol masrafının eşit bölüşülmesine dair tahminlerdir. Eventra para toplamaz, ödeme aracılığı yapmaz ve emanet sistemi sunmaz.",
       "Masraf paylaşımı kâr amacı gütmemelidir. Sürücü bu hizmeti ticari yolcu taşımacılığı olarak sunamaz, yalnızca yol masrafına ortak olunmasını isteyebilir. Ödemenin nasıl ve ne zaman yapılacağı kullanıcıların kendi aralarındaki konudur.",
     ],
   },
   {
-    title: "6. Yasak davranışlar",
+    title: "7. Yasak davranışlar",
     paragraphs: [
       "Aşağıdakiler yasaktır: yanlış ya da yanıltıcı bilgi vermek, başka birini taklit etmek, taciz, tehdit ya da ayrımcılık içeren davranışlar, sohbet ve taleplerde telefon, e-posta, bağlantı gibi iletişim bilgisi paylaşmak, sistemi otomatik araçlarla zorlamak ya da kötüye kullanmak, ticari yolcu taşımacılığı yapmak.",
       "Bu kuralları ihlal eden hesaplar uyarı yapılmadan kısıtlanabilir ya da kapatılabilir.",
     ],
   },
   {
-    title: "7. Bildirim ve şikâyet",
+    title: "8. Bildirim ve şikâyet",
     paragraphs: [
       "Uygunsuz bir davranışla karşılaşırsan ilgili kullanıcıyı uygulama içinden bildirebilirsin. Bildirimler incelenir, ancak demo sürümünde yanıt süresi ya da sonuç garanti edilmez.",
     ],
   },
   {
-    title: "8. Kişisel veriler",
+    title: "9. Kişisel veriler",
     paragraphs: [
       "Hangi verilerin neden işlendiği ve nasıl silindiği Gizlilik ve veri notu sayfasında anlatılmıştır. Bu koşullar ile gizlilik notu birlikte okunmalıdır.",
     ],
   },
   {
-    title: "9. Üçüncü taraflar",
+    title: "10. Üçüncü taraflar",
     paragraphs: [
       "Etkinlik bilgileri, iş ortağı platformlardan alınabilir. Biletler Eventra tarafından değil ilgili bilet sağlayıcısı tarafından satılır. Bilet satın alma, iade ve etkinlikle ilgili konular o sağlayıcının kendi koşullarına tabidir.",
     ],
   },
   {
-    title: "10. Sorumluluğun sınırı",
+    title: "11. Sorumluluğun sınırı",
     paragraphs: [
       "Eventra bir demo olarak \"olduğu gibi\" sunulur. Kesintisiz ya da hatasız çalışacağı, verilerin her zaman doğru olacağı garanti edilmez. Yasaların izin verdiği ölçüde Eventra, kullanıcılar arasındaki yolculuklardan, kullanıcı davranışlarından ya da hizmetin kesintiye uğramasından doğan zararlardan sorumlu tutulamaz.",
     ],
   },
   {
-    title: "11. Değişiklikler",
+    title: "12. Değişiklikler",
     paragraphs: [
       "Eventra gelişmeye devam ettiği için bu koşullar zaman zaman güncellenebilir. Güncel hâli her zaman bu sayfadadır. Önemli bir değişiklikten sonra hizmeti kullanmaya devam etmen, güncel koşulları kabul ettiğin anlamına gelir.",
     ],

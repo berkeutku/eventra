@@ -9,6 +9,10 @@ import {
 } from "react";
 import { useAuthUser } from "@/components/AuthProvider";
 import CostHelper from "@/components/CostHelper";
+import {
+  DRIVER_DECLARATION_FIELD,
+  DRIVER_DECLARATION_TEXT,
+} from "@/lib/driver-declaration-rules";
 import MeetingPointSuggestions from "@/components/MeetingPointSuggestions";
 import RideTemplatePicker from "@/components/RideTemplatePicker";
 import RoutePicker from "@/components/RoutePicker";
@@ -356,6 +360,40 @@ export default function RideForm({ eventId }: Props) {
           <p className="mt-1 text-muted">
             Masraf, sürücü dahil herkese eşit bölünür. Bu yalnızca bir
             tahmindir, ödeme alınmaz.
+          </p>
+        </div>
+      </Section>
+
+      <Section step={4} title="Sürücü beyanı">
+        <div>
+          <label className="flex items-start gap-3 text-sm text-ink">
+            <input
+              type="checkbox"
+              name={DRIVER_DECLARATION_FIELD}
+              value="1"
+              aria-invalid={errors.driverDeclaration ? true : undefined}
+              aria-describedby={
+                errors.driverDeclaration ? "driverDeclaration-error" : undefined
+              }
+              className="mt-1 h-5 w-5 shrink-0"
+            />
+            <span>{DRIVER_DECLARATION_TEXT}</span>
+          </label>
+          {errors.driverDeclaration && (
+            <p
+              id="driverDeclaration-error"
+              role="alert"
+              className="mt-2 text-sm font-medium text-coral-ink"
+            >
+              {errors.driverDeclaration}
+            </p>
+          )}
+          <p className="mt-2 text-xs text-muted">
+            Eventra bu beyanı doğrulamaz; sorumluluk sürücüye aittir. Ayrıntılar{" "}
+            <Link href="/kullanim-kosullari" className="font-bold text-violet hover:underline">
+              kullanım koşullarında
+            </Link>
+            .
           </p>
         </div>
       </Section>
