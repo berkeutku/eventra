@@ -34,7 +34,8 @@ const nextConfig: NextConfig = {
         pathname: "/images/**",
       },
     ],
-  },  async headers() {
+  },
+  async headers() {
     return [
       {
         source: "/:path*",

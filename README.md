@@ -12,7 +12,7 @@ Eventra is a ride-sharing web app (installable PWA) that connects people who att
 ## Features
 
 - **Event discovery:** 24 fictional events in 7 categories (concert, match, theatre, festival, stand-up, university, other) with category filters. Event photos are royalty-free stock images used as representative illustrations, with an illustrated fallback.
-- **Accounts and sessions:** email and password sign-up, scrypt password hashing, cookie-based server-side sessions (no external auth library), login attempt throttling, and a safe "return to the page you came from" redirect after login.
+- **Accounts and sessions:** email and password sign-up, scrypt password hashing, cookie-based server-side sessions (no external auth library), login attempt throttling per email and per IP, and a safe "return to the page you came from" redirect after login.
 - **One account, switchable role:** new accounts start as a passenger. The active role (driver or passenger) can be switched from the dashboard at any time.
 - **Create and join rides:** seat capacity, double joining, one-ride-per-event and "drivers cannot join their own ride" rules are enforced on the server inside a database transaction with row locks, and covered by a concurrency test.
 - **Fair cost sharing:** the estimated cost per person is `ceil(total / (seats + 1))`, split equally including the driver. No payment is collected.
@@ -28,6 +28,10 @@ Eventra is a ride-sharing web app (installable PWA) that connects people who att
 - **Passenger privacy:** passenger names are shown only to the ride's driver and to passengers who joined that ride (filtered on the server).
 - **PWA:** web app manifest, icons, a service worker that only caches an offline fallback page and static assets (logged-in pages and database data are never cached), and push handling.
 - **Social preview:** a link preview image generated at build time.
+- **Ride chat, requests and feedback:** members of a ride can chat (the chat refreshes by polling, it is not real time), passengers can post ride requests, and ratings and reports are available. Reports are reviewed in the admin area.
+- **Data export:** signed-in users can download their own data.
+- **Admin area (admin e-mails only):** reports (`/yonetim/raporlar`), measurements (`/yonetim/olcumler`), settings (`/yonetim/ayarlar`) and the biletimGO sync history (`/yonetim/senkron`). Non-admins get a 404.
+- **Friendly error pages:** a retry button, a link to the home page and an error code to quote when reporting a problem.
 
 ## Tech stack
 
@@ -73,7 +77,15 @@ The service worker and web push only work in production builds. To try them loca
 
 ## Tests
 
-Test scripts live in `scripts/` and are run with `tsx`:
+Test scripts live in `scripts/` and are run with `tsx`. To run all of them in one go (new `scripts/test-*.ts` files are picked up automatically) and to type check:
+
+```bash
+npm test
+npm run typecheck
+npm run lint
+```
+
+Single tests:
 
 ```bash
 npx tsx scripts/test-matching.ts            # ride scoring rules
@@ -94,7 +106,7 @@ The database tests create temporary users and rides and delete them afterwards. 
 
 ## biletimGO integration (optional, off by default)
 
-Eventra can list real events from the biletimGO partner API. Real events are hidden unless the server environment variable `SHOW_REAL_EVENTS=1` is set.
+Eventra can list real events from the biletimGO partner API. Real events are hidden by default. An admin can switch them on or off in the admin settings page (`/yonetim/ayarlar`); until that switch has been used, the server environment variable `SHOW_REAL_EVENTS=1` decides. Do not switch them on before the partner has allowed public display in writing.
 
 - **Data flow:** biletimGO API -> server-side sync (`src/lib/biletimgo`) -> Neon PostgreSQL -> UI. The UI never calls the API.
 - **Token:** read only from the server environment variable `BILETIMGO_API_TOKEN`. It is never sent to the browser, logged, or included in error messages.
@@ -103,7 +115,7 @@ Eventra can list real events from the biletimGO partner API. Real events are hid
 - **Times:** biletimGO dates carry no time zone and are interpreted as Turkey time (UTC+3).
 - **Rides on real events:** ride creation is limited to events of 24 hours or less, until 12 hours after they end. Ticket verification (a demo simulation) and the fictional meeting point suggestions are hidden for real events.
 - **Disclosure:** ticket links can contain partner tracking parameters. Eventra does not sell tickets.
-- **Daily sync:** a Vercel Cron job calls `/api/cron/biletimgo` once a day (the Hobby plan allows at most one run per day). The route requires `Authorization: Bearer <CRON_SECRET>` and only returns counts. Required server environment variables: `BILETIMGO_API_TOKEN`, `CRON_SECRET`, and `SHOW_REAL_EVENTS=1` to show real events.
+- **Daily sync:** a Vercel Cron job calls `/api/cron/biletimgo` once a day (the Hobby plan allows at most one run per day). The route requires `Authorization: Bearer <CRON_SECRET>` and only returns counts. Required server environment variables: `BILETIMGO_API_TOKEN` and `CRON_SECRET`. Every run is recorded and can be reviewed on `/yonetim/senkron`.
 
 Commands (the token is read from the environment, never from a file in the repository):
 
@@ -114,6 +126,7 @@ npx tsx scripts/test-biletimgo-normalize.ts  # parsing, time zone, categories, t
 npx tsx scripts/test-biletimgo-sync.ts       # sync rules against a test database (fake API responses)
 npx tsx scripts/test-event-rules.ts          # ride creation rules for real events
 ```
+
 ## Quality
 
 Measured with Google PageSpeed Insights (mobile, 1 November 2026): the home page and the login page score 100 in all four categories; the events page scores 91 for performance (LCP 3.2 s) and 100 for accessibility, best practices and SEO.
@@ -122,7 +135,7 @@ Measured with Google PageSpeed Insights (mobile, 1 November 2026): the home page
 
 - Passwords are hashed with scrypt; sessions are random tokens whose SHA-256 digest is stored in the database. The cookie is `HttpOnly`, `SameSite=Lax`, `Secure` in production, and lasts 7 days.
 - Login uses one generic error for wrong email or wrong password, and a dummy hash check for unknown emails.
-- Login attempts are limited: 5 failed attempts per email within 15 minutes block further attempts for that email. Expired sessions are deleted when a new session is created.
+- Login attempts are limited: 5 failed attempts per email, and 30 failed attempts per IP (stored only as a hash), within 15 minutes block further attempts. Expired sessions are deleted when a new session is created.
 - Post-login redirects only accept site-internal paths (no open redirect).
 - Notifications are always queried by recipient; opening or marking a notification as read only works for its owner.
 - Push subscriptions are validated on the server and bound to the signed-in user. Push payloads are encrypted for the receiving device and contain only a title, a text and a site-internal link.
@@ -131,14 +144,14 @@ Measured with Google PageSpeed Insights (mobile, 1 November 2026): the home page
 ## Known limitations
 
 - No email verification and no password reset.
-- Login throttling is per email, not per IP, so someone can temporarily lock out a known email address. Registration is limited per IP (stored only as a hash) and globally per hour.
+- Login throttling is per email and per IP, so someone can still temporarily lock out a known email address. Registration is limited per IP (stored only as a hash) and globally per hour.
 - The Content-Security-Policy is limited; a full script policy is not set yet.
 - Development and the demo deployment may share one database.
 - All events, venues, meeting point data and route sketches are fictional demo data.
 - Savings figures are estimates under a stated assumption. "Past" rides mean the event date has passed, not that the ride was verified as completed. There is no carbon footprint figure because there is no distance data.
 - The unread badge refreshes about once a minute while the page is open (it is not real time).
 - Push notification text can include a passenger's name and may appear on a locked screen. Time-based reminders ("your ride starts in one hour") are not implemented.
-- There is no real-time chat and no payment.
+- The ride chat uses polling (not real time) and there is no payment.
 
 ## Project structure
 
@@ -152,7 +165,6 @@ scripts          seed script, test scripts, icon and image helper scripts
 drizzle          generated SQL migrations
 public           icons, logo, event photos, service worker
 ```
-.
 
 ## Credits
 
