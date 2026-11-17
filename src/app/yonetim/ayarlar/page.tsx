@@ -45,6 +45,12 @@ export default async function SettingsPage() {
         >
           &larr; Şikâyetler
         </Link>
+        <Link
+          href="/yonetim/senkron"
+          className="ml-4 mt-3 inline-flex min-h-11 items-center text-sm font-bold text-violet hover:underline"
+        >
+          Senkron geçmişi &rarr;
+        </Link>
 
         <section className="mt-6 rounded-3xl bg-white p-6 ring-1 ring-line">
           <div className="flex flex-wrap items-center justify-between gap-3">
