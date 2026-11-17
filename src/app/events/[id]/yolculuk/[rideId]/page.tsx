@@ -287,7 +287,7 @@ export default async function RideDetailPage({ params }: Props) {
   const { event, ride, user } = data;
   const meta = categoryMeta[event.category];
   const imageSrc =
-    event.imageUrl ?? pickEventImage(event.category, event.id)?.src;
+    event.imageUrl ?? pickEventImage(event.category, event.id, event.title)?.src;
 
   const verified =
     user && event.source !== "biletimgo"

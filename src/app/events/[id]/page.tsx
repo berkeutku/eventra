@@ -137,7 +137,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
   const gate = gateFor(event, verified);
   const showCreate = !blocked && (!user || gate === "ok");
   const imageSrc =
-    event.imageUrl ?? pickEventImage(event.category, event.id)?.src;
+    event.imageUrl ?? pickEventImage(event.category, event.id, event.title)?.src;
 
   const openSeats = rides.reduce((sum, ride) => sum + remainingSeats(ride), 0);
   const shares = rides.map((ride) =>

@@ -17,7 +17,7 @@ export default function EventCard({
   const Heading = headingLevel === 2 ? "h2" : "h3";
   const meta = categoryMeta[event.category];
   const isReal = event.source === "biletimgo";
-  const image = event.imageUrl ?? pickEventImage(event.category, event.id)?.src;
+  const image = event.imageUrl ?? pickEventImage(event.category, event.id, event.title)?.src;
   const date = new Date(event.startsAt);
   const day = date.toLocaleDateString("tr-TR", {
     day: "numeric",
