@@ -104,7 +104,16 @@ export default function Header() {
 
           <div className="sm:hidden">
             {user ? (
-              <LogoutForm buttonClassName="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-bold text-muted hover:bg-lilac" />
+              <div className="flex items-center gap-1">
+                <Link
+                  href="/panel"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-lilac px-3.5 text-sm font-bold text-violet"
+                >
+                  <Icon name="user" className="h-4 w-4" />
+                  Profilim
+                </Link>
+                <LogoutForm buttonClassName="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-bold text-muted hover:bg-lilac" />
+              </div>
             ) : (
               <div className="flex items-center gap-1">
                 <Link

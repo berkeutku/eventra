@@ -7,10 +7,12 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { Analytics } from "@vercel/analytics/next";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import SplashScreen from "@/components/SplashScreen";
 import ToastProvider from "@/components/Toast";
 import UnreadProvider from "@/components/UnreadProvider";
 import { getCurrentUser, type AuthUser } from "@/lib/auth";
 import { countUnread } from "@/lib/notifications";
+import { SPLASH_INLINE_SCRIPT } from "@/lib/splash-rules";
 import "./globals.css";
 
 const SITE_URL = "https://eventra-one-azure.vercel.app";
@@ -91,8 +93,10 @@ export default async function RootLayout({
   const unread = await loadUnread(user);
 
   return (
-    <html lang="tr" data-scroll-behavior="smooth" className={`${jakarta.variable} ${caveat.variable}`}>
+    <html lang="tr" data-scroll-behavior="smooth" suppressHydrationWarning className={`${jakarta.variable} ${caveat.variable}`}>
       <body className="flex min-h-screen flex-col pb-[calc(4.75rem_+_env(safe-area-inset-bottom))] antialiased sm:pb-0">
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_INLINE_SCRIPT }} />
+        <SplashScreen />
         <AuthProvider user={user}>
           <UnreadProvider initial={unread}>
             <ToastProvider>

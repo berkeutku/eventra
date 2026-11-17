@@ -119,3 +119,108 @@ p {
     transform: scale(1.06);
   }
 }
+/* Açılış görseli: oturum başına bir kez, 3 saniye. Saf CSS ile kendiliğinden kaybolur. */
+#eventra-splash {
+  display: none;
+}
+
+html[data-splash="1"] #eventra-splash {
+  display: flex;
+  animation: splash-life 3s ease forwards;
+}
+
+@keyframes splash-life {
+  0%,
+  88% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.splash-spotlight {
+  background: conic-gradient(
+    from 180deg at 50% -8%,
+    transparent 152deg,
+    rgba(170, 150, 255, 0.28) 180deg,
+    transparent 208deg
+  );
+}
+
+html[data-splash="1"] .splash-logo {
+  animation: splash-pop 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+html[data-splash="1"] .splash-word {
+  animation: splash-rise 0.8s ease 0.55s both;
+}
+
+html[data-splash="1"] .splash-tag {
+  animation: splash-rise 0.8s ease 1s both;
+}
+
+html[data-splash="1"] .splash-bar {
+  animation: splash-bar 2.6s linear 0.2s both;
+}
+
+html[data-splash="1"] .splash-glow {
+  animation: splash-glow 3s ease-in-out both;
+}
+
+@keyframes splash-pop {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.84);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes splash-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes splash-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes splash-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-splash="1"] #eventra-splash {
+    animation-duration: 1.6s;
+  }
+
+  html[data-splash="1"] .splash-logo,
+  html[data-splash="1"] .splash-word,
+  html[data-splash="1"] .splash-tag,
+  html[data-splash="1"] .splash-bar,
+  html[data-splash="1"] .splash-glow {
+    animation: none;
+  }
+}
