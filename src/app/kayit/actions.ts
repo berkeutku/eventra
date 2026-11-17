@@ -1,10 +1,10 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { createSession } from "@/lib/auth";
+import { readClientIp } from "@/lib/client-ip";
 import { hashPassword } from "@/lib/password";
 import { checkSignupAllowed, recordSignup } from "@/lib/signup-throttle";
 
@@ -20,19 +20,6 @@ function isUniqueViolation(error: unknown): boolean {
   const direct = (error as { code?: string } | null)?.code;
   const nested = (error as { cause?: { code?: string } } | null)?.cause?.code;
   return direct === "23505" || nested === "23505";
-}
-
-// Vercel bu başlıkları kendisi doldurur. Başlık yoksa (yerel geliştirme) null döner.
-async function readClientIp(): Promise<string | null> {
-  const list = await headers();
-  const real = list.get("x-real-ip")?.trim();
-
-  if (real) {
-    return real;
-  }
-
-  const forwarded = list.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || null;
 }
 
 export async function registerAction(
