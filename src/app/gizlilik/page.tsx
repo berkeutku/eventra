@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const sections: { title: string; text: string }[] = [
   {
     title: "Hesap bilgilerin",
-    text: "Görünen adın, e-posta adresin, aktif rolün ve hesabının oluşturulma zamanı saklanır. Parolan düz metin olarak değil, tek yönlü şifrelenmiş özet (scrypt) olarak saklanır; biz de parolanı göremeyiz. Parolanı Ayarlar sayfasından değiştirebilir ve diğer cihazlardaki açık oturumlarını kapatabilirsin. Açık oturumların kaydı, oturum anahtarının tek yönlü özetiyle tutulur.",
+    text: "Görünen adın, e-posta adresin, kayıtta belirttiğin cinsiyetin (Kadın ya da Erkek), aktif rolün ve hesabının oluşturulma zamanı saklanır. Cinsiyet bilgisi yalnızca “sadece kadınlar” ve “sadece erkekler” yolculuklarını sağlamak için kullanılır; profilinde görünür, sürücüysen yolculuk sayfanda, yolcuysan katıldığın yolculuğun sürücüsü ve yolcuları tarafından görülür. Bu bilgi senin beyanına dayanır, Eventra kimlikle doğrulamaz. Parolan düz metin olarak değil, tek yönlü şifrelenmiş özet (scrypt) olarak saklanır; biz de parolanı göremeyiz. Parolanı Ayarlar sayfasından değiştirebilir ve diğer cihazlardaki açık oturumlarını kapatabilirsin. Açık oturumların kaydı, oturum anahtarının tek yönlü özetiyle tutulur.",
   },
   {
     title: "Yolculuk ve etkinlik verilerin",

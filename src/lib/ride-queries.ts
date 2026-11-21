@@ -8,6 +8,7 @@ import {
   ticketVerifications,
   users,
 } from "@/db/schema";
+import { parseGender, parseRidePolicy, type Gender } from "@/lib/gender-rules";
 import type { RideItem, RideWithEvent } from "@/lib/ride-utils";
 
 type RideRow = typeof rides.$inferSelect;
@@ -38,6 +39,7 @@ function toRideItem(
   driverVerified: boolean,
   flags: { joined: boolean; isOwn: boolean },
   rating?: { value: number | null; count: number },
+  driverGender?: string | null,
 ): RideItem {
   return {
     id: ride.id,
@@ -58,6 +60,8 @@ function toRideItem(
     driverVerified,
     driverRating: rating ? rating.value : null,
     driverRatingCount: rating ? rating.count : 0,
+    genderPolicy: parseRidePolicy(ride.genderPolicy) ?? "mixed",
+    driverGender: parseGender(driverGender ?? null),
   };
 }
 
@@ -71,6 +75,7 @@ export async function getRidesForEvent(
       driverName: users.name,
       passengerCount: passengerCountSql(),
       driverVerified: driverVerifiedSql(),
+      driverGender: users.gender,
       driverRating: driverRatingSql(),
       driverRatingCount: driverRatingCountSql(),
     })
@@ -111,6 +116,7 @@ export async function getRidesForEvent(
         isOwn: userId !== undefined && row.ride.driverId === userId,
       },
       { value: row.driverRating, count: row.driverRatingCount },
+      row.driverGender,
     ),
   );
 }
@@ -180,7 +186,7 @@ export async function getRidesForPassenger(
 
 export type RideDetail = RideItem & {
   // Yolcu adları yalnızca sürücüye ve katılan yolculara gösterilir.
-  passengers: { name: string; verified: boolean }[] | null;
+  passengers: { name: string; verified: boolean; gender: Gender | null }[] | null;
 };
 
 export async function getRideDetail(
@@ -193,6 +199,7 @@ export async function getRideDetail(
       driverName: users.name,
       passengerCount: passengerCountSql(),
       driverVerified: driverVerifiedSql(),
+      driverGender: users.gender,
       driverRating: driverRatingSql(),
       driverRatingCount: driverRatingCountSql(),
     })
@@ -209,6 +216,7 @@ export async function getRideDetail(
     .select({
       userId: ridePassengers.userId,
       name: users.name,
+      gender: users.gender,
       verified: sql<boolean>`exists (select 1 from ${ticketVerifications} where ${ticketVerifications.userId} = ${ridePassengers.userId} and ${ticketVerifications.eventId} = ${row.ride.eventId})`,
     })
     .from(ridePassengers)
@@ -229,12 +237,14 @@ export async function getRideDetail(
       row.driverVerified,
       { joined, isOwn },
       { value: row.driverRating, count: row.driverRatingCount },
+      row.driverGender,
     ),
     passengers:
       isOwn || joined
         ? passengerRows.map((passenger) => ({
             name: passenger.name,
             verified: passenger.verified,
+            gender: parseGender(passenger.gender),
           }))
         : null,
   };

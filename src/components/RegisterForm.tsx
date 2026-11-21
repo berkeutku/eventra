@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { registerAction, type RegisterState } from "@/app/kayit/actions";
+import { GENDER_FIELD, GENDERS, genderLabels } from "@/lib/gender-rules";
 
 const initialState: RegisterState = {};
 
@@ -42,6 +43,37 @@ export default function RegisterForm() {
           {state.message}
         </p>
       )}
+
+      <fieldset>
+        <legend className="block text-sm font-bold">Cinsiyetin</legend>
+        <div className="mt-2 grid grid-cols-2 gap-3">
+          {GENDERS.map((option) => (
+            <label
+              key={option}
+              className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border bg-white px-4 py-3 text-base font-bold text-ink has-[:checked]:border-violet has-[:checked]:bg-lilac has-[:checked]:text-violet ${errors.gender ? "border-coral" : "border-line"}`}
+            >
+              <input
+                type="radio"
+                name={GENDER_FIELD}
+                value={option}
+                defaultChecked={state.values?.gender === option}
+                aria-describedby={errors.gender ? "gender-error" : "gender-hint"}
+                className="h-4 w-4 accent-violet"
+              />
+              {genderLabels[option]}
+            </label>
+          ))}
+        </div>
+        {errors.gender ? (
+          <FieldError id="gender-error" message={errors.gender} />
+        ) : (
+          <p id="gender-hint" className="mt-2 text-sm text-muted">
+            Yolculuklarda &quot;sadece kadınlar&quot; ve &quot;sadece erkekler&quot; seçenekleri için
+            kullanılır ve profilinde görünür. Kendi beyanına dayanır, sonradan
+            değiştirilemez.
+          </p>
+        )}
+      </fieldset>
 
       <div>
         <label htmlFor="name" className="block text-sm font-bold">

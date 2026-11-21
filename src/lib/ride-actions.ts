@@ -9,6 +9,12 @@ import { events, rides } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
+import {
+  RIDE_POLICY_FIELD,
+  driverPolicyMessage,
+  joinPolicyMessage,
+  parseRidePolicy,
+} from "@/lib/gender-rules";
 import { parseRideGeoInput } from "@/lib/geo-rules";
 import {
   DRIVER_DECLARATION_ERROR,
@@ -38,7 +44,8 @@ export type CreateRideField =
   | "duration"
   | "seats"
   | "cost"
-  | "driverDeclaration";
+  | "driverDeclaration"
+  | "ridePolicy";
 
 export type CreateRideState = {
   errors?: Partial<Record<CreateRideField, string>>;
@@ -161,8 +168,22 @@ export async function createRideAction(
     errors.driverDeclaration = DRIVER_DECLARATION_ERROR;
   }
 
+  // Yolculuk türü (karma / sadece kadınlar / sadece erkekler) sunucuda sürücünün cinsiyetiyle doğrulanır.
+  const policy = parseRidePolicy(formData.get(RIDE_POLICY_FIELD));
+
+  if (policy === null) {
+    errors.ridePolicy = "Geçerli bir yolculuk türü seç.";
+  } else {
+    const policyError = driverPolicyMessage(policy, user.gender);
+
+    if (policyError) {
+      errors.ridePolicy = policyError;
+    }
+  }
+
   if (
     Object.keys(errors).length > 0 ||
+    policy === null ||
     duration === null ||
     seats === null ||
     cost === null
@@ -195,6 +216,7 @@ export async function createRideAction(
         durationMinutes: duration,
         seats,
         totalCost: cost,
+        genderPolicy: policy,
       })
       .returning({ id: rides.id });
 
@@ -363,6 +385,15 @@ export async function joinRideAction(
     case "own_ride":
       return {
         message: "Kendi oluşturduğun yolculuğa yolcu olarak katılamazsın.",
+      };
+    case "gender_missing":
+    case "gender_mismatch":
+      return {
+        message:
+          joinPolicyMessage(
+            outcome.policy,
+            outcome.status === "gender_missing" ? null : user.gender,
+          ) ?? "Bu yolculuk sana uygun değil.",
       };
     case "not_found":
       return { message: "Bu yolculuk artık mevcut değil." };

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import DriverRating from "@/components/DriverRating";
+import { GenderChip, PolicyBadge } from "@/components/GenderUi";
 import EventCover from "@/components/EventCover";
 import Icon, { categoryIcon } from "@/components/Icons";
 import JoinCelebration from "@/components/JoinCelebration";
@@ -19,6 +20,7 @@ import VerifiedBadge from "@/components/VerifiedBadge";
 import { pickEventImage } from "@/data/event-images";
 import { categoryMeta } from "@/data/events";
 import { getCurrentUser, type AuthUser } from "@/lib/auth";
+import { joinPolicyMessage } from "@/lib/gender-rules";
 import { getEventById } from "@/lib/events";
 import { formatEventDate, formatEventTime } from "@/lib/format";
 import { leaveRideAction } from "@/lib/ride-actions";
@@ -154,6 +156,21 @@ function ActionArea({
     );
   }
 
+  const policyBlock = joinPolicyMessage(ride.genderPolicy ?? "mixed", user.gender);
+
+  if (policyBlock) {
+    return (
+      <p className="text-sm text-muted">
+        {policyBlock}{" "}
+        {!user.gender && (
+          <Link href="/panel" className="font-bold text-violet hover:underline">
+            Profile git &rarr;
+          </Link>
+        )}
+      </p>
+    );
+  }
+
   if (remainingSeats(ride) === 0) {
     return (
       <span className="inline-block rounded-full bg-peach px-4 py-2 text-sm font-bold text-coral-ink">
@@ -235,6 +252,10 @@ function StickyJoinBar({
     user.role !== "passenger" ||
     remainingSeats(ride) === 0
   ) {
+    return null;
+  }
+
+  if (joinPolicyMessage(ride.genderPolicy ?? "mixed", user.gender)) {
     return null;
   }
 
@@ -361,6 +382,7 @@ export default async function RideDetailPage({ params }: Props) {
             </h1>
             <p className="mt-2 flex flex-wrap items-center gap-2 text-white/85">
               Sürücü: {ride.driverName}
+              <GenderChip gender={ride.driverGender} />
               {ride.driverVerified && <VerifiedBadge />}
               <DriverRating
                 rating={ride.driverRating}
@@ -368,6 +390,7 @@ export default async function RideDetailPage({ params }: Props) {
                 tone="light"
               />
             </p>
+            <PolicyBadge policy={ride.genderPolicy} className="mt-3" />
           </div>
         </div>
       </section>
@@ -503,6 +526,7 @@ export default async function RideDetailPage({ params }: Props) {
                       <span className="flex flex-wrap items-center gap-2 font-bold">
                         {passenger.name}
                         {passenger.verified && <VerifiedBadge />}
+                        <GenderChip gender={passenger.gender} />
                       </span>
                     </li>
                   ))}

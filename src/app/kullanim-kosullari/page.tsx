@@ -21,6 +21,7 @@ const sections: { title: string; paragraphs: string[] }[] = [
       "Hesap oluşturarak bu koşulları kabul etmiş olursun. Hesabındaki bilgilerin doğru olmasından ve parolanı güvende tutmaktan sen sorumlusun.",
       "Demo sürümünde gerçek e-posta adresi ve gerçek parola kullanmaman önerilir. Hesabını istediğin zaman profilinden silebilirsin.",
       "Eventra'yı kullanmak için 18 yaşını doldurmuş olmalısın.",
+      "Kayıtta belirttiğin cinsiyet bilgisinin doğru olmasından sen sorumlusun. Cinsiyetini yanlış beyan etmek yasaktır ve hesabının kısıtlanmasına ya da kapatılmasına yol açabilir. Bu bilgi bir kez belirlenir, sonradan kendin değiştiremezsin.",
     ],
   },
   {
@@ -35,6 +36,7 @@ const sections: { title: string; paragraphs: string[] }[] = [
     paragraphs: [
       "Yolculuklar sürücü ile yolcular arasında kendi aralarında kurulan bir düzenlemedir. Eventra bu düzenlemenin tarafı değildir ve yolculuğun güvenliğini, zamanında gerçekleşmesini ya da kullanıcıların davranışlarını garanti etmez.",
       "Sürücü, geçerli ehliyete, aracın ruhsat, muayene ve zorunlu sigortasına sahip olmaktan ve trafik kurallarına uymaktan sorumludur. Sürücü her yolculuk oluşturduğunda bunu ayrıca beyan eder; Eventra bu beyanı doğrulamaz. Yolcular yolculuğa katılıp katılmamaya kendi kararlarıyla karar verir.",
+      "Yolculuklar karma, yalnızca kadınlar ya da yalnızca erkekler için açılabilir. Bu seçenek kullanıcıların kendi cinsiyet beyanına dayanır; Eventra cinsiyeti kimlikle doğrulamaz ve bu seçeneğin bir güvenlik garantisi olduğunu iddia etmez.",
       "Kendini güvende hissetmediğin bir yolculuğa katılma, yolculuk sırasında rahatsız olursan yolculuğu sonlandır. Acil durumda 112'yi ara.",
     ],
   },

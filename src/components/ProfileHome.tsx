@@ -1,4 +1,6 @@
 import Link from "next/link";
+import GenderCard from "@/components/GenderCard";
+import { GenderChip } from "@/components/GenderUi";
 import Icon, { type IconName } from "@/components/Icons";
 import InstallPrompt from "@/components/InstallPrompt";
 import RoleToggle from "@/components/RoleToggle";
@@ -124,6 +126,11 @@ export default function ProfileHome({
               {user.name}
             </h1>
             <p className="truncate text-sm text-muted">{user.email}</p>
+            {user.gender ? (
+              <p className="mt-2">
+                <GenderChip gender={user.gender} />
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -141,6 +148,8 @@ export default function ProfileHome({
           </p>
         </div>
       </section>
+
+      {!user.gender ? <GenderCard /> : null}
 
       <InstallPrompt />
 

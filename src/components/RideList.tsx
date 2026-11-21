@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useAuthUser } from "@/components/AuthProvider";
 import DriverRating from "@/components/DriverRating";
+import { GenderChip, PolicyBadge } from "@/components/GenderUi";
 import JoinCelebration from "@/components/JoinCelebration";
 import JoinRideButton from "@/components/JoinRideButton";
 import VerifiedBadge from "@/components/VerifiedBadge";
+import { joinPolicyMessage } from "@/lib/gender-rules";
 import { scoreRides, type ScoredRide } from "@/lib/matching";
 import { leaveRideAction } from "@/lib/ride-actions";
 import {
@@ -146,6 +148,21 @@ function RideAction({ ride, gate }: { ride: RideItem; gate: TicketGate }) {
     );
   }
 
+  const policyBlock = joinPolicyMessage(ride.genderPolicy ?? "mixed", user.gender);
+
+  if (policyBlock) {
+    return (
+      <p className="text-sm text-muted">
+        {policyBlock}{" "}
+        {!user.gender && (
+          <Link href="/panel" className="font-bold text-violet hover:underline">
+            Profile git &rarr;
+          </Link>
+        )}
+      </p>
+    );
+  }
+
   if (left === 0) {
     return (
       <span className="inline-flex items-center rounded-full bg-peach px-4 py-2.5 text-sm font-bold text-coral-ink">
@@ -221,12 +238,14 @@ function RideCard({
           </h3>
           <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
             <span>Sürücü: {ride.driverName}</span>
+            <GenderChip gender={ride.driverGender} />
             {ride.driverVerified && <VerifiedBadge />}
             <DriverRating
               rating={ride.driverRating}
               count={ride.driverRatingCount}
             />
           </p>
+          <PolicyBadge policy={ride.genderPolicy} className="mt-2" />
         </div>
         <div className="shrink-0 text-right">
           <p className="text-2xl font-extrabold tracking-tight text-violet">

@@ -5,13 +5,16 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { createSession } from "@/lib/auth";
 import { readClientIp } from "@/lib/client-ip";
+import { GENDER_FIELD, parseGender } from "@/lib/gender-rules";
 import { hashPassword } from "@/lib/password";
 import { checkSignupAllowed, recordSignup } from "@/lib/signup-throttle";
 
 export type RegisterState = {
-  errors?: Partial<Record<"name" | "email" | "password" | "terms", string>>;
+  errors?: Partial<
+    Record<"name" | "email" | "password" | "terms" | "gender", string>
+  >;
   message?: string;
-  values?: { name: string; email: string };
+  values?: { name: string; email: string; gender: string };
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -30,9 +33,14 @@ export async function registerAction(
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const accepted = formData.get("terms") === "on";
-  const values = { name, email };
+  const gender = parseGender(formData.get(GENDER_FIELD));
+  const values = { name, email, gender: gender ?? "" };
 
   const errors: NonNullable<RegisterState["errors"]> = {};
+
+  if (!gender) {
+    errors.gender = "Cinsiyetini seçmelisin.";
+  }
 
   if (name.length < 2 || name.length > 40) {
     errors.name = "Ad 2 ile 40 karakter arasında olmalı.";
@@ -92,7 +100,7 @@ export async function registerAction(
     // Rol verilmez: veritabanı varsayılanı "passenger" uygulanır.
     const [created] = await db
       .insert(users)
-      .values({ name, email, passwordHash })
+      .values({ name, email, passwordHash, gender })
       .returning({ id: users.id });
     userId = created.id;
   } catch (error) {

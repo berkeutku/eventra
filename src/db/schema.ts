@@ -65,10 +65,17 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: userRole("role").notNull().default("passenger"),
+  // Kullanıcının kendi beyanı ("female" | "male"). Eski hesaplarda boştur, kayıtta zorunludur.
+  gender: text("gender"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-});
+}, (table) => [
+  check(
+    "users_gender_check",
+    sql`${table.gender} is null or ${table.gender} in ('female', 'male')`,
+  ),
+]);
 
 export const rides = pgTable(
   "rides",
@@ -88,6 +95,8 @@ export const rides = pgTable(
     seats: integer("seats").notNull(),
     totalCost: integer("total_cost").notNull(),
     vehicle: text("vehicle"),
+    // Kimlerin katılabileceği: karma, yalnızca kadınlar ya da yalnızca erkekler.
+    genderPolicy: text("gender_policy").notNull().default("mixed"),
     status: text("status").notNull().default("planned"),
     departedAt: timestamp("departed_at", { withTimezone: true }),
     arrivedAt: timestamp("arrived_at", { withTimezone: true }),
@@ -105,6 +114,10 @@ export const rides = pgTable(
     ),
     check("rides_cost_check", sql`${table.totalCost} between 0 and 5000`),
     check("rides_status_check", sql`${table.status} in ('planned', 'departed', 'arrived')`),
+    check(
+      "rides_gender_policy_check",
+      sql`${table.genderPolicy} in ('mixed', 'women_only', 'men_only')`,
+    ),
   ],
 );
 

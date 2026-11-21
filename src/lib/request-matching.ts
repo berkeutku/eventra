@@ -5,7 +5,9 @@ import {
   ridePassengers,
   rideRequests,
   rides,
+  users,
 } from "../db/schema";
+import { parseGender, parseRidePolicy, policyAllowsGender } from "./gender-rules";
 import {
   MATCH_WINDOW_HOURS,
   MAX_MATCH_NOTIFICATIONS,
@@ -36,6 +38,7 @@ export async function notifyMatchingRequests(
       destination: rides.destination,
       departureTime: rides.departureTime,
       seats: rides.seats,
+      genderPolicy: rides.genderPolicy,
     })
     .from(rides)
     .where(eq(rides.id, rideId))
@@ -63,8 +66,10 @@ export async function notifyMatchingRequests(
       destination: rideRequests.destination,
       preferredTime: rideRequests.preferredTime,
       seats: rideRequests.seats,
+      gender: users.gender,
     })
     .from(rideRequests)
+    .innerJoin(users, eq(rideRequests.passengerId, users.id))
     .where(
       and(
         eq(rideRequests.eventId, ride.eventId),
@@ -75,9 +80,12 @@ export async function notifyMatchingRequests(
     .limit(200);
 
   const departure = hhmm(ride.departureTime);
+  const ridePolicy = parseRidePolicy(ride.genderPolicy) ?? "mixed";
 
   const matched = candidates
     .filter((candidate) =>
+      // "Sadece kadınlar/erkekler" yolculuklarının bildirimi, katılamayacak kişilere gitmez.
+      policyAllowsGender(ridePolicy, parseGender(candidate.gender)) &&
       requestFitsRide(
         {
           destination: candidate.destination,
@@ -154,8 +162,16 @@ export async function countMatchingRides(
   request: RequestLike,
   userId: string,
 ): Promise<number> {
+  const [me] = await db
+    .select({ gender: users.gender })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  const myGender = parseGender(me?.gender ?? null);
+
   const rows = await db
     .select({
+      genderPolicy: rides.genderPolicy,
       destination: rides.destination,
       departureTime: rides.departureTime,
       seats: rides.seats,
@@ -165,6 +181,7 @@ export async function countMatchingRides(
     .where(and(eq(rides.eventId, eventId), ne(rides.driverId, userId)));
 
   return rows.filter((row) =>
+    policyAllowsGender(parseRidePolicy(row.genderPolicy) ?? "mixed", myGender) &&
     requestFitsRide(request, {
       destination: row.destination,
       departureTime: hhmm(row.departureTime),

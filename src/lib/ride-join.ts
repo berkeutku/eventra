@@ -7,6 +7,12 @@ import {
   rides,
   users,
 } from "../db/schema";
+import {
+  parseGender,
+  parseRidePolicy,
+  policyAllowsGender,
+  type RidePolicy,
+} from "./gender-rules";
 
 export type JoinOutcome =
   | { status: "joined"; eventId: string }
@@ -14,7 +20,9 @@ export type JoinOutcome =
   | { status: "full" }
   | { status: "already_joined" }
   | { status: "other_ride" }
-  | { status: "own_ride" };
+  | { status: "own_ride" }
+  | { status: "gender_missing"; policy: RidePolicy }
+  | { status: "gender_mismatch"; policy: RidePolicy };
 
 // Bu dosya hem uygulamadan hem test betiğinden çağrıldığı için göreli
 // (../db) import yollarını kullanıyor.
@@ -24,8 +32,8 @@ export async function joinRide(
 ): Promise<JoinOutcome> {
   return db.transaction(async (tx): Promise<JoinOutcome> => {
     // Aynı kullanıcının aynı anda gelen isteklerini sıraya sokar.
-    await tx
-      .select({ id: users.id })
+    const [me] = await tx
+      .select({ id: users.id, gender: users.gender })
       .from(users)
       .where(eq(users.id, userId))
       .for("update");
@@ -40,6 +48,7 @@ export async function joinRide(
         driverId: rides.driverId,
         origin: rides.origin,
         destination: rides.destination,
+        genderPolicy: rides.genderPolicy,
       })
       .from(rides)
       .where(eq(rides.id, rideId))
@@ -52,6 +61,21 @@ export async function joinRide(
     // Sürücü kendi oluşturduğu yolculuğa yolcu olarak katılamaz.
     if (ride.driverId === userId) {
       return { status: "own_ride" };
+    }
+
+    // Yalnızca kadınlar / yalnızca erkekler yolculukları: kontrol kilit altında, sunucuda yapılır.
+    const policy = parseRidePolicy(ride.genderPolicy) ?? "mixed";
+
+    if (policy !== "mixed") {
+      const myGender = parseGender(me?.gender ?? null);
+
+      if (!myGender) {
+        return { status: "gender_missing", policy };
+      }
+
+      if (!policyAllowsGender(policy, myGender)) {
+        return { status: "gender_mismatch", policy };
+      }
     }
 
     // Kullanıcı bu etkinliğe ait hangi yolculuklara katılmış?

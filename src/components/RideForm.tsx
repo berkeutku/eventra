@@ -13,6 +13,13 @@ import {
   DRIVER_DECLARATION_FIELD,
   DRIVER_DECLARATION_TEXT,
 } from "@/lib/driver-declaration-rules";
+import {
+  GENDER_SELF_DECLARED_NOTE,
+  RIDE_POLICY_FIELD,
+  policyHints,
+  policyLabels,
+  policyOptionsFor,
+} from "@/lib/gender-rules";
 import MeetingPointSuggestions from "@/components/MeetingPointSuggestions";
 import RideTemplatePicker from "@/components/RideTemplatePicker";
 import RoutePicker from "@/components/RoutePicker";
@@ -364,7 +371,52 @@ export default function RideForm({ eventId }: Props) {
         </div>
       </Section>
 
-      <Section step={4} title="Sürücü beyanı">
+      <Section step={4} title="Kimlerle yolculuk edeceksin?">
+        <div>
+          <fieldset>
+            <legend className="sr-only">Yolculuk türü</legend>
+            <div className="space-y-3">
+              {policyOptionsFor(user.gender).map((option) => (
+                <label
+                  key={option}
+                  className="flex cursor-pointer items-start gap-3 rounded-2xl bg-white p-4 text-sm ring-1 ring-black/5 has-[:checked]:ring-2 has-[:checked]:ring-violet"
+                >
+                  <input
+                    type="radio"
+                    name={RIDE_POLICY_FIELD}
+                    value={option}
+                    defaultChecked={option === "mixed"}
+                    className="mt-1 h-5 w-5 shrink-0 accent-violet"
+                  />
+                  <span>
+                    <span className="block font-bold text-ink">
+                      {policyLabels[option]}
+                    </span>
+                    <span className="block text-muted">{policyHints[option]}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          {errors.ridePolicy && (
+            <p role="alert" className="mt-2 text-sm font-medium text-coral-ink">
+              {errors.ridePolicy}
+            </p>
+          )}
+          {!user.gender && (
+            <p className="mt-3 text-sm text-muted">
+              Yalnızca kadın ya da yalnızca erkek yolculuğu açmak için önce{" "}
+              <Link href="/panel" className="font-bold text-violet hover:underline">
+                profilinde
+              </Link>{" "}
+              cinsiyetini belirtmelisin.
+            </p>
+          )}
+          <p className="mt-3 text-xs text-muted">{GENDER_SELF_DECLARED_NOTE}</p>
+        </div>
+      </Section>
+
+      <Section step={5} title="Sürücü beyanı">
         <div>
           <label className="flex items-start gap-3 text-sm text-ink">
             <input

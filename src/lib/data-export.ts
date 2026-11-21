@@ -48,6 +48,7 @@ export async function collectUserData(userId: string) {
         name: users.name,
         email: users.email,
         role: users.role,
+        gender: users.gender,
         createdAt: users.createdAt,
       })
       .from(users)
@@ -66,6 +67,7 @@ export async function collectUserData(userId: string) {
         seats: rides.seats,
         totalCost: rides.totalCost,
         vehicle: rides.vehicle,
+        genderPolicy: rides.genderPolicy,
         status: rides.status,
         departedAt: rides.departedAt,
         arrivedAt: rides.arrivedAt,

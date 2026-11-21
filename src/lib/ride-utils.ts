@@ -1,3 +1,5 @@
+import type { Gender, RidePolicy } from "./gender-rules";
+
 export type RideItem = {
   id: string;
   eventId: string;
@@ -16,6 +18,8 @@ export type RideItem = {
   driverVerified: boolean; // sürücü bu etkinlik için (demo) bilet doğrulamış mı
   driverRating?: number | null; // sürücünün ortalama puanı (1-5), puan yoksa boş
   driverRatingCount?: number; // sürücünün aldığı değerlendirme sayısı
+  genderPolicy?: RidePolicy; // karma, yalnızca kadınlar ya da yalnızca erkekler
+  driverGender?: Gender | null; // sürücünün kendi beyanı
 };
 
 export type RideWithEvent = RideItem & {

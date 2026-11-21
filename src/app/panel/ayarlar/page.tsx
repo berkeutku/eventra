@@ -8,6 +8,7 @@ import PanelShell from "@/components/PanelShell";
 import PushToggle from "@/components/PushToggle";
 import SecurityCard from "@/components/SecurityCard";
 import { countActiveSessions, getCurrentUser } from "@/lib/auth";
+import { genderLabels } from "@/lib/gender-rules";
 import { getMutedTypes } from "@/lib/notification-prefs";
 import { roleLabels } from "@/lib/roles";
 
@@ -50,6 +51,14 @@ export default async function SettingsPage() {
                 Aktif rol
               </dt>
               <dd className="mt-1 font-bold text-ink">{roleLabels[user.role]}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-wider text-muted">
+                Cinsiyet
+              </dt>
+              <dd className="mt-1 font-bold text-ink">
+                {user.gender ? genderLabels[user.gender] : "Belirtilmedi"}
+              </dd>
             </div>
           </dl>
           <p className="mt-4 text-sm text-muted">
