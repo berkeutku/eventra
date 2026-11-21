@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 import Avatar from "@/components/Avatar";
 import { GenderChip } from "@/components/GenderUi";
@@ -9,8 +10,9 @@ import { roleLabels, type Role } from "@/lib/roles";
 
 export type HeroStat = { label: string; value: string };
 
-// Sosyal medya profili görünümü: renkli kapak, taşan fotoğraf, ad, rozetler, hakkımda,
-// ilgi alanları ve sayılar. Hem kendi profilinde hem başkalarının gördüğü sayfada kullanılır.
+// Sosyal medya profili görünümü: renkli kapak (logo ve slogan sabit, rengi kullanıcı seçer),
+// kapağın üstüne taşan fotoğraf, ad, rozetler, hakkımda, ilgi alanları ve sayılar.
+// Hem kendi profilinde hem başkalarının gördüğü sayfada kullanılır.
 export default function ProfileHeroCard({
   profile,
   role,
@@ -30,14 +32,32 @@ export default function ProfileHeroCard({
       aria-label="Profil"
       className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5"
     >
-      <div className={`relative h-28 overflow-hidden sm:h-40 ${theme.gradient}`}>
+      <div className={`relative h-32 overflow-hidden sm:h-44 ${theme.gradient}`}>
         <span className="absolute -right-10 -top-12 h-44 w-44 rounded-full bg-white/15 blur-2xl" />
         <span className="absolute -bottom-14 left-8 h-36 w-36 rounded-full bg-white/10 blur-xl" />
         <span className="absolute right-1/3 top-6 h-16 w-16 rounded-full bg-white/10 blur-lg" />
+
+        <div className="absolute right-5 top-1/2 flex -translate-y-1/2 flex-col items-end text-right sm:right-8">
+          <span className="inline-flex items-center gap-2">
+            <Image
+              src="/logo-mark.png"
+              alt=""
+              width={366}
+              height={272}
+              className="h-7 w-auto drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)] sm:h-10"
+            />
+            <span className="text-2xl font-extrabold lowercase tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)] sm:text-4xl">
+              eventra
+            </span>
+          </span>
+          <span className="mt-1 font-hand text-lg text-white/90 drop-shadow-[0_2px_6px_rgba(0,0,0,0.3)] sm:text-2xl">
+            Your Event. Your Route.
+          </span>
+        </div>
       </div>
 
       <div className="px-5 pb-6 sm:px-8 sm:pb-8">
-        <div className="-mt-14 flex items-end justify-between gap-3">
+        <div className="relative z-10 -mt-14 flex items-end justify-between gap-3">
           <Avatar
             userId={profile.id}
             name={profile.name}

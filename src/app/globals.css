@@ -267,12 +267,6 @@ html[data-splash="1"] body {
   box-shadow: 0 2px 0 #2a0f45, 0 0 24px rgba(255, 79, 180, 0.5);
 }
 
-.splash-hint {
-  margin: 10px 0 0;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
-}
-
 /* Bilgisayar / yatay ekran: afiş tam boy ortada, arkası bulanık, düğme afişin altında. */
 @media (min-aspect-ratio: 3 / 4) {
   .splash-backdrop {
@@ -325,10 +319,6 @@ html[data-splash="1"] .splash-cta {
   animation: splash-rise 0.6s ease 1.4s both;
 }
 
-html[data-splash="1"] .splash-hint {
-  animation: splash-rise 0.6s ease 1.6s both;
-}
-
 @keyframes splash-fade {
   from {
     opacity: 0;
@@ -366,8 +356,7 @@ html[data-splash="1"] .splash-hint {
   html[data-splash="1"] .splash-kicker,
   html[data-splash="1"] .splash-tagline,
   html[data-splash="1"] .splash-sub,
-  html[data-splash="1"] .splash-cta,
-  html[data-splash="1"] .splash-hint {
+  html[data-splash="1"] .splash-cta {
     animation: none;
   }
 }

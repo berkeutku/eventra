@@ -71,7 +71,6 @@ export default function SplashScreen() {
         <button ref={buttonRef} type="button" onClick={close} className="splash-cta">
           GİRİŞE GEÇ
         </button>
-        <p className="splash-hint">Esc tuşu da kapatır</p>
       </div>
     </div>
   );
