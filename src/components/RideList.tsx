@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useAuthUser } from "@/components/AuthProvider";
+import Avatar from "@/components/Avatar";
 import DriverRating from "@/components/DriverRating";
 import { GenderChip, PolicyBadge } from "@/components/GenderUi";
 import JoinCelebration from "@/components/JoinCelebration";
@@ -237,7 +238,23 @@ function RideCard({
             {ride.origin} → {ride.destination}
           </h3>
           <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-            <span>Sürücü: {ride.driverName}</span>
+            <span>Sürücü:</span>
+            {ride.driverId ? (
+              <Link
+                href={`/profil/${ride.driverId}`}
+                className="inline-flex items-center gap-1.5 font-bold text-ink hover:text-violet hover:underline"
+              >
+                <Avatar
+                  userId={ride.driverId}
+                  name={ride.driverName}
+                  version={ride.driverAvatarV}
+                  size={24}
+                />
+                {ride.driverName}
+              </Link>
+            ) : (
+              <span>{ride.driverName}</span>
+            )}
             <GenderChip gender={ride.driverGender} />
             {ride.driverVerified && <VerifiedBadge />}
             <DriverRating

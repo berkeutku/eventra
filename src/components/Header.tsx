@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthUser } from "@/components/AuthProvider";
+import Avatar from "@/components/Avatar";
 import Icon from "@/components/Icons";
 import LogoutForm from "@/components/LogoutForm";
 import Logo from "@/components/Logo";
@@ -74,9 +75,18 @@ export default function Header() {
                   href="/panel"
                   className="group ml-1 flex items-center gap-2 rounded-full bg-lilac py-1.5 pl-1.5 pr-4 text-violet transition-colors hover:bg-violet hover:text-white"
                 >
-                  <span className="grid h-7 w-7 place-items-center rounded-full bg-violet text-xs font-bold text-white group-hover:bg-white group-hover:text-violet">
-                    {initial}
-                  </span>
+                  {user.avatarV ? (
+                    <Avatar
+                      userId={user.id}
+                      name={user.name}
+                      version={user.avatarV}
+                      size={28}
+                    />
+                  ) : (
+                    <span className="grid h-7 w-7 place-items-center rounded-full bg-violet text-xs font-bold text-white group-hover:bg-white group-hover:text-violet">
+                      {initial}
+                    </span>
+                  )}
                   {user.name} · {roleLabels[user.role]}
                 </Link>
                 <LogoutForm
@@ -109,7 +119,16 @@ export default function Header() {
                   href="/panel"
                   className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-lilac px-3.5 text-sm font-bold text-violet"
                 >
-                  <Icon name="user" className="h-4 w-4" />
+                  {user.avatarV ? (
+                    <Avatar
+                      userId={user.id}
+                      name={user.name}
+                      version={user.avatarV}
+                      size={24}
+                    />
+                  ) : (
+                    <Icon name="user" className="h-4 w-4" />
+                  )}
                   Profilim
                 </Link>
                 <LogoutForm buttonClassName="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-bold text-muted hover:bg-lilac" />

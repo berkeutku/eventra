@@ -2,6 +2,7 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Avatar from "@/components/Avatar";
 import DriverRating from "@/components/DriverRating";
 import { GenderChip, PolicyBadge } from "@/components/GenderUi";
 import EventCover from "@/components/EventCover";
@@ -381,7 +382,24 @@ export default async function RideDetailPage({ params }: Props) {
               {ride.origin} → {ride.destination}
             </h1>
             <p className="mt-2 flex flex-wrap items-center gap-2 text-white/85">
-              Sürücü: {ride.driverName}
+              Sürücü:
+              {ride.driverId ? (
+                <Link
+                  href={`/profil/${ride.driverId}`}
+                  className="inline-flex items-center gap-2 font-bold text-white hover:underline"
+                >
+                  <Avatar
+                    userId={ride.driverId}
+                    name={ride.driverName}
+                    version={ride.driverAvatarV}
+                    size={28}
+                    className="ring-2 ring-white/70"
+                  />
+                  {ride.driverName}
+                </Link>
+              ) : (
+                ride.driverName
+              )}
               <GenderChip gender={ride.driverGender} />
               {ride.driverVerified && <VerifiedBadge />}
               <DriverRating

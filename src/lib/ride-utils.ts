@@ -20,6 +20,8 @@ export type RideItem = {
   driverRatingCount?: number; // sürücünün aldığı değerlendirme sayısı
   genderPolicy?: RidePolicy; // karma, yalnızca kadınlar ya da yalnızca erkekler
   driverGender?: Gender | null; // sürücünün kendi beyanı
+  driverId?: string; // sürücünün hesap numarası (profil bağlantısı için)
+  driverAvatarV?: number | null; // sürücünün profil fotoğrafı sürümü, yoksa null
 };
 
 export type RideWithEvent = RideItem & {

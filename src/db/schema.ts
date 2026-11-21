@@ -67,6 +67,14 @@ export const users = pgTable("users", {
   role: userRole("role").notNull().default("passenger"),
   // Kullanıcının kendi beyanı ("female" | "male"). Eski hesaplarda boştur, kayıtta zorunludur.
   gender: text("gender"),
+  // Profil: kısa tanıtım, şehir, kapak teması ve ilgi alanları (etkinlik kategorisi anahtarları).
+  bio: text("bio"),
+  city: text("city"),
+  theme: text("theme").notNull().default("violet"),
+  interests: text("interests")
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -75,7 +83,33 @@ export const users = pgTable("users", {
     "users_gender_check",
     sql`${table.gender} is null or ${table.gender} in ('female', 'male')`,
   ),
+  check("users_bio_check", sql`${table.bio} is null or char_length(${table.bio}) <= 280`),
+  check("users_city_check", sql`${table.city} is null or char_length(${table.city}) <= 40`),
+  check(
+    "users_theme_check",
+    sql`${table.theme} in ('violet', 'sunset', 'mint', 'ocean', 'berry', 'gold')`,
+  ),
+  check("users_interests_check", sql`cardinality(${table.interests}) <= 5`),
 ]);
+
+// Profil fotoğrafı: tarayıcıda 320x320 JPEG'e küçültülmüş kopya (base64). Ayrı tabloda tutulur ki
+// kullanıcı sorguları hiç görsel verisi taşımasın. Hesap silinince birlikte silinir.
+export const userAvatars = pgTable(
+  "user_avatars",
+  {
+    userId: uuid("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    contentType: text("content_type").notNull().default("image/jpeg"),
+    data: text("data").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check("user_avatars_size_check", sql`char_length(${table.data}) <= 140000`),
+  ],
+);
 
 export const rides = pgTable(
   "rides",

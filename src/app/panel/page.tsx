@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { listFavoriteEvents } from "@/lib/favorites";
 import { getOnboardingData } from "@/lib/onboarding";
 import { legacyTabPath } from "@/lib/panel-tabs";
+import { getProfileData, getProfileStats } from "@/lib/profile";
 import { getRidesForDriver, getRidesForPassenger } from "@/lib/ride-queries";
 import { buildStats } from "@/lib/stats";
 
@@ -34,12 +35,20 @@ export default async function PanelPage({ searchParams }: Props) {
     return <PanelGate next="/panel" />;
   }
 
-  const [driverRides, passengerRides, favorites, onboarding] = await Promise.all([
-    getRidesForDriver(user.id),
-    getRidesForPassenger(user.id),
-    listFavoriteEvents(user.id),
-    getOnboardingData(user.id),
-  ]);
+  const [driverRides, passengerRides, favorites, onboarding, profile, profileStats] =
+    await Promise.all([
+      getRidesForDriver(user.id),
+      getRidesForPassenger(user.id),
+      listFavoriteEvents(user.id),
+      getOnboardingData(user.id),
+      getProfileData(user.id),
+      getProfileStats(user.id),
+    ]);
+
+  if (!profile) {
+    return <PanelGate next="/panel" />;
+  }
+
   const stats = buildStats(driverRides, passengerRides);
   const earned = stats.badges.filter((badge) => badge.earned).length;
 
@@ -48,6 +57,8 @@ export default async function PanelPage({ searchParams }: Props) {
       <div className="mx-auto max-w-2xl">
         <ProfileHome
           user={user}
+          profile={profile}
+          profileStats={profileStats}
           driverRides={driverRides}
           passengerRides={passengerRides}
           favoritesCount={favorites.length}

@@ -49,6 +49,10 @@ export async function collectUserData(userId: string) {
         email: users.email,
         role: users.role,
         gender: users.gender,
+        bio: users.bio,
+        city: users.city,
+        theme: users.theme,
+        interests: users.interests,
         createdAt: users.createdAt,
       })
       .from(users)

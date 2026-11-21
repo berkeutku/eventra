@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { createHash, randomBytes } from "node:crypto";
 import { and, eq, gt, lt, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { sessions, users } from "@/db/schema";
+import { sessions, userAvatars, users } from "@/db/schema";
 import { parseGender, type Gender } from "@/lib/gender-rules";
 
 const SESSION_COOKIE = "eventra_session";
@@ -15,6 +15,8 @@ export type AuthUser = {
   email: string;
   role: "driver" | "passenger";
   gender?: Gender | null;
+  // Profil fotoğrafı varsa güncellenme zamanı (ms), yoksa null. Önbellek anahtarı olarak kullanılır.
+  avatarV?: number | null;
 };
 
 function hashToken(token: string): string {
@@ -69,6 +71,7 @@ export const getCurrentUser = cache(async (): Promise<AuthUser | null> => {
       email: users.email,
       role: users.role,
       gender: users.gender,
+      avatarV: sql<number | null>`(select (extract(epoch from ${userAvatars.updatedAt}) * 1000)::float8 from ${userAvatars} where ${userAvatars.userId} = ${users.id})`,
     })
     .from(sessions)
     .innerJoin(users, eq(sessions.userId, users.id))
@@ -79,7 +82,13 @@ export const getCurrentUser = cache(async (): Promise<AuthUser | null> => {
 
   const row = rows[0];
 
-  return row ? { ...row, gender: parseGender(row.gender) } : null;
+  return row
+    ? {
+        ...row,
+        gender: parseGender(row.gender),
+        avatarV: row.avatarV ? Math.round(row.avatarV) : null,
+      }
+    : null;
 });
 
 export async function destroySession(): Promise<void> {

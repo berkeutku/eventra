@@ -1,8 +1,8 @@
 import Link from "next/link";
 import GenderCard from "@/components/GenderCard";
-import { GenderChip } from "@/components/GenderUi";
 import Icon, { type IconName } from "@/components/Icons";
 import InstallPrompt from "@/components/InstallPrompt";
+import ProfileHeroCard from "@/components/ProfileHeroCard";
 import RoleToggle from "@/components/RoleToggle";
 import { LinkButton } from "@/components/ui/Button";
 import { UnreadBadge } from "@/components/UnreadProvider";
@@ -16,6 +16,8 @@ import {
 } from "@/lib/onboarding-rules";
 import { pickNextRide } from "@/lib/panel";
 import { SECTION_PATHS } from "@/lib/panel-tabs";
+import type { ProfileData, ProfileStats } from "@/lib/profile";
+import { profileCompleteness } from "@/lib/profile-rules";
 import type { RideWithEvent } from "@/lib/ride-utils";
 import { roleLabels } from "@/lib/roles";
 
@@ -31,6 +33,8 @@ type Row = {
 
 export default function ProfileHome({
   user,
+  profile,
+  profileStats,
   driverRides,
   passengerRides,
   favoritesCount,
@@ -41,6 +45,8 @@ export default function ProfileHome({
   pushEnabled,
 }: {
   user: AuthUser;
+  profile: ProfileData;
+  profileStats: ProfileStats;
   driverRides: RideWithEvent[];
   passengerRides: RideWithEvent[];
   favoritesCount: number;
@@ -50,10 +56,22 @@ export default function ProfileHome({
   latestVerified: { id: string; title: string } | null;
   pushEnabled: boolean;
 }) {
-  const initial = user.name.trim().charAt(0).toLocaleUpperCase("tr-TR");
   const next = pickNextRide(driverRides, passengerRides);
   const totalRides = driverRides.length + passengerRides.length;
   const isDriver = user.role === "driver";
+
+  const rating =
+    profileStats.rating === null
+      ? "—"
+      : `★ ${profileStats.rating.toFixed(1).replace(".", ",")}`;
+
+  const completeness = profileCompleteness({
+    hasAvatar: profile.avatarV !== null,
+    bio: profile.bio,
+    city: profile.city,
+    interestCount: profile.interests.length,
+    hasGender: profile.gender !== null,
+  });
 
   const rows: Row[] = [
     {
@@ -110,46 +128,91 @@ export default function ProfileHome({
 
   return (
     <div className="space-y-6">
+      <ProfileHeroCard
+        profile={profile}
+        role={user.role}
+        stats={[
+          { label: "Yolculuk", value: String(totalRides) },
+          { label: "Puan", value: rating },
+          { label: "Rozet", value: `${earnedBadges}/${totalBadges}` },
+          { label: "Favori", value: String(favoritesCount) },
+        ]}
+        actions={
+          <>
+            <LinkButton href="/panel/profil" variant="primary" size="sm">
+              Profili düzenle
+            </LinkButton>
+            <LinkButton
+              href={`/profil/${profile.id}`}
+              variant="secondary"
+              size="sm"
+            >
+              Önizle
+            </LinkButton>
+          </>
+        }
+      />
+
+      {completeness.percent < 100 ? (
+        <section
+          aria-label="Profil doluluğu"
+          className="rounded-3xl bg-white p-6 ring-1 ring-black/5 sm:p-8"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-extrabold tracking-tight">
+              Profilin %{completeness.percent} tamam
+            </h2>
+            <Link
+              href="/panel/profil"
+              className="text-sm font-bold text-violet hover:underline"
+            >
+              Tamamla &rarr;
+            </Link>
+          </div>
+          <div
+            role="progressbar"
+            aria-valuenow={completeness.percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Profil doluluğu"
+            className="mt-3 h-2.5 overflow-hidden rounded-full bg-lilac"
+          >
+            <div
+              className="h-full rounded-full bg-linear-to-r from-violet via-coral to-mint"
+              style={{ width: `${completeness.percent}%` }}
+            />
+          </div>
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {completeness.missing.map((item) => (
+              <li
+                key={item}
+                className="rounded-full bg-surface px-3 py-1 text-xs font-bold text-muted"
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {!profile.gender ? <GenderCard /> : null}
+
       <section
-        aria-label="Profil"
+        aria-label="Aktif rol"
         className="rounded-3xl bg-white p-6 ring-1 ring-black/5 sm:p-8"
       >
-        <div className="flex items-center gap-4">
-          <span
-            aria-hidden="true"
-            className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-violet text-2xl font-extrabold text-white"
-          >
-            {initial}
-          </span>
-          <div className="min-w-0">
-            <h1 className="truncate text-2xl font-extrabold tracking-tight sm:text-3xl">
-              {user.name}
-            </h1>
-            <p className="truncate text-sm text-muted">{user.email}</p>
-            {user.gender ? (
-              <p className="mt-2">
-                <GenderChip gender={user.gender} />
-              </p>
-            ) : null}
-          </div>
+        <p className="text-xs font-bold uppercase tracking-wider text-muted">
+          Aktif rolün
+        </p>
+        <div className="mt-2">
+          <RoleToggle currentRole={user.role} />
         </div>
-
-        <div className="mt-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-muted">
-            Aktif rolün
-          </p>
-          <div className="mt-2">
-            <RoleToggle currentRole={user.role} />
-          </div>
-          <p className="mt-2 text-sm text-muted">
-            {isDriver
-              ? "Sürücü rolündeyken etkinlikler için yolculuk oluşturabilirsin."
-              : "Yolcu rolündeyken etkinliklerdeki yolculuklara katılabilirsin."}
-          </p>
-        </div>
+        <p className="mt-2 text-sm text-muted">
+          {isDriver
+            ? "Sürücü rolündeyken etkinlikler için yolculuk oluşturabilirsin."
+            : "Yolcu rolündeyken etkinliklerdeki yolculuklara katılabilirsin."}
+        </p>
       </section>
-
-      {!user.gender ? <GenderCard /> : null}
 
       <InstallPrompt />
 

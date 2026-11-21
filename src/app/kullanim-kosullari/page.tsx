@@ -58,6 +58,7 @@ const sections: { title: string; paragraphs: string[] }[] = [
     title: "7. Yasak davranışlar",
     paragraphs: [
       "Aşağıdakiler yasaktır: yanlış ya da yanıltıcı bilgi vermek, başka birini taklit etmek, taciz, tehdit ya da ayrımcılık içeren davranışlar, sohbet ve taleplerde telefon, e-posta, bağlantı gibi iletişim bilgisi paylaşmak, sistemi otomatik araçlarla zorlamak ya da kötüye kullanmak, ticari yolcu taşımacılığı yapmak.",
+      "Profil fotoğrafı ve “hakkımda” metni sana ait olmalı ve başkalarını rahatsız etmemelidir. Başkasına ait fotoğraf, müstehcen, şiddet içeren, nefret ya da ayrımcılık içeren görsel ve metinler yasaktır; hakkımda metnine telefon, e-posta, kullanıcı adı ya da bağlantı yazılamaz. Kurallara aykırı içerik uyarı yapılmadan kaldırılabilir.",
       "Bu kuralları ihlal eden hesaplar uyarı yapılmadan kısıtlanabilir ya da kapatılabilir.",
     ],
   },

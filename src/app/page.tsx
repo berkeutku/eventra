@@ -3,6 +3,7 @@ import CategoryChips from "@/components/CategoryChips";
 import CostCalculator from "@/components/CostCalculator";
 import EventCard from "@/components/EventCard";
 import HeroScroller from "@/components/HeroScroller";
+import HowItWorks from "@/components/HowItWorks";
 import Icon, { type IconName } from "@/components/Icons";
 import type { EventItem } from "@/data/events";
 import { getCurrentUser } from "@/lib/auth";
@@ -53,27 +54,6 @@ const problems: { title: string; text: string; icon: IconName }[] = [
     title: "Herkes birbirinden habersiz",
     text: "Aynı yöne giden insanlar, ayrı ayrı araçlarla yola çıkar.",
     icon: "users",
-  },
-];
-
-const steps: { title: string; text: string; icon: IconName; tint: string }[] = [
-  {
-    title: "Etkinliği seç",
-    text: "Konser, derbi veya tiyatro. Katılacağın etkinliği bul.",
-    icon: "ticket",
-    tint: "bg-lilac text-violet",
-  },
-  {
-    title: "Yolculuğunu bul",
-    text: "Aynı etkinliğe gidenlerin paylaştığı yolculuklara göz at ya da kendin oluştur.",
-    icon: "route",
-    tint: "bg-peach text-coral-ink",
-  },
-  {
-    title: "Birlikte dön",
-    text: "Buluşma noktasını, koltuğunu ve tahmini masrafı tek ekranda gör.",
-    icon: "car",
-    tint: "bg-sea text-mint-ink",
   },
 ];
 
@@ -181,6 +161,26 @@ function buildFaqs(showReal: boolean) {
     a: showReal
       ? "Etkinlik bilgileri iş ortağımız biletimGO'dan alınır ve değişebilir; biletleri Eventra değil biletimGO satar. Demo etkinlik etiketli etkinlikler ise kurgusaldır ve yolculuk özelliklerini denemek için vardır."
       : "Listelenen etkinlikler, mekanlar ve takımlar tamamen kurgusal demo verileridir.",
+  },
+  {
+    q: "Yolculuğa katılmadan önce sürücü hakkında ne öğrenebilirim?",
+    a: "Sürücünün fotoğrafını, tanıtım yazısını, şehrini, ilgi alanlarını, aldığı puanları ve yolculuğun cinsiyet tercihini görebilirsin. Eventra sürücünün ehliyetini veya aracını doğrulamaz; kararı bu bilgilere göre sen verirsin.",
+  },
+  {
+    q: "Yolculuk kaç kişiyle yapılıyor, masraf nasıl bölünüyor?",
+    a: "Kişi başı pay, toplam masrafın (boş koltuk sayısı + 1)'e bölünmesiyle bulunur; sürücü de payın içindedir. Örneğin 600 TL ve 3 boş koltuk için kişi başı 150 TL. Bu yalnızca tahmindir, ödemeyi yolculuktakiler kendi aralarında yapar.",
+  },
+  {
+    q: "Yalnızca kadınlarla yolculuk yapabilir miyim?",
+    a: "Evet. Sürücüler yolculuğu karışık, yalnızca kadınlar ya da yalnızca erkekler olarak açabilir. Cinsiyet kayıtta kullanıcının kendi beyanıdır, belgeyle doğrulanmaz ve sonradan değiştirilemez.",
+  },
+  {
+    q: "Yolculuk günü bir sorun çıkarsa ne olur?",
+    a: "Yolculuk sohbetinden iletişim kurabilir, güvenli paylaşım bağlantısıyla yakınına haber verebilirsin. Sonrasında sorunu bildirebilirsin; bildirimler elle incelenir. Eventra canlı destek sunmaz, acil durumda 112'yi ara.",
+  },
+  {
+    q: "Plan değişirse yolculuktan ayrılabilir miyim?",
+    a: "Evet, yolculuktan ayrılabilirsin; koltuğun hemen başkasına açılır. Sürücü de yolculuk bilgilerini değiştirebilir, bu durumda katılanlar bilgilendirilir.",
   },
   ];
 }
@@ -325,44 +325,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section
-        id="nasil-calisir"
-        className="bg-soft px-6 py-12 sm:py-24"
-      >
-        <div className="reveal mx-auto max-w-6xl">
-          <p className="text-center text-sm font-bold uppercase tracking-widest text-violet">
-            çözüm çok basit
-          </p>
-          <h2 className="mt-2 text-center text-2xl font-extrabold tracking-tight sm:text-4xl">
-            Üç adımda yolculuk
-          </h2>
-
-          <ol className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-8">
-            {steps.map((step, index) => (
-              <li key={step.title} className="relative">
-                {index < steps.length - 1 && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute left-20 right-[-1rem] top-8 hidden border-t-[3px] border-dotted border-violet/30 sm:block"
-                  />
-                )}
-                <span
-                  className={`relative grid h-16 w-16 place-items-center rounded-3xl ${step.tint}`}
-                >
-                  <Icon name={step.icon} className="h-8 w-8" />
-                  <span className="absolute -right-2 -top-2 grid h-7 w-7 place-items-center rounded-full bg-night text-xs font-extrabold text-white">
-                    {index + 1}
-                  </span>
-                </span>
-                <h3 className="mt-5 text-xl font-extrabold tracking-tight">
-                  {step.title}
-                </h3>
-                <p className="mt-2 text-muted">{step.text}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
+      <HowItWorks />
 
       <section className="px-6 py-12 sm:py-20">
         <div className="reveal mx-auto max-w-6xl">

@@ -13,6 +13,10 @@ const sections: { title: string; text: string }[] = [
     text: "Görünen adın, e-posta adresin, kayıtta belirttiğin cinsiyetin (Kadın ya da Erkek), aktif rolün ve hesabının oluşturulma zamanı saklanır. Cinsiyet bilgisi yalnızca “sadece kadınlar” ve “sadece erkekler” yolculuklarını sağlamak için kullanılır; profilinde görünür, sürücüysen yolculuk sayfanda, yolcuysan katıldığın yolculuğun sürücüsü ve yolcuları tarafından görülür. Bu bilgi senin beyanına dayanır, Eventra kimlikle doğrulamaz. Parolan düz metin olarak değil, tek yönlü şifrelenmiş özet (scrypt) olarak saklanır; biz de parolanı göremeyiz. Parolanı Ayarlar sayfasından değiştirebilir ve diğer cihazlardaki açık oturumlarını kapatabilirsin. Açık oturumların kaydı, oturum anahtarının tek yönlü özetiyle tutulur.",
   },
   {
+    title: "Profil fotoğrafı ve tanıtım bilgilerin",
+    text: "İstersen profiline bir fotoğraf, kısa bir “hakkımda” metni, şehir, ilgi alanları ve kapak rengi ekleyebilirsin. Fotoğraf tarayıcında 320 x 320 piksellik küçük bir JPEG kopyaya çevrilir ve yalnızca bu küçük kopya veritabanımızda saklanır; özgün fotoğrafın bize gönderilmez. Bu bilgiler yalnızca giriş yapmış kullanıcılara gösterilir, arama motorlarına açık değildir. Hakkımda metnine telefon, e-posta, kullanıcı adı ya da bağlantı yazılamaz. Fotoğrafını ve metinlerini istediğin zaman değiştirebilir ya da silebilirsin; hesabını silersen hepsi birlikte silinir. Kendine ait olmayan fotoğraf yükleme.",
+  },
+  {
     title: "Yolculuk ve etkinlik verilerin",
     text: "Oluşturduğun ya da katıldığın yolculuklar, favori etkinliklerin, bildirimlerin ve (demo) bilet doğrulama kaydın saklanır. Yolculuk oluşturmak ve yolculuğa katılmak için o etkinliğin biletini doğrulamış olman gerekir. Demo etkinliklerde bu doğrulama bir simülasyondur, gerçek bir bilet sağlayıcıya sorulmaz. Bilet kodunun kendisi değil yalnızca özeti tutulur. Yolcu adları yalnızca ilgili yolculuğun sürücüsüne ve o yolculuğa katılan yolculara gösterilir.",
   },

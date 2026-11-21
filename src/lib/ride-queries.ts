@@ -6,6 +6,7 @@ import {
   rideRatings,
   rides,
   ticketVerifications,
+  userAvatars,
   users,
 } from "@/db/schema";
 import { parseGender, parseRidePolicy, type Gender } from "@/lib/gender-rules";
@@ -16,6 +17,11 @@ type RideRow = typeof rides.$inferSelect;
 // Her yolculuk satırı için o yolculuğa katılan yolcu sayısını hesaplar.
 function passengerCountSql() {
   return sql<number>`(select count(*)::int from ${ridePassengers} where ${ridePassengers.rideId} = ${rides.id})`;
+}
+
+// Sürücünün profil fotoğrafı varsa güncellenme zamanı (ms), yoksa null.
+function driverAvatarSql() {
+  return sql<number | null>`(select (extract(epoch from ${userAvatars.updatedAt}) * 1000)::float8 from ${userAvatars} where ${userAvatars.userId} = ${rides.driverId})`;
 }
 
 // Sürücü bu etkinlik için (demo) bilet doğrulaması yapmış mı?
@@ -40,6 +46,7 @@ function toRideItem(
   flags: { joined: boolean; isOwn: boolean },
   rating?: { value: number | null; count: number },
   driverGender?: string | null,
+  driverAvatarV?: number | null,
 ): RideItem {
   return {
     id: ride.id,
@@ -62,6 +69,8 @@ function toRideItem(
     driverRatingCount: rating ? rating.count : 0,
     genderPolicy: parseRidePolicy(ride.genderPolicy) ?? "mixed",
     driverGender: parseGender(driverGender ?? null),
+    driverId: ride.driverId,
+    driverAvatarV: driverAvatarV ? Math.round(driverAvatarV) : null,
   };
 }
 
@@ -76,6 +85,7 @@ export async function getRidesForEvent(
       passengerCount: passengerCountSql(),
       driverVerified: driverVerifiedSql(),
       driverGender: users.gender,
+      driverAvatarV: driverAvatarSql(),
       driverRating: driverRatingSql(),
       driverRatingCount: driverRatingCountSql(),
     })
@@ -117,6 +127,7 @@ export async function getRidesForEvent(
       },
       { value: row.driverRating, count: row.driverRatingCount },
       row.driverGender,
+      row.driverAvatarV,
     ),
   );
 }
@@ -200,6 +211,7 @@ export async function getRideDetail(
       passengerCount: passengerCountSql(),
       driverVerified: driverVerifiedSql(),
       driverGender: users.gender,
+      driverAvatarV: driverAvatarSql(),
       driverRating: driverRatingSql(),
       driverRatingCount: driverRatingCountSql(),
     })
@@ -238,6 +250,7 @@ export async function getRideDetail(
       { joined, isOwn },
       { value: row.driverRating, count: row.driverRatingCount },
       row.driverGender,
+      row.driverAvatarV,
     ),
     passengers:
       isOwn || joined
