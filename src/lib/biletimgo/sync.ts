@@ -6,7 +6,11 @@ import {
   fetchBiletimgoEvents,
   type FetchLike,
 } from "./client";
-import { normalizeEvent, type NormalizedEvent } from "./normalize";
+import {
+  EXCLUDED_CATEGORIES,
+  normalizeEvent,
+  type NormalizedEvent,
+} from "./normalize";
 
 // Bu dosya hem uygulamadan hem betiklerden çağrıldığı için göreli içe aktarımlar kullanıyor.
 // GÜVENLİK KURALI: Bu dosyada etkinlik kaydını kaldıran hiçbir kod yoktur. Etkinlikler
@@ -46,6 +50,10 @@ export type SyncResult = {
   skipped: number;
   skippedReasons: Record<string, number>;
   duplicates: number;
+  // Atölye ve çocuk etkinlikleri gibi bilerek alınmayan etkinlikler.
+  excluded: number;
+  // biletimGO'nun kendi kategori adlarına göre sayılar (eşleştirmeyi kontrol etmek için).
+  categoryCounts: Record<string, number>;
   inserted: number;
   updated: number;
   reactivated: number;
@@ -63,6 +71,8 @@ function emptyResult(): SyncResult {
     skipped: 0,
     skippedReasons: {},
     duplicates: 0,
+    excluded: 0,
+    categoryCounts: {},
     inserted: 0,
     updated: 0,
     reactivated: 0,
@@ -211,6 +221,18 @@ async function execute(
   if (result.valid / raw.length < MIN_VALID_RATIO) {
     markSuspicious(result, "too_many_invalid");
     return;
+  }
+
+  // İstenmeyen kategorileri ayıkla. Geçerlilik oranından SONRA yapılır ki bilerek
+  // atlanan etkinlikler "bozuk veri" sayılıp çalışmayı durdurmasın.
+  for (const [id, event] of seen) {
+    const label = event.sourceCategory ?? "(boş)";
+    result.categoryCounts[label] = (result.categoryCounts[label] ?? 0) + 1;
+
+    if (EXCLUDED_CATEGORIES.has(event.category)) {
+      seen.delete(id);
+      result.excluded += 1;
+    }
   }
 
   const existingRows = await db

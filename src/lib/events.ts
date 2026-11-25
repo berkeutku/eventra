@@ -1,9 +1,17 @@
 import { cache } from "react";
-import { and, asc, eq, ilike, lt, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, gte, ilike, lt, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { events } from "@/db/schema";
 import { getShowRealEvents } from "@/lib/app-settings";
 import type { EventCategory, EventItem } from "@/data/events";
+import {
+  DAY_MS,
+  rangeFor,
+  trDayStart,
+  type WhenFilter,
+} from "@/lib/event-filter-rules";
+
+export { parseWhen, type WhenFilter } from "@/lib/event-filter-rules";
 
 type EventRow = typeof events.$inferSelect;
 
@@ -31,20 +39,15 @@ function toEventItem(row: EventRow): EventItem {
 export const PAGE_SIZE = 24;
 
 export type SourceFilter = "all" | "real" | "demo";
-export type WhenFilter = "all" | "today" | "week" | "weekend" | "month";
-
-const WHEN_VALUES: WhenFilter[] = ["all", "today", "week", "weekend", "month"];
-
-export function parseWhen(value: string): WhenFilter {
-  return WHEN_VALUES.find((item) => item === value) ?? "all";
-}
-
 export type EventFilters = {
   category?: EventCategory;
   cityKey?: string;
   query?: string;
   source?: SourceFilter;
   when?: WhenFilter;
+  // Yalnızca when === "custom" iken kullanılır: "YYYY-MM-DD"
+  from?: string;
+  to?: string;
 };
 
 export type EventPage = {
@@ -55,43 +58,6 @@ export type EventPage = {
 };
 
 export type CityOption = { key: string; name: string; total: number };
-
-const DAY_MS = 86_400_000;
-const TR_OFFSET_MS = 3 * 3_600_000; // Türkiye sabit UTC+3
-
-// Seçilen zaman aralığı (Türkiye saatine göre): [from, to)
-function whenRange(
-  when: Exclude<WhenFilter, "all">,
-  now: Date,
-): { from: Date; to: Date } {
-  const local = now.getTime() + TR_OFFSET_MS;
-  const dayNumber = Math.floor(local / DAY_MS);
-  const todayStart = dayNumber * DAY_MS - TR_OFFSET_MS;
-  const weekday = (dayNumber + 4) % 7; // 0 pazar, 6 cumartesi
-
-  if (when === "today") {
-    return { from: new Date(todayStart), to: new Date(todayStart + DAY_MS) };
-  }
-
-  if (when === "week") {
-    return { from: new Date(todayStart), to: new Date(todayStart + 7 * DAY_MS) };
-  }
-
-  if (when === "month") {
-    return { from: new Date(todayStart), to: new Date(todayStart + 30 * DAY_MS) };
-  }
-
-  if (weekday === 0) {
-    return { from: new Date(todayStart), to: new Date(todayStart + DAY_MS) };
-  }
-
-  if (weekday === 6) {
-    return { from: new Date(todayStart), to: new Date(todayStart + 2 * DAY_MS) };
-  }
-
-  const saturday = todayStart + (6 - weekday) * DAY_MS;
-  return { from: new Date(saturday), to: new Date(saturday + 2 * DAY_MS) };
-}
 
 // Etkinlik, bitiş saatine (yoksa başlangıç + 6 saate) kadar "yaklaşan" sayılır.
 const UPCOMING = sql`coalesce(${events.endsAt}, ${events.startsAt} + interval '6 hours') >= now()`;
@@ -133,10 +99,11 @@ function conditions(
     parts.push(eq(events.cityKey, filters.cityKey));
   }
 
-  const when = filters.when;
+  const range = filters.when
+    ? rangeFor(filters.when, new Date(), filters.from, filters.to)
+    : null;
 
-  if (when && when !== "all") {
-    const range = whenRange(when, new Date());
+  if (range) {
     parts.push(lt(events.startsAt, range.to));
     parts.push(
       sql`coalesce(${events.endsAt}, ${events.startsAt} + interval '6 hours') >= ${range.from.toISOString()}::timestamptz`,
@@ -225,6 +192,40 @@ export async function listCities(filters: EventFilters): Promise<CityOption[]> {
   return rows
     .filter((row) => row.key)
     .map((row) => ({ key: row.key as string, name: row.name, total: row.total }));
+}
+
+// Tarih şeridi için: önümüzdeki günlerde başlayan etkinlik sayıları (tarih filtresi hariç).
+export async function countByDay(
+  filters: EventFilters,
+  days = 14,
+): Promise<Record<string, number>> {
+  const start = new Date(trDayStart(new Date()));
+  const end = new Date(start.getTime() + days * DAY_MS);
+  const day = sql<string>`to_char(${events.startsAt} at time zone 'Europe/Istanbul', 'YYYY-MM-DD')`;
+
+  const rows = await db
+    .select({ day, total: sql<number>`count(*)::int` })
+    .from(events)
+    .where(
+      and(
+        conditions(
+          { ...filters, when: "all", from: undefined, to: undefined },
+          true,
+          await getShowRealEvents(),
+        ),
+        gte(events.startsAt, start),
+        lt(events.startsAt, end),
+      ),
+    )
+    .groupBy(day);
+
+  const result: Record<string, number> = {};
+
+  for (const row of rows) {
+    result[row.day] = row.total;
+  }
+
+  return result;
 }
 
 // Ana sayfa için: yaklaşan ilk etkinlikler.

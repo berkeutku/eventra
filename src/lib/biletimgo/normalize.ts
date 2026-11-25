@@ -216,6 +216,7 @@ export function parseTurkeyDateTime(value: unknown): Date | null {
 const CATEGORY_MAP: Record<string, EventCategory> = {
   tiyatro: "theatre",
   workshop: "workshop",
+  atölye: "workshop",
   eğitim: "workshop",
   parti: "party",
   konser: "concert",
@@ -223,11 +224,28 @@ const CATEGORY_MAP: Record<string, EventCategory> = {
   standup: "standup",
   "stand up": "standup",
   "çocuk etkinlikleri": "kids",
+  çocuk: "kids",
+  "çocuk tiyatrosu": "kids",
   festival: "festival",
+  spor: "match",
+  maç: "match",
+  futbol: "match",
+  basketbol: "match",
+  voleybol: "match",
+  üniversite: "university",
+  "üniversite etkinlikleri": "university",
+  kampüs: "university",
   sahne: "other",
   topluluklar: "other",
   diğer: "other",
 };
+
+// Eventra'ya hiç alınmayan kategoriler: atölye/eğitim ve çocuk etkinlikleri.
+// Bu etkinlikler senkronda atlanır; daha önce alınmış olanlar iki senkron sonra pasifleşir.
+export const EXCLUDED_CATEGORIES: ReadonlySet<EventCategory> = new Set<EventCategory>([
+  "workshop",
+  "kids",
+]);
 
 export function mapCategory(label: string): EventCategory {
   const key = label.trim().toLocaleLowerCase("tr-TR");

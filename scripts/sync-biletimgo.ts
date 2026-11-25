@@ -26,6 +26,8 @@ async function main() {
   console.log("durum:", result.status, result.errorCode ? `(${result.errorCode})` : "");
   console.log("API'den gelen:", result.fetched, "| geçerli:", result.valid, "| atlanan:", result.skipped, "| yinelenen:", result.duplicates);
   console.log("atlama nedenleri:", JSON.stringify(result.skippedReasons));
+  console.log("hariç tutulan (atölye/çocuk):", result.excluded);
+  console.log("kategoriler:", JSON.stringify(result.categoryCounts));
   console.log("eklenecek/eklenen:", result.inserted, "| güncellenecek/güncellenen:", result.updated, "| yeniden aktif:", result.reactivated);
   console.log("görünmeyen (aktif):", result.missed, "| pasifleşecek/pasifleşen:", result.deactivated, "| korunan kimlik değişimi:", result.protectedChanges);
 

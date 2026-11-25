@@ -119,31 +119,19 @@ p {
     transform: scale(1.06);
   }
 }
-/* Açılış ekranı: oturum başına bir kez, süresiz; kullanıcı "Girişe geç" diyene kadar açık kalır.
-   Yalnızca JS hiç çalışmazsa sayfa kilitli kalmasın diye 90 sn sonra kendiliğinden kapanır.
-   Düzenin tamamı bu dosyadadır (Tailwind sınıflarına bağlı değildir). */
-.splash-root {
+/* Açılış görseli: oturum başına bir kez, 3 saniye. Saf CSS ile kendiliğinden kaybolur. */
+#eventra-splash {
   display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  overflow: hidden;
-  background: #2a0f45;
-  color: #fff;
 }
 
-html[data-splash="1"] .splash-root {
-  display: block;
-  animation: splash-failsafe 90s linear forwards;
+html[data-splash="1"] #eventra-splash {
+  display: flex;
+  animation: splash-life 3s ease forwards;
 }
 
-html[data-splash="1"] body {
-  overflow: hidden;
-}
-
-@keyframes splash-failsafe {
+@keyframes splash-life {
   0%,
-  99% {
+  88% {
     opacity: 1;
     visibility: visible;
   }
@@ -153,185 +141,39 @@ html[data-splash="1"] body {
   }
 }
 
-/* Bilgisayarda afişin arkasını dolduran bulanık kopya. Telefonda görünmez. */
-.splash-backdrop {
-  object-fit: cover;
-  filter: blur(28px) saturate(1.2) brightness(0.55);
-  transform: scale(1.15);
-  display: none;
+.splash-spotlight {
+  background: conic-gradient(
+    from 180deg at 50% -8%,
+    transparent 152deg,
+    rgba(170, 150, 255, 0.28) 180deg,
+    transparent 208deg
+  );
 }
 
-/* Telefon: afiş ekranı tamamen kaplar (taşan kısım kırpılır), ortalanır. */
-/* Kırpma sağdan yapılır ki soldaki başlık paneli hep görünsün. */
-.splash-poster {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: max(100vw, calc(100dvh * 941 / 1672));
-  aspect-ratio: 941 / 1672;
-  transform: translateY(-50%);
-  container-type: inline-size;
+html[data-splash="1"] .splash-logo {
+  animation: splash-pop 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) both;
 }
 
-.splash-poster-img {
-  object-fit: cover;
+html[data-splash="1"] .splash-word {
+  animation: splash-rise 0.8s ease 0.55s both;
 }
 
-/* Afişteki boş panelin konumu (görsel koordinatlarına göre yüzde). */
-.splash-titlebox {
-  position: absolute;
-  left: 9%;
-  top: 46%;
-  width: 57%;
-  height: 20%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  transform: rotate(-3deg);
-  pointer-events: none;
-  font-weight: 800;
+html[data-splash="1"] .splash-tag {
+  animation: splash-rise 0.8s ease 1s both;
 }
 
-.splash-kicker {
-  margin: 0;
-  font-size: 2.6cqw;
-  letter-spacing: 0.14em;
-  color: #5a1a6e;
+html[data-splash="1"] .splash-bar {
+  animation: splash-bar 2.6s linear 0.2s both;
 }
 
-.splash-title {
-  margin: 0.6cqw 0 0;
-  font-size: 13.5cqw;
-  font-weight: 800;
-  line-height: 0.95;
-  letter-spacing: -0.01em;
-  color: #fff8ec;
-  -webkit-text-stroke: 0.55cqw #3b0d55;
-  paint-order: stroke fill;
-  text-shadow:
-    0.9cqw 0.9cqw 0 #ff2e93,
-    1.8cqw 1.8cqw 0 #3b0d55;
+html[data-splash="1"] .splash-glow {
+  animation: splash-glow 3s ease-in-out both;
 }
 
-.splash-tagline {
-  margin: 1.6cqw 0 0;
-  font-size: 4cqw;
-  color: #3b0d55;
-}
-
-.splash-bottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 90px 24px max(22px, env(safe-area-inset-bottom));
-  text-align: center;
-  background: linear-gradient(180deg, transparent 0%, rgba(30, 8, 48, 0.85) 45%, rgba(30, 8, 48, 0.95) 100%);
-}
-
-.splash-sub {
-  margin: 0;
-  max-width: 24rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.92);
-}
-
-.splash-cta {
-  margin-top: 14px;
-  padding: 15px 40px;
-  border: 3px solid #2a0f45;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  color: #2a0f45;
-  background: linear-gradient(180deg, #ffe680, #ff9d5c 55%, #ff5fa2);
-  box-shadow: 0 5px 0 #2a0f45, 0 0 34px rgba(255, 79, 180, 0.6);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.splash-cta:hover {
-  transform: translateY(-2px);
-}
-
-.splash-cta:active {
-  transform: translateY(3px);
-  box-shadow: 0 2px 0 #2a0f45, 0 0 24px rgba(255, 79, 180, 0.5);
-}
-
-/* Bilgisayar / yatay ekran: afiş tam boy ortada, arkası bulanık, düğme afişin altında. */
-@media (min-aspect-ratio: 3 / 4) {
-  .splash-backdrop {
-    display: block;
-  }
-
-  .splash-poster {
-    left: 50%;
-    top: 0;
-    height: 100dvh;
-    width: auto;
-    transform: translateX(-50%);
-    box-shadow: 0 0 80px rgba(0, 0, 0, 0.55);
-  }
-
-  .splash-bottom {
-    left: 50%;
-    right: auto;
-    width: calc(100dvh * 941 / 1672);
-    transform: translateX(-50%);
-    padding-top: 70px;
-  }
-
-  .splash-sub {
-    font-size: 0.95rem;
-  }
-}
-
-html[data-splash="1"] .splash-poster {
-  animation: splash-fade 0.8s ease both;
-}
-
-html[data-splash="1"] .splash-title {
-  animation: splash-slam 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) 0.6s both;
-}
-
-html[data-splash="1"] .splash-kicker {
-  animation: splash-rise 0.6s ease 0.4s both;
-}
-
-html[data-splash="1"] .splash-tagline {
-  animation: splash-rise 0.6s ease 1s both;
-}
-
-html[data-splash="1"] .splash-sub {
-  animation: splash-rise 0.6s ease 1.2s both;
-}
-
-html[data-splash="1"] .splash-cta {
-  animation: splash-rise 0.6s ease 1.4s both;
-}
-
-@keyframes splash-fade {
+@keyframes splash-pop {
   from {
     opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes splash-slam {
-  from {
-    opacity: 0;
-    transform: scale(1.5);
+    transform: translateY(20px) scale(0.84);
   }
   to {
     opacity: 1;
@@ -350,13 +192,35 @@ html[data-splash="1"] .splash-cta {
   }
 }
 
+@keyframes splash-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes splash-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  html[data-splash="1"] .splash-poster,
-  html[data-splash="1"] .splash-title,
-  html[data-splash="1"] .splash-kicker,
-  html[data-splash="1"] .splash-tagline,
-  html[data-splash="1"] .splash-sub,
-  html[data-splash="1"] .splash-cta {
+  html[data-splash="1"] #eventra-splash {
+    animation-duration: 1.6s;
+  }
+
+  html[data-splash="1"] .splash-logo,
+  html[data-splash="1"] .splash-word,
+  html[data-splash="1"] .splash-tag,
+  html[data-splash="1"] .splash-bar,
+  html[data-splash="1"] .splash-glow {
     animation: none;
   }
 }

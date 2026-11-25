@@ -4,14 +4,21 @@ import CategoryChips from "@/components/CategoryChips";
 import EventCard from "@/components/EventCard";
 import EventFilters from "@/components/EventFilters";
 import { categoryMeta, type EventCategory } from "@/data/events";
+import { getShowRealEvents } from "@/lib/app-settings";
+import {
+  eventsHref,
+  parseDay,
+  parseWhen,
+  upcomingDays,
+  type FilterState,
+} from "@/lib/event-filter-rules";
 import {
   countByCategory,
+  countByDay,
   listCities,
   listEvents,
-  parseWhen,
   type SourceFilter,
 } from "@/lib/events";
-import { getShowRealEvents } from "@/lib/app-settings";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +32,8 @@ type Param = string | string[] | undefined;
 type Props = {
   searchParams: Promise<Record<string, Param>>;
 };
+
+const DAY_STRIP = 14;
 
 function first(value: Param): string {
   return (Array.isArray(value) ? value[0] : value) ?? "";
@@ -45,7 +54,13 @@ export default async function EventsPage({ searchParams }: Props) {
     realEnabled && (sourceRaw === "real" || sourceRaw === "demo")
       ? sourceRaw
       : "all";
-  const when = parseWhen(first(params.tarih));
+
+  // Özel tarih: geçerli bir başlangıç günü yoksa tarih filtresi uygulanmaz.
+  const bas = parseDay(first(params.bas));
+  const bit = bas ? parseDay(first(params.bit)) : null;
+  const parsedWhen = parseWhen(first(params.tarih));
+  const when = parsedWhen === "custom" && !bas ? "all" : parsedWhen;
+
   const pageRaw = Number.parseInt(first(params.sayfa), 10);
   const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
 
@@ -55,39 +70,26 @@ export default async function EventsPage({ searchParams }: Props) {
     query: query || undefined,
     source,
     when,
+    from: when === "custom" ? (bas ?? undefined) : undefined,
+    to: when === "custom" ? (bit ?? undefined) : undefined,
   };
 
-  const [result, cities, counts] = await Promise.all([
+  const state: FilterState = {
+    q: query || undefined,
+    kategori: category,
+    sehir: cityKey || undefined,
+    kaynak: source !== "all" ? source : undefined,
+    tarih: when !== "all" ? when : undefined,
+    bas: when === "custom" ? (bas ?? undefined) : undefined,
+    bit: when === "custom" ? (bit ?? undefined) : undefined,
+  };
+
+  const [result, cities, counts, dayCounts] = await Promise.all([
     listEvents({ ...filters, page }),
     listCities(filters),
     countByCategory(filters),
+    countByDay(filters, DAY_STRIP),
   ]);
-
-  function pageHref(target: number): string {
-    const search = new URLSearchParams();
-
-    if (category) {
-      search.set("kategori", category);
-    }
-    if (cityKey) {
-      search.set("sehir", cityKey);
-    }
-    if (query) {
-      search.set("q", query);
-    }
-    if (source !== "all") {
-      search.set("kaynak", source);
-    }
-    if (when !== "all") {
-      search.set("tarih", when);
-    }
-    if (target > 1) {
-      search.set("sayfa", String(target));
-    }
-
-    const text = search.toString();
-    return text ? `/events?${text}` : "/events";
-  }
 
   const navButton =
     "rounded-full border border-line bg-white px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-lilac";
@@ -103,12 +105,12 @@ export default async function EventsPage({ searchParams }: Props) {
         </p>
 
         <EventFilters
-          query={query}
-          cityKey={cityKey}
-          cities={cities}
-          category={category}
-          source={source}
+          state={state}
           when={when}
+          cities={cities}
+          days={upcomingDays(new Date(), DAY_STRIP)}
+          dayCounts={dayCounts}
+          source={source}
           showSource={realEnabled}
         />
 
@@ -117,16 +119,18 @@ export default async function EventsPage({ searchParams }: Props) {
             active={category}
             counts={counts}
             params={{
-              sehir: cityKey || undefined,
-              q: query || undefined,
-              kaynak: source !== "all" ? source : undefined,
-              tarih: when !== "all" ? when : undefined,
+              sehir: state.sehir,
+              q: state.q,
+              kaynak: state.kaynak,
+              tarih: state.tarih,
+              bas: state.bas,
+              bit: state.bit,
             }}
           />
         </div>
 
         <p className="mt-4 text-sm text-muted">
-          {result.total} etkinlik ·{" "}
+          <strong className="text-ink">{result.total} etkinlik</strong> ·{" "}
           {realEnabled
             ? "Gerçek etkinlik bilgileri biletimGO'dan alınır ve değişebilir. Demo etkinlik etiketli olanlar kurgusaldır."
             : "Bu sayfadaki etkinlikler demo amaçlı kurgusal verilerdir."}
@@ -136,7 +140,7 @@ export default async function EventsPage({ searchParams }: Props) {
           <div className="mt-10 rounded-3xl bg-white p-10 text-center ring-1 ring-black/5">
             <p className="font-bold text-ink">Bu filtrelere uyan etkinlik yok</p>
             <p className="mt-1 text-sm text-muted">
-              Filtreleri değiştirebilir ya da tüm etkinlikleri görebilirsin.
+              Başka bir gün ya da şehir seçebilir veya tüm etkinlikleri görebilirsin.
             </p>
             <Link
               href="/events"
@@ -159,7 +163,7 @@ export default async function EventsPage({ searchParams }: Props) {
             className="mt-10 flex flex-wrap items-center justify-center gap-4"
           >
             {result.page > 1 ? (
-              <Link href={pageHref(result.page - 1)} className={navButton}>
+              <Link href={eventsHref(state, {}, result.page - 1)} className={navButton}>
                 Önceki
               </Link>
             ) : null}
@@ -167,7 +171,7 @@ export default async function EventsPage({ searchParams }: Props) {
               Sayfa {result.page} / {result.pageCount}
             </span>
             {result.page < result.pageCount ? (
-              <Link href={pageHref(result.page + 1)} className={navButton}>
+              <Link href={eventsHref(state, {}, result.page + 1)} className={navButton}>
                 Sonraki
               </Link>
             ) : null}

@@ -2,6 +2,7 @@ import {
   LIMITS,
   cleanInline,
   htmlToText,
+  EXCLUDED_CATEGORIES,
   mapCategory,
   normalizeCityKey,
   normalizeEvent,
@@ -48,6 +49,11 @@ check("KONSER büyük harfle -> concert", mapCategory("KONSER") === "concert");
 check("Festival -> festival", mapCategory("Festival") === "festival");
 check("bilinmeyen kategori -> other", mapCategory("Bilinmeyen Bir Şey") === "other");
 check("prototip anahtarı güvenli (constructor -> other)", mapCategory("constructor") === "other");
+check("Spor -> match", mapCategory("Spor") === "match");
+check("Üniversite -> university", mapCategory("Üniversite") === "university");
+check("Atölye -> workshop", mapCategory("Atölye") === "workshop");
+check("atölye ve çocuk hariç tutulur", EXCLUDED_CATEGORIES.has("workshop") && EXCLUDED_CATEGORIES.has("kids"));
+check("konser, maç, üniversite hariç tutulmaz", !EXCLUDED_CATEGORIES.has("concert") && !EXCLUDED_CATEGORIES.has("match") && !EXCLUDED_CATEGORIES.has("university"));
 
 // Şehir anahtarı
 check("İstanbul -> istanbul", normalizeCityKey("İstanbul") === "istanbul");
