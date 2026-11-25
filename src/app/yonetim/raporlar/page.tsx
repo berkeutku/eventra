@@ -157,9 +157,12 @@ export default async function ReportsAdminPage({
               const status: CaseStatus = isCaseStatus(report.status)
                 ? report.status
                 : "open";
-              const reason = isReportReason(report.reason)
-                ? reportReasonLabels[report.reason]
-                : report.reason;
+              const isProfileReport = report.reason === "profile";
+              const reason = isProfileReport
+                ? "Profil: uygunsuz fotoğraf ya da yazı"
+                : isReportReason(report.reason)
+                  ? reportReasonLabels[report.reason]
+                  : report.reason;
 
               return (
                 <li
@@ -190,13 +193,26 @@ export default async function ReportsAdminPage({
 
                   <p className="mt-4 text-sm text-muted">
                     <strong className="text-ink">{report.reporterName}</strong>
-                    , <strong className="text-ink">{report.reportedName}</strong>{" "}
+                    ,{" "}
+                    <Link
+                      href={"/profil/" + report.reportedId}
+                      className="font-bold text-violet hover:underline"
+                    >
+                      {report.reportedName}
+                    </Link>{" "}
                     kişisini bildirdi.
                   </p>
 
                   {report.details && (
                     <p className="mt-3 whitespace-pre-wrap break-words rounded-2xl bg-surface p-4 text-sm text-ink">
                       {report.details}
+                    </p>
+                  )}
+
+                  {isProfileReport && (
+                    <p className="mt-3 text-sm text-muted">
+                      Profili açıp altta &quot;Yönetici: profil moderasyonu&quot;
+                      kutusundan fotoğrafı ya da yazıyı kaldırabilirsin.
                     </p>
                   )}
 

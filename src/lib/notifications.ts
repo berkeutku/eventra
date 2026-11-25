@@ -9,7 +9,8 @@ export type NotificationType = "ride_joined" | "ride_left" | "ride_cancelled"
   | "ride_updated"
   | "ride_message"
   | "ride_request_match"
-  | "ride_status";
+  | "ride_status"
+  | "profile_moderated";
 
 export type NotificationItem = {
   id: string;

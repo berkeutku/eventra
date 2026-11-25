@@ -2,9 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProfileHeroCard from "@/components/ProfileHeroCard";
+import ProfileReportForm from "@/components/ProfileReportForm";
 import { LinkButton } from "@/components/ui/Button";
+import { isAdminEmail } from "@/lib/admin";
 import { getCurrentUser } from "@/lib/auth";
 import { getProfileData, getProfileStats } from "@/lib/profile";
+import {
+  adminClearProfileTextAction,
+  adminRemoveAvatarAction,
+} from "./moderation-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +23,34 @@ type Props = { params: Promise<{ id: string }> };
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function ModerationForm({
+  userId,
+  action,
+  label,
+  confirmText,
+}: {
+  userId: string;
+  action: (formData: FormData) => Promise<void>;
+  label: string;
+  confirmText: string;
+}) {
+  return (
+    <form action={action} className="rounded-2xl bg-white p-4 ring-1 ring-line">
+      <input type="hidden" name="userId" value={userId} />
+      <label className="flex items-start gap-2 text-sm text-ink">
+        <input type="checkbox" name="confirm" required className="mt-1 h-4 w-4" />
+        <span>{confirmText}</span>
+      </label>
+      <button
+        type="submit"
+        className="mt-3 inline-flex min-h-11 items-center rounded-full bg-coral-ink px-5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+      >
+        {label}
+      </button>
+    </form>
+  );
+}
 
 export default async function PublicProfilePage({ params }: Props) {
   const { id } = await params;
@@ -59,6 +93,7 @@ export default async function PublicProfilePage({ params }: Props) {
   }
 
   const isOwn = viewer.id === profile.id;
+  const isAdmin = isAdminEmail(viewer.email);
   const rating =
     stats.rating === null ? "—" : stats.rating.toFixed(1).replace(".", ",");
 
@@ -88,8 +123,7 @@ export default async function PublicProfilePage({ params }: Props) {
             { label: "Yolcu olarak", value: String(stats.joinedRides) },
             {
               label: "Puan",
-              value:
-                stats.ratingCount > 0 ? `★ ${rating}` : "—",
+              value: stats.ratingCount > 0 ? `★ ${rating}` : "—",
             },
             { label: "Değerlendirme", value: String(stats.ratingCount) },
           ]}
@@ -100,6 +134,49 @@ export default async function PublicProfilePage({ params }: Props) {
           ve kişisel açıklamaları doğrulamaz. Yolculuk sırasında rahatsız olursan
           yolculuk sayfasından şikâyet edebilirsin.
         </p>
+
+        {!isOwn ? <ProfileReportForm userId={profile.id} /> : null}
+
+        {isAdmin ? (
+          <section
+            aria-label="Yönetici işlemleri"
+            className="rounded-3xl bg-peach p-6 ring-1 ring-coral/30"
+          >
+            <h2 className="text-lg font-extrabold tracking-tight text-coral-ink">
+              Yönetici: profil moderasyonu
+            </h2>
+            <p className="mt-1 text-sm text-ink">
+              Yalnızca yöneticiler bu kutuyu görür. Uygunsuz içerikte kullan;
+              işlem geri alınamaz. Kullanıcıya uygulama içi bildirim gider.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {profile.avatarV ? (
+                <ModerationForm
+                  userId={profile.id}
+                  action={adminRemoveAvatarAction}
+                  label="Fotoğrafı kaldır"
+                  confirmText="Bu kullanıcının profil fotoğrafını kaldırmak istiyorum."
+                />
+              ) : (
+                <p className="rounded-2xl bg-white p-4 text-sm text-muted ring-1 ring-line">
+                  Profil fotoğrafı yok.
+                </p>
+              )}
+              {profile.bio || profile.city ? (
+                <ModerationForm
+                  userId={profile.id}
+                  action={adminClearProfileTextAction}
+                  label="Yazıyı ve şehri temizle"
+                  confirmText="Tanıtım yazısını ve şehri silmek istiyorum."
+                />
+              ) : (
+                <p className="rounded-2xl bg-white p-4 text-sm text-muted ring-1 ring-line">
+                  Tanıtım yazısı ve şehir boş.
+                </p>
+              )}
+            </div>
+          </section>
+        ) : null}
       </div>
     </main>
   );

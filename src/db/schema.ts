@@ -236,6 +236,7 @@ export const notificationType = pgEnum("notification_type", [
   "ride_message",
   "ride_request_match",
   "ride_status",
+  "profile_moderated",
 ]);
 
 // Uygulama içi bildirimler. Her bildirimin tek bir alıcısı vardır.
@@ -414,7 +415,7 @@ export const userReports = pgTable(
     index("user_reports_reporter_time_idx").on(table.reporterId, table.createdAt),
     check(
       "user_reports_reason_check",
-      sql`${table.reason} in ('no_show', 'unsafe', 'harassment', 'wrong_info', 'other')`,
+      sql`${table.reason} in ('no_show', 'unsafe', 'harassment', 'wrong_info', 'other', 'profile')`,
     ),
     check(
       "user_reports_status_check",

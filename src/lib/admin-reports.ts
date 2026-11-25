@@ -22,6 +22,7 @@ export type ReportRow = {
   details: string | null;
   status: string;
   createdAt: Date;
+  reportedId: string;
   reporterName: string;
   reportedName: string;
   totalAgainst: number;
@@ -81,6 +82,7 @@ export async function listReports(
     details: row.details,
     status: row.status,
     createdAt: row.createdAt,
+    reportedId: row.reportedId,
     reporterName: row.reporterName,
     reportedName: row.reportedName,
     totalAgainst:
