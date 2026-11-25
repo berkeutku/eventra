@@ -15,6 +15,7 @@ import { pickEventImage } from "@/data/event-images";
 import { categoryMeta } from "@/data/events";
 import { getCurrentUser } from "@/lib/auth";
 import { safeBiletimgoUrl } from "@/lib/biletimgo/normalize";
+import { formatPrice, sourceLabel, venueLine } from "@/lib/event-display";
 import { rideBlockMessages, rideCreationBlockReason } from "@/lib/event-rules";
 import { getEventById } from "@/lib/events";
 import { isFavorite } from "@/lib/favorites";
@@ -129,8 +130,9 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
   const blocked = rideCreationBlockReason(event, now);
   const ticketHref =
     isReal && event.ticketUrl ? safeBiletimgoUrl(event.ticketUrl) : null;
-  const noTickets =
-    event.priceText?.trim().toLocaleLowerCase("tr-TR") === "aktif bilet yok";
+  const price = formatPrice(event.priceText);
+  const noTickets = price.soldOut;
+  const provider = sourceLabel(event.source);
   const verified =
     !isReal && user ? await isTicketVerified(user.id, event.id) : false;
   const verifiedTotal = isReal ? 0 : await countTicketVerifications(event.id);
@@ -167,7 +169,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
   const details: { label: string; value: string; icon: IconName }[] = [
     { label: "Tarih", value: dateValue, icon: "calendar" },
     { label: "Saat", value: timeValue, icon: "clock" },
-    { label: "Mekan", value: `${event.venue}, ${event.city}`, icon: "pin" },
+    { label: "Mekan", value: venueLine(event.venue, event.city), icon: "pin" },
   ];
 
   if (isReal && event.address) {
@@ -211,7 +213,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                 {meta.label}
               </span>
               <span className="-rotate-2 rounded-lg bg-sun px-3 py-1.5 text-xs font-bold text-[#412402]">
-                {isReal ? "biletimGO" : "Demo etkinlik"}
+                {provider}
               </span>
             </div>
             <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight sm:text-6xl">
@@ -314,11 +316,11 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
           {isReal && (
             <div className={card}>
               <h2 className="text-2xl font-extrabold tracking-tight">Bilet</h2>
-              {event.priceText && (
+              {price.text && (
                 <p className="mt-3 text-ink">
-                  Fiyat: <strong>{event.priceText}</strong>{" "}
+                  Fiyat: <strong>{price.text}</strong>{" "}
                   <span className="text-sm text-muted">
-                    (para birimi ve güncel fiyat için biletimGO sayfasına bak)
+                    (güncel fiyat ve kategoriler için {provider} sayfasına bak)
                   </span>
                 </p>
               )}
@@ -330,12 +332,12 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                     rel="noopener noreferrer sponsored"
                     className="inline-flex items-center gap-2 rounded-full bg-violet px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-sky"
                   >
-                    Bileti biletimGO&apos;da gör
+                    Bileti {provider}&apos;da gör
                     <Icon name="arrow" className="h-4 w-4" />
                   </a>
                 ) : (
                   <p className="text-sm font-bold text-ink">
-                    Şu an biletimGO&apos;da aktif bilet görünmüyor.
+                    Şu an {provider}&apos;da satışta bilet görünmüyor.
                   </p>
                 )}
               </div>
